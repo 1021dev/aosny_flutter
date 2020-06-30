@@ -52,11 +52,11 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 UserAccountsDrawerHeader(
                   
                   decoration: BoxDecoration(
-                      color: Colors.blueGrey,
+                      color: Colors.lightBlue[400],
                   ),
                   accountName: Container(
                   height: 20,
-                  child:Text("Bryndle B. Selmar",
+                  child:Text("Test User",
                   
                   style: TextStyle(fontSize: 16,color: Colors.white,fontWeight: FontWeight.normal),
                     //style: Theme.of(context).textTheme.headline
@@ -137,7 +137,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                     width: MediaQuery.of(context).size.width/30,
                     height: MediaQuery.of(context).size.height/35,
                     decoration: BoxDecoration(
-                      color: Colors.blueGrey,
+                      color: Colors.red,
                       borderRadius: BorderRadius.circular(10)
                     ),
                     child:  Text("1",style: TextStyle(color:Colors.white),),
@@ -183,7 +183,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                     height: 50,
                     width: 250,
                     decoration: BoxDecoration(
-                      color: Colors.blueGrey,
+                      color: Colors.indigo[800],
                       borderRadius: BorderRadius.circular(30)
                     ),
                     child:GestureDetector( 

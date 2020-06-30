@@ -2,6 +2,7 @@ import 'package:aosny_services/api/student_api.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
+import 'package:aosny_services/screens/widgets/add_session_note.dart';
 import 'package:aosny_services/screens/widgets/drawer/session_note.dart';
 import 'package:flutter/material.dart';
 
@@ -51,7 +52,7 @@ with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-        backgroundColor: Colors.blueGrey,
+        backgroundColor: Colors.lightBlue[200],
         title: Text("Enter sessions",style: TextStyle(fontSize: 18,fontWeight: FontWeight.normal),),
 
         leading: IconButton(
@@ -92,7 +93,7 @@ with SingleTickerProviderStateMixin {
                         child: Text(snapshot.data[index].firstName[0],
                         style: TextStyle(color:Colors.white),),
                         decoration: BoxDecoration(
-                          color: Colors.blueGrey,
+                          color: Colors.lightBlue[200],
                           borderRadius: BorderRadius.circular(80)
                         ),
                       ),
@@ -106,7 +107,7 @@ with SingleTickerProviderStateMixin {
                       ) ,
                       onTap:(){
                         Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context)=>SessionNote(
+                          builder: (context)=>AddSessionNote(
                           selectedStudentName: snapshot.data[index].firstName,
                           eventType: "Enter",
                           longTermGpDropDownList: widget.longTermGpDropDownList,
@@ -114,7 +115,7 @@ with SingleTickerProviderStateMixin {
                         )));
                       } ,
                     ),
-                    Divider()
+                    //Divider()
                   ],
                 );
               }

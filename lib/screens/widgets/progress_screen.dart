@@ -68,7 +68,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
   @override
   Widget build(BuildContext context) {
    return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Colors.white,
       body: Container(
         alignment: Alignment.topCenter,
         padding: const EdgeInsets.all(10),
@@ -93,7 +93,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       FlatButton(
-                        color: Colors.blueGrey,
+                        color: Colors.blue,
                         onPressed: () async {
                          showDateTimePicker('Start Date');
                         }, 
@@ -105,7 +105,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       ),
       
                       FlatButton(
-                        color: Colors.blueGrey,
+                        color: Colors.blue,
                         onPressed: (){
                           showDateTimePicker('End Date');
                         }, 

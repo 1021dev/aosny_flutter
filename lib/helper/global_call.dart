@@ -6,6 +6,7 @@ class GlobalCall{
 
  static var token = "";
  static var email  = "";
+ static var sessionID = "";
 
  static List<StudentsDetailsModel> globaleStudentList = new List();
 

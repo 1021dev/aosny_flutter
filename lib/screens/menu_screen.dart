@@ -134,7 +134,7 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
       Widget build(BuildContext context) {
        return Scaffold(
           appBar: AppBar(
-            backgroundColor: Colors.blueGrey,
+            backgroundColor: Colors.lightBlue[200],
             title: Text("My Sessions",style: TextStyle(fontSize: 18,fontWeight: FontWeight.normal),),
             leading: IconButton(
               iconSize: 30,
@@ -239,9 +239,9 @@ print('GlobalCall().isHistoryOrProgress');
             child:  new TabBar(
               
              
-                            indicatorColor: Colors.blueGrey,
-                            unselectedLabelColor: Colors.grey,
-                            labelColor: Colors.blueGrey,
+                            indicatorColor: Colors.lightBlue,
+                            unselectedLabelColor: Colors.black,
+                            labelColor: Colors.black,
                             tabs: [
                               
                               Tab(

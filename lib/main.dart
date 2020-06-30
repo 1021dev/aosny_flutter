@@ -15,7 +15,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'AOSNY Services',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.blue//,
+        //primaryColor: Colors.indigo[200]
       ),
       home:  SplashScreenPage(),
     );

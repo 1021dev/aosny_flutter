@@ -79,8 +79,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     setState(() {
 
-      isStartDate = false;
-      isEndDate   = false;
+      isStartDate = true;
+      isEndDate   = true;
 
     });
     super.initState();
@@ -125,7 +125,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         "_firstDayOfTheweek _firstDayOfTheweek _firstDayOfTheweek:$_firstDayOfTheweek");
 
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Colors.grey[100],
       drawer: DrawerWidget(),
       body:
          Container(
@@ -200,7 +200,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           FlatButton(
-                              color: Colors.blueGrey,
+                              color: Colors.blue,
                               onPressed: () async {
                                 showDateTimePicker('Start Date');
                               },
@@ -214,7 +214,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               )),*/
                           ),
                           FlatButton(
-                              color: Colors.blueGrey,
+                              color: Colors.blue,
                               onPressed: () {
                                 showDateTimePicker('End Date');
                               },
@@ -268,7 +268,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                           style: TextStyle(
                                               color: Colors.grey,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 10)),
+                                              fontSize: 14)),
                                       SizedBox(height: 4),
 
                                       snapshot.data[index].fname ==
@@ -308,7 +308,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                               decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   borderRadius:
-                                                      BorderRadius.circular(5)),
+                                                      BorderRadius.circular(8),border:Border.all(width:0.5)),
+
                                               height: MediaQuery.of(context)
                                                       .size
                                                       .height /
@@ -369,23 +370,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                                         crossAxisAlignment:
                                                             CrossAxisAlignment
                                                                 .start,
-                                                        children: <Widget>[
-                                                          Text(
-                                                              "Torah V'daath Ave",
-                                                              style: TextStyle(
-                                                                  fontSize: 12,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .normal,
-                                                                  color: Colors
-                                                                      .grey)),
-                                                          Text(
-                                                            "L",
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .grey),
-                                                          )
-                                                        ],
+//                                                        children: <Widget>[
+//                                                          Text(
+//                                                              "Torah V'daath Ave",
+//                                                              style: TextStyle(
+//                                                                  fontSize: 12,
+//                                                                  fontWeight:
+//                                                                      FontWeight
+//                                                                          .normal,
+//                                                                  color: Colors
+//                                                                      .grey)),
+//                                                          Text(
+//                                                            "L",
+//                                                            style: TextStyle(
+//                                                                color: Colors
+//                                                                    .grey),
+//                                                          )
+//                                                        ],
                                                       ),
                                                       editButton(context,
                                                           snapshot.data[index]),
@@ -403,7 +404,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           );
                         } else {
                           return Center(
-                            child: Text("Haven't found any data"),
+                            child: Text("No data found. Please check dates and/or filters."),
                           );
                         }
                       }),
@@ -420,6 +421,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget editButton(BuildContext context, var data) {
     return InkWell(
         onTap: () {
+
+        
+          GlobalCall.sessionID =  data.iD.toString();
+
+          
+        
+
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => SessionNote(
                     eventType: "Edit",

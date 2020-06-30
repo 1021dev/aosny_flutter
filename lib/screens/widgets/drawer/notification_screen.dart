@@ -10,7 +10,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueGrey,
+        backgroundColor: Colors.lightBlue[200],
         title: Text(
           "Notifications",
           style: TextStyle(fontSize: 16),
@@ -22,10 +22,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
         child: Column(
           children: <Widget>[
             ListTile(
-              leading: CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.grey,
-              ),
+//              leading: CircleAvatar(
+//                radius: 30,
+//                backgroundColor: Colors.yellow,
+//              ),
               title: Text(
                 "Please ensure progress reports are complete by Feb 15th 2020",
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),

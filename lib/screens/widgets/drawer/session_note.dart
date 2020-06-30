@@ -1,4 +1,5 @@
 import 'package:aosny_services/api/complete_session_details_api.dart';
+import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
@@ -6,6 +7,7 @@ import 'package:aosny_services/models/selected_longTerm_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:aosny_services/api/env.dart';
 
 class SessionNote extends StatefulWidget {
   final String selectedStudentName;
@@ -14,7 +16,7 @@ class SessionNote extends StatefulWidget {
   
   final List<LongTermGpDropDownModel> longTermGpDropDownList ;
   final  List<ShortTermGpModel> shortTermGpList;
-  SessionNote({this.selectedStudentName, this.eventType, this.noteText, this.longTermGpDropDownList, this.shortTermGpList});
+  SessionNote({this.selectedStudentName, this.eventType, this.noteText, this.longTermGpDropDownList, this.shortTermGpList, String sessionId});
   @override
   _SessionNoteState createState() => _SessionNoteState();
 }
@@ -22,7 +24,7 @@ class SessionNote extends StatefulWidget {
 class _SessionNoteState extends State<SessionNote> {
 
   String noteText="",sessionDateTime="",sessionTime="",duration="",sessionEndTime="",
-  locationHomeOrSchool="",settingsGroupOrNot="",sessionType="";
+  locationHomeOrSchool="",settingsGroupOrNot="",sessionType="",sessionIDValue="";
 
   CompleteSessionApi completeSessionApi = new CompleteSessionApi();
   CompleteSessionNotes response;
@@ -190,18 +192,26 @@ class _SessionNoteState extends State<SessionNote> {
   void initState() {
 
     callCompleteSessionApi();
-    
-        
+
+
     
        showDate =  DateFormat('EEEE, MMMM d').format(DateTime.now()).toString();
        selectedTime = new TimeOfDay.now();
        selectedDate = DateTime.now();
-       //print("selectedDate::"+selectedDate.toString());
+      
         super.initState();
+
+
+        
+
+        
+      
+         
+
     
-        for(int i = 0; i< widget.shortTermGpList.length; i++){
+        /*for(int i = 0; i < widget.shortTermGpList.length; i++){
     
-           if(widget.shortTermGpList[i].longGoalID== widget.longTermGpDropDownList[0].longGoalID){
+           if(widget.shortTermGpList[i].longGoalID == widget.longTermGpDropDownList[0].longGoalID){
                             setState(() {
                               selectedShortTermResultListModel.add(SelectedShortTermResultListModel(
                                 selectedId: widget.shortTermGpList[i].longGoalID,
@@ -212,9 +222,7 @@ class _SessionNoteState extends State<SessionNote> {
                           }
                       
         
-                   }
-    
-                 //  print("initState,selectedShortTermResultListModel.length"+selectedShortTermResultListModel.length.toString());
+                   }*/
     
        
       }
@@ -1917,9 +1925,18 @@ class _SessionNoteState extends State<SessionNote> {
         setState(() {
           _isLoading = true;
         });
+
+          sessionIDValue =  GlobalCall.sessionID;        
+         
+        
+
+        //String url = "http://aosapi.pdgcorp.com/api/SessionNote/$sessionIDValue/CompleteSessionNote";
+        String url = baseURL + "SessionNote/$sessionIDValue/CompleteSessionNote";
+
+        
   
 
-      response = await completeSessionApi.getSessionDetails();
+      response = await completeSessionApi.getSessionDetails(url);
 
 
      int codeVal = completeSessionApi.statuscode; 

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:aosny_services/models/progress_amount_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'env.dart';
 
 class ProgressAmountApi{
     
@@ -10,8 +11,10 @@ class ProgressAmountApi{
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString('token');
+    String providerid = prefs.getString('providerid');
 
-    String url = "http://aosapi.pdgcorp.com/api/Provider/051829096/progress?startdate=$sdate&enddate=$endDate";
+    //String url = "http://aosapi.pdgcorp.com/api/Provider/051829096/progress?startdate=$sdate&enddate=$endDate";
+    String url = baseURL + "Provider/" + providerid + "/progress?startdate=$sdate&enddate=$endDate";
     print('URL:::$url');
     List<ProgressAmountModel> result;
 

@@ -5,20 +5,27 @@ import 'package:aosny_services/models/students_details_model.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'env.dart';
 
 class StudentApi{
- 
-  String url = "http://aosapi.pdgcorp.com/api/Provider/051829096/students";
+
+  //String url = "http://aosapi.pdgcorp.com/api/Provider/051829096/students";
 
   //var token = GlobalCall.token;
   
 
   Future<List<StudentsDetailsModel>> getAllStudentsList() async {
 
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
-  
+
+
     String token = prefs.getString('token');
-   
+    String providerid = prefs.getString('providerid');
+
+    String url = baseURL + "Provider/" + providerid + "/students";
+
+
     List<StudentsDetailsModel> result;
 
     return http.get(url,headers:  {HttpHeaders.contentTypeHeader: "application/json", HttpHeaders.authorizationHeader: "Bearer $token"}).then((http.Response response) {

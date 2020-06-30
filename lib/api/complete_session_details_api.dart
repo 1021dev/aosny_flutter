@@ -7,11 +7,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class CompleteSessionApi {
 
 int statuscode;
-Future<CompleteSessionNotes> getSessionDetails() async { 
+Future<CompleteSessionNotes> getSessionDetails(String url) async { 
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString('token');
-    String url = "http://aosapi.pdgcorp.com/api/SessionNote/226628/CompleteSessionNote";  
+
+    print("url in Api::"+url);
+     
     
 
     return http.get(url,headers:  {HttpHeaders.contentTypeHeader: "application/json", HttpHeaders.authorizationHeader: "Bearer $token"}).then((http.Response response) {

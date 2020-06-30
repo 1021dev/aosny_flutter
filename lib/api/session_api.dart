@@ -5,12 +5,14 @@ import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:aosny_services/models/gp_dropdown_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'env.dart';
 
 class SessionApi{
   
   Future<List<LongTermGpDropDownModel>> getLongTermGpDropDownList() async {
 
-   String url =  "http://aosapi.pdgcorp.com/api/Student/246689970/ltgoals";
+   //String url =  "http://aosapi.pdgcorp.com/api/Student/246689970/ltgoals";
+   String url =  baseURL + "Student/246689970/ltgoals";
     
     List<LongTermGpDropDownModel> result;
 
@@ -54,7 +56,8 @@ class SessionApi{
   
      String token = prefs.getString('token');
 
-   String url = "http://aosapi.pdgcorp.com/api/Student/246689970/stgoals";
+   //String url = "http://aosapi.pdgcorp.com/api/Student/246689970/stgoals";
+   String url = baseURL + "Student/246689970/stgoals";
 
     List<ShortTermGpModel> result;
 
