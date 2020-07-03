@@ -9,10 +9,10 @@ import 'env.dart';
 
 class SessionApi{
   
-  Future<List<LongTermGpDropDownModel>> getLongTermGpDropDownList() async {
+  Future<List<LongTermGpDropDownModel>> getLongTermGpDropDownList(int studentId) async {
 
    //String url =  "http://aosapi.pdgcorp.com/api/Student/246689970/ltgoals";
-   String url =  baseURL + "Student/246689970/ltgoals";
+   String url =  baseURL + "Student/$studentId/ltgoals";
     
     List<LongTermGpDropDownModel> result;
 
@@ -46,7 +46,7 @@ class SessionApi{
     });
   }
 
-  Future<List<ShortTermGpModel>> getShortTermGpList() async {
+  Future<List<ShortTermGpModel>> getShortTermGpList(int studentId) async {
 
   //var token = GlobalCall.token;
 
@@ -57,7 +57,7 @@ class SessionApi{
      String token = prefs.getString('token');
 
    //String url = "http://aosapi.pdgcorp.com/api/Student/246689970/stgoals";
-   String url = baseURL + "Student/246689970/stgoals";
+   String url = baseURL + "Student/$studentId/stgoals";
 
     List<ShortTermGpModel> result;
 
