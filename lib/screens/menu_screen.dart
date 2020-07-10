@@ -112,6 +112,35 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
   int selectedIndex = 0;
   TabController tabController;
   int tabIndex = 0;
+  List<OverflowMenuItem> appBarPopupActions(
+      BuildContext context) {
+    return [
+      OverflowMenuItem(
+        title: 'Dates',
+        onTap: () {
+          setState(() {
+            GlobalCall.filterDates = !GlobalCall.filterDates;
+          });
+        },
+      ),
+      OverflowMenuItem(
+        title: 'Students',
+        onTap: () {
+          setState(() {
+            GlobalCall.filterStudents = !GlobalCall.filterStudents;
+          });
+        },
+      ),
+      OverflowMenuItem(
+        title: 'Session Types',
+        onTap: () {
+          setState(() {
+            GlobalCall.filterSessionTypes = !GlobalCall.filterSessionTypes;
+          });
+        },
+      ),
+    ];
+  }
 
   _handleTabSelection() {
     setState(() {
@@ -153,6 +182,38 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
         backgroundColor: Colors.lightBlue[200],
         title: Text("My Sessions",style: TextStyle(fontSize: 18, fontWeight: FontWeight.normal),),
         centerTitle: true,
+        actions: <Widget>[
+          PopupMenuButton<OverflowMenuItem>(
+            icon: Icon(Icons.filter_list),
+            offset: Offset(0, 100),
+            onSelected: (OverflowMenuItem item) => item.onTap(),
+            itemBuilder: (BuildContext context) {
+              return appBarPopupActions(context)
+                  .map((OverflowMenuItem item) {
+                    bool isChecked = false;
+                    if (item.title == 'Dates') {
+                      isChecked = GlobalCall.filterDates;
+                    } else if (item.title == 'Students') {
+                      isChecked = GlobalCall.filterStudents;
+                    } else if (item.title == 'Session Types') {
+                      isChecked = GlobalCall.filterSessionTypes;
+                    }
+                return PopupMenuItem<OverflowMenuItem>(
+                  value: item,
+                  child: Row(
+                    children: <Widget>[
+                      isChecked ? Icon(Icons.check, color: Colors.blue,) : Icon(Icons.check, color: Colors.transparent,),
+                      Text(
+                        item.title,
+                        style: TextStyle(color: item.textColor),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList();
+            },
+          ),
+        ],
       ),
       drawer: DrawerWidget(
         currentIndex: selectedIndex,
@@ -209,4 +270,16 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
       ),
     );
   }
+}
+
+class OverflowMenuItem {
+  final String title;
+  final Color textColor;
+  final VoidCallback onTap;
+
+  OverflowMenuItem({
+    this.title,
+    this.textColor = Colors.black,
+    this.onTap,
+  });
 }

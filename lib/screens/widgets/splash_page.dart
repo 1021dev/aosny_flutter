@@ -29,13 +29,13 @@ class _MyAppState extends State<SplashScreenPage> {
   @override
   Widget build(BuildContext context) {
     return new SplashScreen(
-      seconds: 5,
+      seconds: 3,
       navigateAfterSeconds: new LoginScreen(),
       //title: new Text('Welcome In SplashScreen'),
-      image: new Image.asset('assets/logo/auditory_logo.png'),
+      image: new Image.asset('assets/logo/ic_logo.png'),
       backgroundColor: Colors.white,
       styleTextUnderTheLoader: new TextStyle(),
-      photoSize: 100.0,
+      photoSize: MediaQuery.of(context).size.width * 0.5,
       loaderColor: Colors.blue,
     );
   }

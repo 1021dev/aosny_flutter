@@ -175,7 +175,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
             decoration:BoxDecoration(
               // color: Colors.red,
                 image: DecorationImage(
-                    image: AssetImage("assets/logo/auditory_logo.png"),
+                    image: AssetImage("assets/logo/ic_logo.png"),
                     fit: BoxFit.contain
                 )
             ),
