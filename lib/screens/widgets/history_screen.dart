@@ -5,7 +5,6 @@ import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/history_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
-import 'package:aosny_services/screens/widgets/drawer/drawer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -128,102 +127,114 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Container(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    isFiltered
-                        ? Container(
-                      alignment: Alignment.center,
-                      height: 40,
-                      width: 165,
-                      padding: const EdgeInsets.all(5),
-                      color: Colors.white,
-                      child: DropdownButton(
-                        underline: Container(),
-                        hint: dropDownValue == null
-                            ? Text("Students")
-                            : Text(
-                          dropDownValue,
-                          style: TextStyle(color: Colors.black),
+              child: Column(
+                children: <Widget>[
+                  GlobalCall.filterDates ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Flexible(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Flexible(
+                              child: Text('Start Date'),
+                            ),
+                            FlatButton(
+                              color: Colors.blue,
+                              onPressed: () async {
+                                showDateTimePicker('Start Date', GlobalCall.startDate);
+                              },
+                              child: isStartDate ?
+                              Text(
+                                startDate,
+                                style: TextStyle(color:Colors.white),
+                              ) :
+                              Text(
+                                "Select Start Date",
+                                style: TextStyle(color:Colors.white),
+                              ),
+                            ),
+                          ],
                         ),
-                        isExpanded: true,
-                        elevation: 5,
-                        icon: Icon(Icons.keyboard_arrow_down),
-                        iconSize: 30.0,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 8),
+                      ),
+                      Flexible(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Flexible(
+                              child: Text('End Date'),
+                            ),
+                            FlatButton(
+                              color: Colors.blue,
+                              onPressed: () {
+                                showDateTimePicker('End Date', GlobalCall.endDate);
+                              },
+                              //child:  Text( "Select End Date",
+                              //  style: TextStyle(color:Colors.white),
+                              child: isEndDate ?
+                              Text(
+                                endDate,
+                                style: TextStyle(color:Colors.white),
+                              ) :
+                              Text(
+                                "Select End Date",
+                                style: TextStyle(color:Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ): Container(),
+                  GlobalCall.filterStudents ? Container(
+                    alignment: Alignment.center,
+                    height: 40,
+                    padding: const EdgeInsets.all(5),
+                    color: Colors.white,
+                    child: DropdownButton(
+                      underline: Container(),
+                      hint: dropDownValue == null
+                          ? Text("Students")
+                          : Text(
+                        dropDownValue,
                         style: TextStyle(color: Colors.black),
-                        items: GlobalCall.globaleStudentList.map(
-                              (val) {
-                            return DropdownMenuItem<StudentsDetailsModel>(
-                              value: val,
-                              child: Text(
-                                  val.firstName + " " + val.lastName),
-                            );
-                          },
-                        ).toList(),
-                        onChanged: (val) {
-                          setState(
-                                () {
-                              dropDownValue =
-                                  val.firstName + " " + val.lastName;
-
-                              studentID = val.id.toString();
-                              print(studentID);
-                            },
+                      ),
+                      isExpanded: true,
+                      elevation: 5,
+                      icon: Icon(Icons.keyboard_arrow_down),
+                      iconSize: 30.0,
+                      style: TextStyle(color: Colors.black),
+                      items: GlobalCall.globaleStudentList.map(
+                            (val) {
+                          return DropdownMenuItem<StudentsDetailsModel>(
+                            value: val,
+                            child: Text(
+                                val.firstName + " " + val.lastName),
                           );
                         },
-                      ),
-                    )
-                        : Container(),
-                    IconButton(
-                        icon: isFiltered ? Icon(Icons.remove_circle_outline) :Icon(Icons.add_circle_outline),
-                        onPressed: () {
-                          setState(() {
-                            isFiltered = !isFiltered;
-                          });
-                        }),
-                  ],
-                )),
-            isFiltered
-                ?
-            // listOfFilter()
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                FlatButton(
-                  color: Colors.blue,
-                  onPressed: () async {
-                    showDateTimePicker('Start Date', GlobalCall.startDate);
-                  },
-                  child: isStartDate ?
-                  Text(
-                    startDate,
-                    style: TextStyle(color:Colors.white),
-                  ) :
-                  Text(
-                    "Select Start Date",
-                    style: TextStyle(color:Colors.white),
-                  ),
-                ),
-                FlatButton(
-                  color: Colors.blue,
-                  onPressed: () {
-                    showDateTimePicker('End Date', GlobalCall.endDate);
-                  },
-                  //child:  Text( "Select End Date",
-                  //  style: TextStyle(color:Colors.white),
-                  child: isEndDate ?
-                  Text(
-                    endDate,
-                    style: TextStyle(color:Colors.white),
-                  ) :
-                  Text(
-                    "Select End Date",
-                    style: TextStyle(color:Colors.white),
-                  ),
-                ),
-              ],
-            )
-                : Container(),
+                      ).toList(),
+                      onChanged: (val) {
+                        setState(
+                              () {
+                            dropDownValue =
+                                val.firstName + " " + val.lastName;
+                            studentID = val.id.toString();
+                            print(studentID);
+                          },
+                        );
+                      },
+                    ),
+                  ) : Container(),
+                  Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: Divider(height: 0, thickness: 0.5,),
+                  )
+                ],
+              ),
+            ),
             Expanded(
               child: Container(
                 child: RefreshIndicator(
@@ -251,8 +262,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                 itemBuilder: (context, index) {
                                   return Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: <Widget>[
                                       SizedBox(height: 10),
                                       Text(
@@ -262,115 +272,119 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                           style: TextStyle(
                                               color: Colors.grey,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 14)),
+                                              fontSize: 14,
+                                          ),
+                                      ),
                                       SizedBox(height: 4),
 
                                       snapshot.data[index].fname ==
                                           'School Closed'
                                           ? Container(
-                                        padding: const EdgeInsets.only(
-                                            left: 5),
-                                        height: MediaQuery.of(context)
-                                            .size
-                                            .height /
-                                            20,
+                                        padding: const EdgeInsets.only(left: 5),
                                         decoration: BoxDecoration(
                                             color: Colors.orange,
-                                            borderRadius:
-                                            BorderRadius.circular(5)),
+                                            borderRadius: BorderRadius.circular(5),
+                                        ),
                                         child: Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .spaceBetween,
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: <Widget>[
                                             Text(
                                               "School Closed",
                                               style: TextStyle(
                                                   fontWeight:
                                                   FontWeight.bold,
-                                                  fontSize: 20),
+                                                  fontSize: 20,
+                                              ),
                                             ),
                                             IconButton(
                                                 icon: Icon(Icons.cancel),
                                                 color: Colors.red,
-                                                onPressed: () {})
+                                                onPressed: () {},
+                                            )
                                           ],
                                         ),
                                       )
-                                          : Container(
-                                        padding: const EdgeInsets.all(5),
-                                        decoration: BoxDecoration(
+                                          : GestureDetector(
+                                        onTap: () {
+                                          GlobalCall.sessionID = snapshot.data[index].iD.toString();
+                                          String studentId = snapshot.data[index].osis.toString().replaceAll('-', '');
+                                          int id = int.parse(studentId);
+                                          StudentsDetailsModel studentsDetailsModel = getStudent(id);
+                                          if (studentsDetailsModel == null) {
+                                            return ;
+                                          }
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => AddEditSessionNote(
+                                                eventType: "Edit",
+                                                student: studentsDetailsModel,
+                                                sessionId: snapshot.data[index].iD.toString(),
+                                                selectedStudentName: snapshot.data[index].fname + ' ' + snapshot.data[index].lname,
+                                                noteText: snapshot.data[index].notes,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius:
-                                            BorderRadius.circular(8),border:Border.all(width:0.5)),
-
-                                        height: 100,
-                                        width: MediaQuery.of(context)
-                                            .size
-                                            .width,
-                                        child: Column(
-                                          children: <Widget>[
-                                            Row(
-                                              mainAxisAlignment:
-                                              MainAxisAlignment
-                                                  .spaceBetween,
-                                              children: <Widget>[
-                                                Text(
-                                                  '${snapshot.data[index].stime} - ${snapshot.data[index].etime}',
-                                                  style: TextStyle(
-                                                      fontSize: 11),
-                                                ),
-                                                InkWell(
-                                                  child: Icon(
-                                                    Icons.check_circle,
-                                                    color: Colors.green,
+                                            borderRadius: BorderRadius.circular(8),
+                                            border:Border.all(width:0.5),
+                                          ),
+                                          child: Column(
+                                            children: <Widget>[
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: <Widget>[
+                                                  Text(
+                                                    '${snapshot.data[index].stime} - ${snapshot.data[index].etime}',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                    ),
                                                   ),
-                                                  onTap: () {},
-                                                )
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                              MainAxisAlignment
-                                                  .spaceBetween,
-                                              children: <Widget>[
-                                                Text(
-                                                  '${snapshot.data[index].fname} ${snapshot.data[index].lname}',
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                      FontWeight.bold,
-                                                      fontSize: 16),
-                                                ),
-                                                Text(
-                                                  'Session Note Entered',
-                                                  style: TextStyle(
-                                                      color: Colors.grey,
-                                                      fontSize: 11),
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                              MainAxisAlignment
-                                                  .spaceBetween,
-                                              children: <Widget>[
-                                                Column(
-                                                  mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .start,
-                                                  crossAxisAlignment:
-                                                  CrossAxisAlignment
-                                                      .start,
-                                                ),
-                                                editButton(context,
-                                                    snapshot.data[index]),
-                                              ],
-                                            ),
-                                          ],
+                                                  InkWell(
+                                                    child: Icon(
+                                                      Icons.check_circle,
+                                                      color: Colors.green,
+                                                    ),
+                                                    onTap: () {},
+                                                  )
+                                                ],
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: <Widget>[
+                                                  Text(
+                                                    '${snapshot.data[index].fname} ${snapshot.data[index].lname}',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'Session Note Entered',
+                                                    style: TextStyle(
+                                                        color: Colors.grey,
+                                                        fontSize: 11),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: <Widget>[
+                                                  Column(
+                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                  ),
+//                                                editButton(context,
+//                                                    snapshot.data[index]),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                      // SizedBox(height:30),
-                                      //Divider(color:Colors.grey,height: 10,),
                                     ],
                                   );
                                 }),

@@ -21,5 +21,8 @@ class GlobalCall extends ChangeNotifier{
  static CategoryList completedActivity = new CategoryList();
  static CategoryList jointAttention = new CategoryList();
  static CategoryList activities = new CategoryList();
+ static bool filterDates = false;
+ static bool filterStudents = false;
+ static bool filterSessionTypes = false;
 
 }

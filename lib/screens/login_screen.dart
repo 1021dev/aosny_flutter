@@ -30,21 +30,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void initState() {
-    _emailController.text = 'test@gmail.com';
-    _passwordController.text = '123';
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+
+    double minWidth = width > height ? height : width;
     return Scaffold(
       backgroundColor: Colors.white,
       body:
       ModalProgressHUD(
         inAsyncCall: _isLoading,
-        child:
-
-        SafeArea(
+        child: SafeArea(
           child: SingleChildScrollView(
             child: Center(
               child: Form(
@@ -57,12 +58,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: <Widget>[
                         SizedBox(height: 62.0),
                         Container(
-                          height: 100,
-                          width: MediaQuery.of(context).size.width / 2,
+                          height: minWidth / 2,
+                          width: minWidth / 2,
                           decoration: BoxDecoration(
                               image: DecorationImage(
                                   image:
-                                  AssetImage("assets/logo/auditory_logo.png"),
+                                  AssetImage("assets/logo/ic_logo.png"),
                                   fit: BoxFit.contain)),
                         ),
                         SizedBox(height: 48.0),
@@ -215,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
 
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MenuScreen()),
       );
@@ -252,7 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void handleTimeout() {
     if (GlobalCall.token.length > 33) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MenuScreen()),
       );
