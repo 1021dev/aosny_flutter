@@ -362,12 +362,6 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                       fontSize: 16,
                                                     ),
                                                   ),
-                                                  Text(
-                                                    'Session Note Entered',
-                                                    style: TextStyle(
-                                                        color: Colors.grey,
-                                                        fontSize: 11),
-                                                  ),
                                                 ],
                                               ),
                                               Row(
