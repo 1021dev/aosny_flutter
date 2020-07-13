@@ -1,4 +1,5 @@
 import 'package:aosny_services/api/progress_amount_api.dart';
+import 'package:aosny_services/helper/global_call.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:aosny_services/models/progress_amount_model.dart';
@@ -24,8 +25,8 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
   bool isStart = false;
   bool isEnd = false;
   DateTime selectedCurrentDate;
-  String selectedStartDate = '09/01/2019';
-  String selectedEndDate = '11/01/2019';
+  DateTime selectedStartDate;
+  DateTime selectedEndDate;
 
   String startDate =" ";
   String endDate=" ";
@@ -37,31 +38,34 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
   }
 
   showDateTimePicker(String whichStringType)async{
-    final datePick= await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2018),
-      lastDate: DateTime(2030),
-    );
-    if(whichStringType == 'Start Date'){
-      if(datePick!=null && datePick != selectedStartDate){
-        setState(() {
 
+    if(whichStringType == 'Start Date'){
+      final datePick= await showDatePicker(
+        context: context,
+        initialDate: selectedStartDate ?? DateTime.now(),
+        firstDate: DateTime(2018),
+        lastDate: DateTime(2030),
+      );
+      if(datePick != null && datePick != selectedStartDate){
+        setState(() {
+          selectedStartDate = datePick;
           startDate = DateFormat('MM/dd/yyyy').format(datePick);
           isStart = true;
-
-
         });
       }
 
     }else{
-      if(datePick!=null && datePick != selectedEndDate){
+      final datePick= await showDatePicker(
+        context: context,
+        initialDate: selectedEndDate ?? DateTime.now(),
+        firstDate: DateTime(2018),
+        lastDate: DateTime(2030),
+      );
+      if(datePick != null && datePick != selectedEndDate){
         setState(() {
-
+          selectedEndDate = datePick;
           endDate = DateFormat('MM/dd/yyyy').format(datePick);
           isEnd = true;
-
-
         });
       }
     }
@@ -70,6 +74,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: Colors.white,
       body: Container(
@@ -77,40 +82,45 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
         padding: const EdgeInsets.all(10),
         child: Column(
           children: <Widget>[
-            Container(
-              width: MediaQuery.of(context).size.width,
-              alignment: Alignment.centerRight,
-              child:IconButton(
-                  icon: isFiltered ? Icon(Icons.remove_circle_outline) :Icon(Icons.add_circle_outline),
-                  onPressed: (){
-                    setState(() {
-                      isFiltered = !isFiltered;
-                    });
-                  }
-              ),),
-            isFiltered ?
-            // listOfFilter()
+            GlobalCall.filterDates ?
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 FlatButton(
-                    color: Colors.blue,
-                    onPressed: () async {
-                      showDateTimePicker('Start Date');
-                    },
-
-                    child: isStart ? Text(startDate,style: TextStyle(color:Colors.white)) : Text("Select Start Date",style: TextStyle(color:Colors.white),)
+                  color: Colors.blue,
+                  onPressed: () async {
+                    showDateTimePicker('Start Date');
+                  },
+                  child: isStart ? Text(
+                    startDate,
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ) : Text("Select Start Date",
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
                 FlatButton(
-                    color: Colors.blue,
-                    onPressed: (){
-                      showDateTimePicker('End Date');
-                    },
-                    child: isEnd ? Text(endDate,style: TextStyle(color:Colors.white)) : Text("Select End Date",style: TextStyle(color:Colors.white),)
+                  color: Colors.blue,
+                  onPressed: (){
+                    showDateTimePicker('End Date');
+                  },
+                  child: isEnd ? Text(
+                    endDate,style: TextStyle(
+                    color:Colors.white,
+                  ),
+                  ) : Text("Select End Date",
+                    style: TextStyle(
+                      color:Colors.white,
+                    ),
+                  ),
                 )
               ],
             )
                 :Container(),
+            Divider(height: 0, thickness: 0.5,),
             Text("This Week",
               style: TextStyle(color:Colors.grey, fontSize:16),
             ),
@@ -121,8 +131,8 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                 child: RefreshIndicator(
                   key: refreshKey,
                   child:  FutureBuilder<List<ProgressAmountModel>>(
-                      future: progressAmountApi.getProgressAmountList(startDate,endDate),
-                      builder: (BuildContext context ,AsyncSnapshot<List<ProgressAmountModel>> snapshot) {
+                      future: progressAmountApi.getProgressAmountList(startDate, endDate),
+                      builder: (BuildContext context , AsyncSnapshot<List<ProgressAmountModel>> snapshot) {
                         if (!snapshot.hasData) {
                           return Center(
                             child: CircularProgressIndicator(),
@@ -130,11 +140,12 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                         } else if (snapshot.hasError) {
                           return Text("${snapshot.error}");
                         }
-
-
                         if(snapshot.data.length > 0){
 
-                          return ListView.builder(
+                          return ListView.separated(
+                              separatorBuilder: (context, index) {
+                                return Divider(height: 0, thickness: 0.5,);
+                              },
                               itemCount: snapshot.data.length,
                               itemBuilder: (context, index){
                                 String  mandatedMins = durationToString(snapshot.data[index].mandatedMins);
@@ -305,8 +316,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
     await Future.delayed(Duration(seconds: 4));
 
     setState(() {
-
-      progressAmountApi.getProgressAmountList(selectedStartDate,selectedEndDate);
+      progressAmountApi.getProgressAmountList(startDate, endDate);
       print("pull api called");
       //list = List.generate(random.nextInt(10), (i) => "Item $i");
     });
@@ -331,16 +341,9 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
     print("before 7 days::::"+endDate.toString());
 
     setState(() {
-
       isStart =  false ;
       isEnd  = false ;
-
-
     });
-
-
-
-
     super.initState();
   }
 

@@ -1,6 +1,7 @@
 import 'package:aosny_services/api/login_token_api.dart';
 import 'package:aosny_services/api/preload_api.dart';
 import 'package:aosny_services/helper/global_call.dart';
+import 'package:aosny_services/helper/utils.dart';
 import 'package:aosny_services/models/login_post_data_model.dart';
 import 'package:aosny_services/models/login_response.dart';
 import 'package:aosny_services/screens/menu_screen.dart';
@@ -27,9 +28,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
-
+  SharedPreferences preferences;
   @override
   void initState() {
+    SharedPreferences.getInstance().then((value) {
+      preferences = value;
+      setState(() {
+        emailString = preferences.getString('email');
+        passwordString = preferences.getString('password');
+        _emailController.text = emailString;
+        _passwordController.text = passwordString;
+      });
+    });
     super.initState();
   }
 
@@ -73,9 +83,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           TextFormField(
                             validator: validateEmail,
-
-                            //obscureText: true,
-
+                            textInputAction: TextInputAction.next,
+                            keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
                               hintText: 'Email',
                               contentPadding:
@@ -197,47 +206,30 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setString('email', response.email);
       prefs.setString('providerid', response.providerid);
       prefs.setString('token', response.token);
+      prefs.setString('password', passwordString);
 
       print(response.token);
 
-      Fluttertoast.showToast(
-          msg: "Logged In Successfully",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIos: 5,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 16.0);
-
+      Utils().showToast(
+        context,
+        'Logged In Successfully',
+      );
       setState(() {
-
         _isLoading = false;
-
       });
-
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MenuScreen()),
       );
-
     } else {
       setState(() {
-
         _isLoading = false;
-
       });
-
-
-      Fluttertoast.showToast(
-          msg: response.message,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIos: 5,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 16.0);
-
+      Utils().showToast(
+        context,
+        response.message,
+      );
     }
   }
 

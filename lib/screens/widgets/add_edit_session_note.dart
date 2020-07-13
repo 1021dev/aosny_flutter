@@ -1,8 +1,8 @@
 import 'package:aosny_services/api/add_session_api.dart';
 import 'package:aosny_services/api/complete_session_details_api.dart';
-import 'package:aosny_services/api/preload_api.dart';
 import 'package:aosny_services/api/session_api.dart';
 import 'package:aosny_services/helper/global_call.dart';
+import 'package:aosny_services/helper/utils.dart';
 import 'package:aosny_services/models/add_session_response.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
@@ -10,6 +10,7 @@ import 'package:aosny_services/models/gp_dropdown_model.dart';
 import 'package:aosny_services/models/selected_longTerm_model.dart';
 import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/students_details_model.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -234,9 +235,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
   Future<Null> _selectTime(BuildContext context) async {
     final TimeOfDay response = await showTimePicker(
       context: context,
-      initialTime:  TimeOfDay.now(),
+      initialTime: pickedTimedt ?? TimeOfDay.now(),
     );
-    if (response != null && response != pickedTime) {
+    if (response != null && response != TimeOfDay.fromDateTime(pickedTimedt)) {
       final dt = DateTime( DateTime.now().year, DateTime.now().month, DateTime.now().day, response.hour, response.minute);
       final format = DateFormat.jm();
       setState(() {
@@ -354,7 +355,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                       onTap: () async {
                                         final datePick= await showDatePicker(
                                           context: context,
-                                          initialDate: DateTime.now(),
+                                          initialDate: selectedDate ?? DateTime.now(),
                                           firstDate: DateTime(2018),
                                           lastDate: DateTime(2030),
                                         );
@@ -362,8 +363,6 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                           setState(() {
                                             selectedDate=datePick;
                                             isSelectecDate= true;
-
-
                                           });
                                         }
                                       },
@@ -384,19 +383,27 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                     Column(
                                       children: <Widget>[
                                         Text("Start Time",
-                                            style: TextStyle(color:Colors.black,fontWeight: FontWeight.bold)),
+                                            style: TextStyle(
+                                                color:Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                            ),
+                                        ),
                                         InkWell(
                                           child: Container(
-                                            height: 44,
+                                              height: 44,
                                               alignment: Alignment.center,
                                               width: MediaQuery.of(context).size.width/4,
                                               decoration: BoxDecoration(
-                                                  border: Border.all(color:Colors.grey)
+                                                border: Border.all(color:Colors.grey),
                                               ),
-                                              //pickedTime.toString()
-                                              //sessionTime == "" ? Text(""):Text(sessionTime)
-                                              child:  Text(pickedTime.toString())
-
+                                              child:  Text(
+                                                pickedTime.toString(),
+                                                style: TextStyle(
+                                                  color:Colors.black,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
                                           ),
                                           onTap: (){
                                             setState(() {
@@ -436,12 +443,15 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                                 width: MediaQuery.of(context).size.width/8.5,
                                                 decoration: BoxDecoration(
                                                   border: Border.all(color:Colors.grey,width: 0.5),
-
                                                 ),
-
-                                                //duration == "" ? Text("") :  Text(duration)
-                                                child:  Text(finalNumber.toString())
-
+                                                child:  Text(
+                                                  finalNumber.toString(),
+                                                  style: TextStyle(
+                                                    color:Colors.black,
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
                                             ),
                                             InkWell(
                                               child: Container(
@@ -468,20 +478,27 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                     Column(
                                       children: <Widget>[
                                         Text("End Time",
+                                          style: TextStyle(
+                                            color:Colors.black,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Container(
+                                          height: 44,
+                                          alignment: Alignment.center,
+                                          width: MediaQuery.of(context).size.width/4,
+                                          decoration: BoxDecoration(
+                                              border: Border.all(color:Colors.grey)
+                                          ),
+                                          child: Text(
+                                            DateFormat.jm().format(pickedTimedt.add(new Duration(minutes: finalNumber))).toString(),//"10:21 PM",
                                             style: TextStyle(
-                                              color:Colors.grey,
+                                              color:Colors.black,
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
-                                            )
-                                        ),
-                                        //sessionEndTime ==""?Text(""):
-                                        Text(
-                                            DateFormat.jm().format(pickedTimedt.add(new Duration(minutes:30))).toString(),//"10:21 PM",
-                                            style: TextStyle(
-                                                color:Colors.black,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                            )
+                                            ),
+                                          ),
+
                                         ),
                                       ],
                                     ),
@@ -893,11 +910,11 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                               setState(() {
                                 selectedShortTermResultListModel.add(
                                     SelectedShortTermResultListModel(
-                                      id: shortTermGpList[i].shortgoalid,
-                                    selectedId: shortTermGpList[i].longGoalID,
-                                    selectedShortgoaltext: shortTermGpList[i].shortgoaltext,
-                                    checkVal: false
-                                ));
+                                        id: shortTermGpList[i].shortgoalid,
+                                        selectedId: shortTermGpList[i].longGoalID,
+                                        selectedShortgoaltext: shortTermGpList[i].shortgoaltext,
+                                        checkVal: false
+                                    ));
                               });
                             }
                           }
@@ -1230,16 +1247,16 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
                     Padding(padding: EdgeInsets.only(top: 16),),
                     Container(
-                        alignment: Alignment.bottomLeft,
-                        width: MediaQuery.of(context).size.width,
-                        margin: const EdgeInsets.only(left:20,right:20,top:5),
-                        child: Text(
-                          "Notes: (Optional)",
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                          ),
+                      alignment: Alignment.bottomLeft,
+                      width: MediaQuery.of(context).size.width,
+                      margin: const EdgeInsets.only(left:20,right:20,top:5),
+                      child: Text(
+                        "Notes: (Optional)",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.normal,
                         ),
+                      ),
                     ),
 
                     Container(
@@ -1311,44 +1328,44 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
               itemBuilder: (context, index1) {
                 CheckList item = list[index1];
                 return InkWell(
-                    onTap: () {
-                      setState(() {
-                        item.checkVal = !item.checkVal;
-                        list[index1] = item;
-                        activitiesListItems[key] = list;
-                      });
-                    },
-                    splashColor: Color(0xFFEFEFEF),
-                    highlightColor: Color(0xFFEFEFEF),
-                    hoverColor: Color(0xFFEFEFEF),
-                    focusColor: Color(0xFFEFEFEF),
-                    child: Container(
-                      padding: index1 == 0
-                          ? EdgeInsets.only(left: 16, right: 16)
-                          : EdgeInsets.only(left: 24, right: 16),
-                      height: index1 == 0 ? 44 : 36,
-                      color: index1 == 0
-                          ? Color(0xFFc6e2ff)
-                          : Colors.transparent,
-                      child: Row(
-                        children: <Widget>[
-                          index1 == 0
-                              ? (item.checkVal ? Icon(Icons.remove) : Icon(Icons.add))
-                              : (item.checkVal ? Icon(Icons.check_box, color: Colors.blue,) : Icon(Icons.check_box_outline_blank, )),
-                          Padding(
-                            padding: EdgeInsets.only(left: 8),
+                  onTap: () {
+                    setState(() {
+                      item.checkVal = !item.checkVal;
+                      list[index1] = item;
+                      activitiesListItems[key] = list;
+                    });
+                  },
+                  splashColor: Color(0xFFEFEFEF),
+                  highlightColor: Color(0xFFEFEFEF),
+                  hoverColor: Color(0xFFEFEFEF),
+                  focusColor: Color(0xFFEFEFEF),
+                  child: Container(
+                    padding: index1 == 0
+                        ? EdgeInsets.only(left: 16, right: 16)
+                        : EdgeInsets.only(left: 24, right: 16),
+                    height: index1 == 0 ? 44 : 36,
+                    color: index1 == 0
+                        ? Color(0xFFc6e2ff)
+                        : Colors.transparent,
+                    child: Row(
+                      children: <Widget>[
+                        index1 == 0
+                            ? (item.checkVal ? Icon(Icons.remove) : Icon(Icons.add))
+                            : (item.checkVal ? Icon(Icons.check_box, color: Colors.blue,) : Icon(Icons.check_box_outline_blank, )),
+                        Padding(
+                          padding: EdgeInsets.only(left: 8),
+                        ),
+                        Text(
+                          item.title,
+                          style: TextStyle(
+                            color: index1 == 0 ? Colors.black: Colors.black87,
+                            fontSize: index1 == 0 ? 16: 14,
+                            fontWeight: index1 == 0 ? FontWeight.w400: FontWeight.w300,
                           ),
-                          Text(
-                            item.title,
-                            style: TextStyle(
-                              color: index1 == 0 ? Colors.black: Colors.black87,
-                              fontSize: index1 == 0 ? 16: 14,
-                              fontWeight: index1 == 0 ? FontWeight.w400: FontWeight.w300,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
                 );
               },
               separatorBuilder: (context, index1) {
@@ -1614,7 +1631,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         Container(
-          height: 64,
+            height: 64,
             width: MediaQuery.of(context).size.width/4,
             decoration: BoxDecoration(
                 border: Border.all(color:Colors.grey),
@@ -1809,7 +1826,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
         });
       }
 
-      if(locationHomeOrSchool.contains("School")){
+      if(locationHomeOrSchool != null && locationHomeOrSchool.contains("School")){
         setState(() {
           locHomeSelectedButton = false;
           locBuildingSelectedButton = true;
@@ -1839,15 +1856,17 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
       setState(() {
         duration =  completeSessionNotes.duration.toString();
-
+        finalNumber = completeSessionNotes.duration;
         sessionDateTime = completeSessionNotes.sessionDate+" "+completeSessionNotes.sessionTime;
         print("From API datetime:"+sessionDateTime);
         toPassDate = new DateFormat("MM/dd/yy hh:mm:ss").parse(sessionDateTime);
         sessionTime = DateFormat.jm().format(toPassDate);
-
+        selectedDate = toPassDate;
+        pickedTimedt = selectedDate;
+        pickedTime = DateFormat.jm().format(pickedTimedt);
         print(sessionTime);
 
-        endDateTime =  toPassDate.add(Duration(days: 0, hours:0 ,minutes: int.parse(duration)));
+        endDateTime =  toPassDate.add(Duration(days: 0, hours: 0, minutes: int.parse(duration)));
 
         sessionEndTime = DateFormat.jm().format(endDateTime);
 
@@ -2158,32 +2177,22 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
       setState(() {
         _isLoading = false;
       });
-
-      Fluttertoast.showToast(
-          msg: "Session Posted Successfully!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIos: 5,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 16.0);
-
+      Utils().showToast(
+        context,
+        'Session Posted Successfully',
+      );
       Navigator.pop(context);
 
     } else{
 
       setState(() {
-       _isLoading = false;
+        _isLoading = false;
       });
+      Utils().showToast(
+        context,
+        'Some Error Occurred, please try Again',
+      );
 
-      Fluttertoast.showToast(
-          msg: "Some Error Occurred, please try Again!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIos: 5,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 16.0);
     }
   }
 
