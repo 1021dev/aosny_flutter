@@ -246,7 +246,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                           AsyncSnapshot<List<HistoryModel>> snapshot) {
                         if (!snapshot.hasData) {
                           return Center(
-                            child: CircularProgressIndicator(),
+                            child: Container(),
                           );
                         } else if (snapshot.hasError) {
                           return Text("${snapshot.error}");

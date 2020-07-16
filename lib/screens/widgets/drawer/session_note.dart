@@ -2049,32 +2049,19 @@ class _SessionNoteState extends State<SessionNote> {
           });
 
         }
-        settingsGroupOrNot = response.group;
+        settingsGroupOrNot = '${response.group}';
 
         if(settingsGroupOrNot == "1"){
 
           setState(() {
-
             settingGroupSelectedButton = true;
             settingPersonSelectedbutton = false;
-            
           });
-
-          
-
-
         }else{
-
           setState(() {
-
              settingGroupSelectedButton = false;
              settingPersonSelectedbutton = true;
-            
           });
-
-         
-
-
         }
         duration =  response.duration.toString();
         
@@ -2088,38 +2075,12 @@ class _SessionNoteState extends State<SessionNote> {
         endDateTime =  toPassDate.add(Duration(days: 0, hours:0 ,minutes: int.parse(duration)));
 
         sessionEndTime = DateFormat.jm().format(endDateTime);
-
-        print(sessionEndTime);
-
-        
-        
-
-        
-
-        print("In Datetime format"+toPassDate.toString());
-        
-        
-
-        
-        
-
-
-
-
-
       }else{
         setState(() {
           _isLoading = false;
-          
         });
-        
-
       }
-
-
-
-      }
-
+    }
 }
 
 

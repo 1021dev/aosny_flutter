@@ -5,6 +5,7 @@ import 'package:aosny_services/helper/utils.dart';
 import 'package:aosny_services/models/login_post_data_model.dart';
 import 'package:aosny_services/models/login_response.dart';
 import 'package:aosny_services/screens/menu_screen.dart';
+import 'package:aosny_services/screens/signature_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
@@ -28,6 +29,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  FocusNode emailFocus = FocusNode();
+  FocusNode passwordFocus = FocusNode();
   SharedPreferences preferences;
   @override
   void initState() {
@@ -82,9 +85,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           child:
 
                           TextFormField(
+                            focusNode: emailFocus,
                             validator: validateEmail,
                             textInputAction: TextInputAction.next,
                             keyboardType: TextInputType.emailAddress,
+                            onFieldSubmitted: (text) {
+                              FocusScope.of(context).requestFocus(passwordFocus);
+                            },
                             decoration: InputDecoration(
                               hintText: 'Email',
                               contentPadding:
@@ -103,11 +110,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         Container(
                           height: 72,
                           child: TextFormField(
+                            focusNode: passwordFocus,
                             validator: (value) {
                               if (value.isEmpty) {
                                 return 'Please Enter Password';
                               }
                               return null;
+                            },
+                            onFieldSubmitted: (text) async {
+                              FocusScope.of(context).unfocus();
+                              callLoginApi();
                             },
                             autofocus: false,
                             obscureText: true,
@@ -218,9 +230,14 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = false;
       });
 
+//      Navigator.pushReplacement(
+//        context,
+//        MaterialPageRoute(builder: (context) => MenuScreen()),
+//      );
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MenuScreen()),
+        MaterialPageRoute(builder: (context) => SignatureScreen()),
       );
     } else {
       setState(() {

@@ -135,7 +135,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                       builder: (BuildContext context , AsyncSnapshot<List<ProgressAmountModel>> snapshot) {
                         if (!snapshot.hasData) {
                           return Center(
-                            child: CircularProgressIndicator(),
+                            child: Container(),
                           );
                         } else if (snapshot.hasError) {
                           return Text("${snapshot.error}");

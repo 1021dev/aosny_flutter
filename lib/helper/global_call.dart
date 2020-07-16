@@ -16,11 +16,11 @@ class GlobalCall extends ChangeNotifier{
  static DateTime endDate = DateTime.now();
 
  static CategoryList socialPragmatics = new CategoryList();
- static CategoryList outComes = new CategoryList();
  static CategoryList SEITIntervention = new CategoryList();
  static CategoryList completedActivity = new CategoryList();
  static CategoryList jointAttention = new CategoryList();
  static CategoryList activities = new CategoryList();
+ static CategoryList outcomes = new CategoryList();
  static bool filterDates = false;
  static bool filterStudents = false;
  static bool filterSessionTypes = false;

@@ -10,7 +10,8 @@ import 'package:http/http.dart' as http;
 
 Future<LoginResponse> loginApiCall(String url, {Map body}) async {
   
- 
+    print(url);
+    print(body);
 
     return http
         .post(url, body: jsonEncode(body), headers:  {HttpHeaders.contentTypeHeader: "application/json"})

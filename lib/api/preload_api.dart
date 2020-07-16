@@ -14,11 +14,21 @@ class PreLoadApi{
     'CompletedActivity',
     'JointAttention',
     'Activities',
+    'Outcomes',
   ];
   Future<bool> fetchPreLoad() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String token = prefs.getString('token') ?? '';
+
+    if (token == '') {
+      return false;
+    }
+
     for (String key in preloadKeys) {
       await PreLoadApi().getPreLoadData(key);
     }
+    print('load all');
     return true;
   }
 
@@ -28,7 +38,7 @@ class PreLoadApi{
     CategoryList result;
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    String token = prefs.getString('token');
+    String token = prefs.getString('token') ?? '';
 
     return http.get(url,
         headers:  {HttpHeaders.contentTypeHeader: "application/json", HttpHeaders.authorizationHeader: "Bearer $token"}
@@ -53,9 +63,6 @@ class PreLoadApi{
         case "SocialPragmatics":
           GlobalCall.socialPragmatics = result;
           return result;
-        case "Outcomes":
-          GlobalCall.outComes = result;
-          return result;
         case "SEITIntervention":
           GlobalCall.SEITIntervention = result;
           return result;
@@ -67,6 +74,9 @@ class PreLoadApi{
           return result;
         case "Activities":
           GlobalCall.activities = result;
+          return result;
+        case "Outcomes":
+          GlobalCall.outcomes = result;
           return result;
       }
       return result;
