@@ -210,28 +210,31 @@ class CompleteSessionNotes {
   String sessionDate;
   String sessionTime;
   int duration;
-  String group;
+  num group;
   String location;
   String sessionType;
   String notes;
   List<Goals> goals;
   List<Activities> activities;
   int confirmed;
+  int manDateType;
   List<SessionNoteExtrasList> sessionNoteExtrasList;
 
-  CompleteSessionNotes(
-      {this.sessionID,
-      this.sessionDate,
-      this.sessionTime,
-      this.duration,
-      this.group,
-      this.location,
-      this.sessionType,
-      this.notes,
-      this.goals,
-      this.activities,
-      this.confirmed,
-      this.sessionNoteExtrasList});
+  CompleteSessionNotes({
+    this.sessionID,
+    this.sessionDate,
+    this.sessionTime,
+    this.duration,
+    this.group,
+    this.location,
+    this.sessionType,
+    this.notes,
+    this.goals,
+    this.activities,
+    this.confirmed,
+    this.sessionNoteExtrasList,
+    this.manDateType,
+  });
 
   CompleteSessionNotes.fromJson(Map<String, dynamic> json) {
     sessionID = json['SessionID'];
@@ -242,6 +245,7 @@ class CompleteSessionNotes {
     location = json['Location'];
     sessionType = json['SessionType'];
     notes = json['Notes'];
+    manDateType = json['MandateType'];
     if (json['Goals'] != null) {
       goals = new List<Goals>();
       json['Goals'].forEach((v) {

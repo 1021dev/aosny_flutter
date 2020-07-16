@@ -11,12 +11,38 @@ import 'package:aosny_services/models/selected_longTerm_model.dart';
 import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:aosny_services/api/env.dart';
 
+
+List<String> sessionTypeStrings = [
+  'Service Provided',
+  'Service Provided, Makeup',
+  'Student Absent',
+  'Provider Absent',
+  'Student unavailable'
+];
+
+List<Color> sessionColors = [
+  Colors.red,
+  Colors.purple,
+  Colors.green,
+  Colors.blue,
+];
+
+Color getSessionColor(int group, int sessionType) {
+  if (group == 1 && sessionType == 0) {
+    return Colors.green;
+  } else if (group == 2 && sessionType == 0) {
+    return Colors.blue;
+  } else if (sessionType == 2 || sessionType == 3 || sessionType == 4) {
+    return Colors.red;
+  }
+  return Colors.purple;
+}
 class AddEditSessionNote extends StatefulWidget {
   final StudentsDetailsModel student;
   final String selectedStudentName;
@@ -41,8 +67,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
   SessionApi _sessionApi = SessionApi();
   String noteText="",sessionDateTime="",sessionTime="",duration="",sessionEndTime="",
-      locationHomeOrSchool="",settingsGroupOrNot="",sessionType="",sessionIDValue="",confirmedVal="";
+      locationHomeOrSchool="",sessionType="",sessionIDValue="",confirmedVal="";
 
+  int settingsGroupOrNot = 0;
   final myNotesController = TextEditingController();
 
   AddSessionApi addSessionNoteApi = new AddSessionApi();
@@ -54,12 +81,8 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
   bool locHomeSelectedButton= true;
   bool locBuildingSelectedButton = false;
   String _dropDownValue;
-  bool sPSelected = true;
-  bool sPmSelected = false;
-  bool sASelected = false;
-  bool pASelected = false;
-  bool sUSelected = false;
   bool checkedValue = false;
+  int groupType = 1;
   TextEditingController startTimeController = new TextEditingController(text: "9:00 AM");
   TextEditingController showTimeController = new TextEditingController(text: "30");
   DateTime selectedDate;
@@ -82,8 +105,12 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
   // jointAttentionOrEyeContactReview completedActivityReview
 
-  int selectedCAIconIndex = 0;
-  int selectedJAIconIndex = 0;
+  int selectedSPIndex = -1;
+  int selectedSIIndex = -1;
+  int selectedOutComesIndex = -1;
+  int selectedCAIconIndex = -1;
+  int selectedJAIconIndex = -1;
+  int selectedSessionTypeIndex = 0;
 
   bool colorJAPMadeProgress = true;
   bool colorJApartialProgress = false;
@@ -103,13 +130,15 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
   List<ShortTermGpModel> shortTermGpList = new List();
 
   List<CheckList> gPcheckListItems =[];
-  List<CheckList> sPcheckListItems = [];
-  List<CheckList> sIcheckListItems = [];
-  List<CheckList> jAcheckListItems = [];
-  List<CheckList> cAcheckListItems = [];
   Map<int, List<CheckList>> activitiesListItems = {};
 
   int selectedLtGoalId = 0;
+
+  List<CategoryTextAndID> outComesListItems = [];
+  List<CategoryTextAndID> sPcheckListItems = [];
+  List<CategoryTextAndID> sIcheckListItems = [];
+  List<CategoryTextAndID> jAcheckListItems = [];
+  List<CategoryTextAndID> cAcheckListItems = [];
 
   List<IconData> iconsList = [
     Icons.check_circle,
@@ -154,59 +183,63 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
           CheckList(title: model.shortgoaltext, checkVal: false)
       );
     });
-    if (widget.sessionId != null) {
-      callCompleteSessionApi(int.parse(widget.sessionId));
-    } else {
+    if (GlobalCall.socialPragmatics.categoryData.length > 0) {
       if (GlobalCall.socialPragmatics.categoryData.length > 0) {
-        if (GlobalCall.socialPragmatics.categoryData.length > 0) {
-          for (CategoryTextAndID data in GlobalCall.socialPragmatics.categoryData[0].categoryTextAndID){
-            sPcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: false, id: data.categoryTextID));
-          }
-
-        }
-
-        if (GlobalCall.SEITIntervention.categoryData.length > 0) {
-          for (CategoryTextAndID data in GlobalCall.SEITIntervention.categoryData[0].categoryTextAndID){
-            sIcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: false, id: data.categoryTextID));
-          }
-        }
-
-        if (GlobalCall.completedActivity.categoryData.length > 0) {
-          for (CategoryTextAndID data in GlobalCall.completedActivity.categoryData[0].categoryTextAndID){
-            cAcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: false, id: data.categoryTextID));
-          }
-        }
-
-        if (GlobalCall.jointAttention.categoryData.length > 0) {
-          for (CategoryTextAndID data in GlobalCall.jointAttention.categoryData[0].categoryTextAndID){
-            jAcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: false, id: data.categoryTextID));
-          }
-        }
-
-        if (GlobalCall.activities.categoryData.length > 0) {
-          for (CategoryTextAndID data in GlobalCall.activities.categoryData[0].categoryTextAndID){
-            List<CheckList> list = [];
-            list.add(
-                CheckList(
-                  title: data.categoryTextDetail,
-                  checkVal: false,
-                  id: data.categoryTextID,
-                )
-            );
-            for (SubCategoryData subData in data.subCategoryData) {
-              list.add(
-                  CheckList(
-                    title: subData.subCategoryTextDetail,
-                    checkVal: false,
-                    id: subData.subCategoryTextID,
-                  )
-              );
-            }
-            activitiesListItems[data.categoryTextID] = list;
-          }
-        }
+        GlobalCall.socialPragmatics.categoryData[0].categoryTextAndID.forEach((element) {
+          sPcheckListItems.add(element);
+        });
       }
 
+      if (GlobalCall.SEITIntervention.categoryData.length > 0) {
+        GlobalCall.SEITIntervention.categoryData[0].categoryTextAndID.forEach((element) {
+          sIcheckListItems.add(element);
+        });
+      }
+
+      if (GlobalCall.completedActivity.categoryData.length > 0) {
+        GlobalCall.completedActivity.categoryData[0].categoryTextAndID.forEach((element) {
+          cAcheckListItems.add(element);
+        });
+      }
+
+      if (GlobalCall.jointAttention.categoryData.length > 0) {
+        GlobalCall.jointAttention.categoryData[0].categoryTextAndID.forEach((element) {
+          jAcheckListItems.add(element);
+        });
+      }
+
+      if (GlobalCall.outcomes.categoryData.length > 0) {
+        GlobalCall.outcomes.categoryData[0].categoryTextAndID.forEach((element) {
+          outComesListItems.add(element);
+        });
+      }
+      print('${outComesListItems.length}');
+
+      if (GlobalCall.activities.categoryData.length > 0) {
+        for (CategoryTextAndID data in GlobalCall.activities.categoryData[0].categoryTextAndID){
+          List<CheckList> list = [];
+          list.add(
+              CheckList(
+                title: data.categoryTextDetail,
+                checkVal: false,
+                id: data.categoryTextID,
+              )
+          );
+          for (SubCategoryData subData in data.subCategoryData) {
+            list.add(
+                CheckList(
+                  title: subData.subCategoryTextDetail,
+                  checkVal: false,
+                  id: subData.subCategoryTextID,
+                )
+            );
+          }
+          activitiesListItems[data.categoryTextID] = list;
+        }
+      }
+      if (widget.sessionId != null) {
+        callCompleteSessionApi(int.parse(widget.sessionId));
+      }
 
       setState(() {
         _isLoading = false;
@@ -270,7 +303,11 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
         ),
       ),
       body: ModalProgressHUD(
-          inAsyncCall: _isLoading,
+        inAsyncCall: _isLoading,
+        child: new GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
           child: SafeArea(
             child: Container(
               padding: const EdgeInsets.only(left:5,right:5, top:25),
@@ -383,27 +420,27 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                     Column(
                                       children: <Widget>[
                                         Text("Start Time",
-                                            style: TextStyle(
-                                                color:Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                            ),
+                                          style: TextStyle(
+                                            color:Colors.black,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                         InkWell(
                                           child: Container(
-                                              height: 44,
-                                              alignment: Alignment.center,
-                                              width: MediaQuery.of(context).size.width/4,
-                                              decoration: BoxDecoration(
-                                                border: Border.all(color:Colors.grey),
+                                            height: 44,
+                                            alignment: Alignment.center,
+                                            width: MediaQuery.of(context).size.width/4,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(color:Colors.grey),
+                                            ),
+                                            child:  Text(
+                                              pickedTime.toString(),
+                                              style: TextStyle(
+                                                color:Colors.black,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
                                               ),
-                                              child:  Text(
-                                                pickedTime.toString(),
-                                                style: TextStyle(
-                                                  color:Colors.black,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
+                                            ),
                                           ),
                                           onTap: (){
                                             setState(() {
@@ -438,20 +475,20 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                               },
                                             ),
                                             Container(
-                                                height: 44,
-                                                alignment: Alignment.center,
-                                                width: MediaQuery.of(context).size.width/8.5,
-                                                decoration: BoxDecoration(
-                                                  border: Border.all(color:Colors.grey,width: 0.5),
+                                              height: 44,
+                                              alignment: Alignment.center,
+                                              width: MediaQuery.of(context).size.width/8.5,
+                                              decoration: BoxDecoration(
+                                                border: Border.all(color:Colors.grey,width: 0.5),
+                                              ),
+                                              child:  Text(
+                                                finalNumber.toString(),
+                                                style: TextStyle(
+                                                  color:Colors.black,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
-                                                child:  Text(
-                                                  finalNumber.toString(),
-                                                  style: TextStyle(
-                                                    color:Colors.black,
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
+                                              ),
                                             ),
                                             InkWell(
                                               child: Container(
@@ -562,18 +599,18 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                                       width: MediaQuery.of(context).size.width/6.5,
                                                       decoration: BoxDecoration(
                                                           color: locBuildingSelectedButton
-                                                              ?Color(0xff4A4A4A):Colors.white,
+                                                              ? Color(0xff4A4A4A): Colors.white,
                                                           border: Border.all(color:Colors.grey,width: 0.5)
                                                       ),
                                                       child: Icon(Icons.school,
                                                         color: locBuildingSelectedButton
-                                                            ?Colors.white:Color(0xff4A4A4A),
+                                                            ? Colors.white: Color(0xff4A4A4A),
                                                       ),
                                                     ),
                                                     onTap: (){
                                                       setState(() {
+                                                        locHomeSelectedButton = false;
                                                         locBuildingSelectedButton = true;
-                                                        locHomeSelectedButton= false;
                                                       });
                                                     },
 
@@ -598,30 +635,26 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                           ),
                                           Row(
                                             children: <Widget>[
-
                                               Column(
-
                                                   children:<Widget>[
-
                                                     InkWell(
                                                       child: Container(
                                                         height: 44,
                                                         alignment: Alignment.center,
                                                         width: MediaQuery.of(context).size.width/6.5,
                                                         decoration: BoxDecoration(
-                                                            color: settingPersonSelectedbutton
-                                                                ?Color(0xff4A4A4A):Colors.white,
+                                                            color: groupType == 1
+                                                                ? Color(0xff4A4A4A): Colors.white,
                                                             border: Border.all(color:Colors.grey,width: 0.5)
                                                         ),
                                                         child: Icon(Icons.person,
-                                                          color: settingPersonSelectedbutton
-                                                              ?Colors.white:Color(0xff4A4A4A),
+                                                          color: groupType == 1
+                                                              ? Colors.white: Color(0xff4A4A4A),
                                                         ),
                                                       ),
                                                       onTap: (){
                                                         setState(() {
-                                                          settingPersonSelectedbutton = true;
-                                                          settingGroupSelectedButton = false;
+                                                          groupType = 1;
                                                         });
                                                       },
 
@@ -640,19 +673,18 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                                       alignment: Alignment.center,
                                                       width: MediaQuery.of(context).size.width/6.5,
                                                       decoration: BoxDecoration(
-                                                          color: settingGroupSelectedButton
+                                                          color: groupType == 2
                                                               ?Color(0xff4A4A4A):Colors.white,
                                                           border: Border.all(color:Colors.grey,width: 0.5)
                                                       ),
                                                       child: Icon(Icons.group,
-                                                        color: settingGroupSelectedButton
+                                                        color: groupType == 2
                                                             ?Colors.white:Color(0xff4A4A4A),
                                                       ),
                                                     ),
                                                     onTap: (){
                                                       setState(() {
-                                                        settingGroupSelectedButton = true;
-                                                        settingPersonSelectedbutton = false;
+                                                        groupType = 2;
                                                       });
 
                                                     },
@@ -671,154 +703,155 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                   ],
                                 ),
                                 SizedBox(height: 15,),
-                                Container(
-                                  margin: const EdgeInsets.only(left:5,right:5),
-                                  width: MediaQuery.of(context).size.width,
-                                  child: Column(
-                                    children: <Widget>[
-                                      InkWell(
-                                        child: Container(
-                                          padding: const EdgeInsets.only(left:10),
-                                          alignment: Alignment.centerLeft,
-                                          height: 50,
-                                          child: Text("Service Provided",
-                                            style: TextStyle(
-                                              color: sPSelected?Colors.white:Colors.black,
-                                            ),
-                                          ),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color:Colors.grey,width: 0.5),
-                                            color: sPSelected?Colors.blue:Colors.white,
-                                          ),
-                                        ),
-                                        onTap: (){
-                                          setState(() {
-                                            sPSelected = true;
-                                            sPmSelected = false;
-                                            sASelected = false;
-                                            pASelected = false;
-                                            sUSelected = false;
-                                          });
-
-                                        },
-                                      ),
-                                      // Divider(color:Colors.grey),
-                                      InkWell(
-                                        child: Container(
-                                          //  margin: const EdgeInsets.all(5),
-                                            padding: const EdgeInsets.only(left:10),
-                                            alignment: Alignment.centerLeft,
-                                            height: 50,
-                                            child: Text("Service Provided, Makeup",
-                                              style: TextStyle(
-                                                color: sPmSelected?Colors.white:Colors.black,
-                                              ),
-                                            ),
-                                            decoration: BoxDecoration(
-                                              border: Border.all(color:Colors.grey,width: 0.5),
-                                              color: sPmSelected?Colors.blue:Colors.white,
-                                            )
-                                        ),
-                                        onTap: (){
-                                          setState(() {
-                                            sPSelected = false;
-                                            sPmSelected = true;
-                                            sASelected = false;
-                                            pASelected = false;
-                                            sUSelected = false;
-                                          });
-                                        },
-                                      ),
-                                      // Divider(color:Colors.grey),
-                                      InkWell(
-                                        child: Container(
-                                          //  margin: const EdgeInsets.all(5),
-                                          padding: const EdgeInsets.only(left:10),
-                                          alignment: Alignment.centerLeft,
-                                          height: 50,
-                                          child: Text("Student Absent",
-                                            style: TextStyle(
-                                              color: sASelected?Colors.white:Colors.black,
-                                            ),
-                                          ),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color:Colors.grey,width: 0.5),
-                                            color: sASelected?Colors.blue:Colors.white,
-                                          ),
-                                        ),
-                                        onTap: (){
-                                          setState(() {
-                                            sPSelected = false;
-                                            sPmSelected = false;
-                                            sASelected = true;
-                                            pASelected = false;
-                                            sUSelected = false;
-                                          });
-                                        },
-                                      ),
-
-                                      InkWell(
-                                        child: Container(
-                                          //  margin: const EdgeInsets.all(5),
-                                          padding: const EdgeInsets.only(left:10),
-                                          alignment: Alignment.centerLeft,
-                                          height: 50,
-                                          child: Text("Provider Absent",
-                                            style: TextStyle(
-                                              color: pASelected?Colors.white:Colors.black,
-                                            ),
-                                          ),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color:Colors.grey,width: 0.5),
-                                            color: pASelected?Colors.blue:Colors.white,
-                                          ),
-                                        ),
-                                        onTap: (){
-                                          setState(() {
-                                            sPSelected = false;
-                                            sPmSelected = false;
-                                            sASelected = false;
-                                            pASelected = true;
-                                            sUSelected = false;
-                                          });
-                                        },
-                                      ),
-
-                                      InkWell(
-                                        child: Container(
-                                          //  margin: const EdgeInsets.all(5),
-                                          padding: const EdgeInsets.only(left:10),
-                                          alignment: Alignment.centerLeft,
-                                          height: 50,
-                                          child: Text("Student unavailable",
-                                            style: TextStyle(
-                                              color: sUSelected?Colors.white:Colors.black,
-                                            ),
-                                          ),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color:Colors.grey,width: 0.5),
-                                            color: sUSelected?Colors.blue:Colors.white,
-                                          ),
-                                        ),
-                                        onTap: (){
-
-                                          setState(() {
-                                            sPSelected = false;
-                                            sPmSelected = false;
-                                            sASelected = false;
-                                            pASelected = false;
-                                            sUSelected = true;
-                                          });
-
-                                        },
-                                      ),
-
-                                      Padding(
-                                        padding: EdgeInsets.only(top: 16),
-                                      )
-                                    ],
-                                  ),
-                                )
+                                _sessionTypeWidget(),
+//                                Container(
+//                                  margin: const EdgeInsets.only(left:5,right:5),
+//                                  width: MediaQuery.of(context).size.width,
+//                                  child: Column(
+//                                    children: <Widget>[
+//                                      InkWell(
+//                                        child: Container(
+//                                          padding: const EdgeInsets.only(left:10),
+//                                          alignment: Alignment.centerLeft,
+//                                          height: 50,
+//                                          child: Text("Service Provided",
+//                                            style: TextStyle(
+//                                              color: sPSelected?Colors.white:Colors.black,
+//                                            ),
+//                                          ),
+//                                          decoration: BoxDecoration(
+//                                            border: Border.all(color:Colors.grey,width: 0.5),
+//                                            color: sPSelected?Colors.blue:Colors.white,
+//                                          ),
+//                                        ),
+//                                        onTap: (){
+//                                          setState(() {
+//                                            sPSelected = true;
+//                                            sPmSelected = false;
+//                                            sASelected = false;
+//                                            pASelected = false;
+//                                            sUSelected = false;
+//                                          });
+//
+//                                        },
+//                                      ),
+//                                      // Divider(color:Colors.grey),
+//                                      InkWell(
+//                                        child: Container(
+//                                          //  margin: const EdgeInsets.all(5),
+//                                            padding: const EdgeInsets.only(left:10),
+//                                            alignment: Alignment.centerLeft,
+//                                            height: 50,
+//                                            child: Text("Service Provided, Makeup",
+//                                              style: TextStyle(
+//                                                color: sPmSelected?Colors.white:Colors.black,
+//                                              ),
+//                                            ),
+//                                            decoration: BoxDecoration(
+//                                              border: Border.all(color:Colors.grey,width: 0.5),
+//                                              color: sPmSelected?Colors.blue:Colors.white,
+//                                            )
+//                                        ),
+//                                        onTap: (){
+//                                          setState(() {
+//                                            sPSelected = false;
+//                                            sPmSelected = true;
+//                                            sASelected = false;
+//                                            pASelected = false;
+//                                            sUSelected = false;
+//                                          });
+//                                        },
+//                                      ),
+//                                      // Divider(color:Colors.grey),
+//                                      InkWell(
+//                                        child: Container(
+//                                          //  margin: const EdgeInsets.all(5),
+//                                          padding: const EdgeInsets.only(left:10),
+//                                          alignment: Alignment.centerLeft,
+//                                          height: 50,
+//                                          child: Text("Student Absent",
+//                                            style: TextStyle(
+//                                              color: sASelected?Colors.white:Colors.black,
+//                                            ),
+//                                          ),
+//                                          decoration: BoxDecoration(
+//                                            border: Border.all(color:Colors.grey,width: 0.5),
+//                                            color: sASelected?Colors.blue:Colors.white,
+//                                          ),
+//                                        ),
+//                                        onTap: (){
+//                                          setState(() {
+//                                            sPSelected = false;
+//                                            sPmSelected = false;
+//                                            sASelected = true;
+//                                            pASelected = false;
+//                                            sUSelected = false;
+//                                          });
+//                                        },
+//                                      ),
+//
+//                                      InkWell(
+//                                        child: Container(
+//                                          //  margin: const EdgeInsets.all(5),
+//                                          padding: const EdgeInsets.only(left:10),
+//                                          alignment: Alignment.centerLeft,
+//                                          height: 50,
+//                                          child: Text("Provider Absent",
+//                                            style: TextStyle(
+//                                              color: pASelected?Colors.white:Colors.black,
+//                                            ),
+//                                          ),
+//                                          decoration: BoxDecoration(
+//                                            border: Border.all(color:Colors.grey,width: 0.5),
+//                                            color: pASelected?Colors.blue:Colors.white,
+//                                          ),
+//                                        ),
+//                                        onTap: (){
+//                                          setState(() {
+//                                            sPSelected = false;
+//                                            sPmSelected = false;
+//                                            sASelected = false;
+//                                            pASelected = true;
+//                                            sUSelected = false;
+//                                          });
+//                                        },
+//                                      ),
+//
+//                                      InkWell(
+//                                        child: Container(
+//                                          //  margin: const EdgeInsets.all(5),
+//                                          padding: const EdgeInsets.only(left:10),
+//                                          alignment: Alignment.centerLeft,
+//                                          height: 50,
+//                                          child: Text("Student unavailable",
+//                                            style: TextStyle(
+//                                              color: sUSelected?Colors.white:Colors.black,
+//                                            ),
+//                                          ),
+//                                          decoration: BoxDecoration(
+//                                            border: Border.all(color:Colors.grey,width: 0.5),
+//                                            color: sUSelected?Colors.blue:Colors.white,
+//                                          ),
+//                                        ),
+//                                        onTap: (){
+//
+//                                          setState(() {
+//                                            sPSelected = false;
+//                                            sPmSelected = false;
+//                                            sASelected = false;
+//                                            pASelected = false;
+//                                            sUSelected = true;
+//                                          });
+//
+//                                        },
+//                                      ),
+//
+//                                      Padding(
+//                                        padding: EdgeInsets.only(top: 16),
+//                                      )
+//                                    ],
+//                                  ),
+//                                )
                               ],
                             ),
                           )
@@ -1021,10 +1054,6 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                     ),
                     SizedBox(height:16),
                     isActivities ? activitiesDropdownWidget() : Container(),
-//                    isActivities ? firstRowEditWidget() : Container(),
-//                    isActivities ? SizedBox(height:16): Container(),
-//                    isActivities ? secondRowEditWidget() : Container(),
-//                    isActivities ? SizedBox(height:16): Container(),
                     GestureDetector(
                       onTap: (){
                         setState(() {
@@ -1061,29 +1090,52 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                     ),
 
                     socialPragmaics ? Container(
-                      margin: const EdgeInsets.only(left:5,right:5),
-                      width: MediaQuery.of(context).size.width,
-                      child: ListView.separated(
-                          itemCount: sPcheckListItems.length,
-                          physics: const NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          separatorBuilder: (context, index) {
-                            return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
-                          },
-                          itemBuilder: (context, index){
-                            return CheckboxListTile(
-                              title: Text(sPcheckListItems[index].title,
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              value: sPcheckListItems[index].checkVal,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  sPcheckListItems[index].checkVal = newValue;
-                                });
-                              },
-                              controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-                            );
-                          }
+                      margin: EdgeInsets.only(left:5,right:5, top: 12),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.rectangle,
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1,
+                        ),
+                      ),
+                      child: ListTile(
+                        onTap: () {
+                          showModalBottomSheet<void>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return SafeArea(
+                                child: ListView.separated(
+                                  itemCount: sPcheckListItems.length,
+                                  separatorBuilder: (context, index) {
+                                    return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+                                  },
+                                  itemBuilder: (context, index){
+                                    return CheckboxListTile(
+                                      dense: true,
+                                      title: Text(
+                                        sPcheckListItems[index].categoryTextDetail,
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      value: selectedSPIndex == index,
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          selectedSPIndex = index;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                      controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        dense: true,
+                        title: Text(
+                          selectedSPIndex > -1 ? sPcheckListItems[selectedSPIndex].categoryTextDetail: 'Select Your Choice',
+                        ),
+                        trailing: Icon(Icons.keyboard_arrow_down),
                       ),
                     ) : Container(),
 
@@ -1110,7 +1162,6 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                               ),
                               Container(
                                 alignment: Alignment.centerRight,
-
                                 child:seitIntervention?Icon(Icons.arrow_drop_down,
                                   color:Colors.white,
                                   size: 35,
@@ -1119,34 +1170,57 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                   size: 35,
                                 ),),
                             ]
-                        ), ///Text("Activities",
-
-                      ),),
+                        ),
+                      ),
+                    ),
                     seitIntervention ? Container(
-                      margin: const EdgeInsets.only(left:5,right:5),
-                      width: MediaQuery.of(context).size.width,
-
-                      child: ListView.separated(
-                          itemCount: sIcheckListItems.length,
-                          physics: const NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          separatorBuilder: (context, index) {
-                            return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
-                          },
-                          itemBuilder: (context, index){
-                            return CheckboxListTile(
-                              title: Text(sIcheckListItems[index].title,
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              value: sIcheckListItems[index].checkVal,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  sIcheckListItems[index].checkVal = newValue;
-                                });
-                              },
-                              controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-                            );
-                          }
+                      margin: EdgeInsets.only(left:5,right:5, top: 12),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.rectangle,
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1,
+                        ),
+                      ),
+                      child: ListTile(
+                        onTap: () {
+                          showModalBottomSheet<void>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return SafeArea(
+                                child: ListView.separated(
+                                  itemCount: sIcheckListItems.length,
+                                  separatorBuilder: (context, index) {
+                                    return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+                                  },
+                                  itemBuilder: (context, index){
+                                    return CheckboxListTile(
+                                      dense: true,
+                                      title: Text(
+                                        sIcheckListItems[index].categoryTextDetail,
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      value: selectedSIIndex == index,
+                                      onChanged: (newValue) {
+                                        setState(() {
+//                                            sIcheckListItems[index].checkVal = newValue;
+                                          selectedSIIndex = index;
+                                        });
+                                        Navigator.pop(context);
+                                      },
+                                      controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        dense: true,
+                        title: Text(
+                          selectedSIIndex > -1 ? sIcheckListItems[selectedSIIndex].categoryTextDetail: 'Select Your Choice',
+                        ),
+                        trailing: Icon(Icons.keyboard_arrow_down),
                       ),
                     ) : Container(),
 
@@ -1307,7 +1381,8 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                 ),
               ),
             ),
-          )
+          ),
+        ),
       ),
     );
   }
@@ -1384,130 +1459,150 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
   }
 
   Widget goalprogressReview(){
-    return Container(
-      margin: EdgeInsets.only(left:10 ,right: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          InkWell(
-            child: Container(
-              height: 110,
-              width: 90,
-              decoration: BoxDecoration(
-                //border: Border.all(color:Colors.grey,width: 0.5)
-              ),
-              child:Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(Icons.check_circle,
-                    color:colorGPMadeProgress?Colors.green:Colors.grey,
-                    size: 40,
-                  ) ,
-
-                  Container(height: 5),
-
-
-                  Text("Made",
-                    style: TextStyle(
-                        color:colorGPMadeProgress?Colors.green:Colors.grey,fontSize: 15
-                    ),
-                  ),
-                  Text("Progress",
-                    style: TextStyle(
-                        color:colorGPMadeProgress?Colors.green:Colors.grey,fontSize: 15
-                    ),
-                  ),
-                ],
-              ) ,
-            ),
-            onTap: (){
-              setState(() {
-                colorGPMadeProgress = true;
-                colorGPpartialProgress = false;
-                colorGPNoProgress = false;
-              });
-            },
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.only(left: 16, top: 8, bottom: 4),
+          child: Text(
+              'Outcomes: '
           ),
-          InkWell(
-            child: Container(
-                height: 110,
-                width: 90,
-                decoration: BoxDecoration(
-                  //border: Border.all(color:Colors.grey,width: 0.5)
-                ),
-                child:Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Icon(Icons.star_half,
-                      color:colorGPpartialProgress?Colors.yellow[700]:Colors.grey,
-                      size: 40,
-                    ) ,
-
-                    Container(height: 5),
-
-                    Text("Partial",
-                      style: TextStyle(
-                          color:colorGPpartialProgress?Colors.yellow[700]:Colors.grey,fontSize: 15
-                      ),
-                    ),
-                    Text("Progress",
-                      style: TextStyle(
-                          color:colorGPpartialProgress?Colors.yellow[700]:Colors.grey,fontSize: 15
-                      ),
-                    )
-                  ],
-                )
+        ),
+        Container(
+          margin: EdgeInsets.only(left:5,right:5, top: 12),
+          decoration: BoxDecoration(
+            shape: BoxShape.rectangle,
+            border: Border.all(
+              color: Colors.black,
+              width: 1,
             ),
-            onTap: (){
-              setState(() {
-                colorGPMadeProgress = false;
-                colorGPpartialProgress = true;
-                colorGPNoProgress = false;
-              });
-            },
           ),
-          InkWell(
-            child: Container(
-                height: 110,
-                width: 90,
-                decoration: BoxDecoration(
-                  //border: Border.all(color:Colors.grey,width: 0.5)
-                ),
-                child:Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Icon(Icons.not_interested,
-                      color:colorGPNoProgress?Colors.red:Colors.grey,
-                      size: 40,
-                    ) ,
-
-                    Container(height: 5),
-                    Text("No",
-                      style: TextStyle(
-                          color:colorGPNoProgress?Colors.red:Colors.grey,fontSize: 15
-                      ),
+          child: ListTile(
+            onTap: () {
+              print(outComesListItems.length);
+              showModalBottomSheet<void>(
+                context: context,
+                builder: (BuildContext context) {
+                  return SafeArea(
+                    maintainBottomViewPadding: true,
+                    child: ListView.separated(
+                      padding: EdgeInsets.only(top: 16),
+                      itemCount: outComesListItems.length,
+                      separatorBuilder: (context, index) {
+                        return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+                      },
+                      itemBuilder: (context, index){
+                        return CheckboxListTile(
+                          dense: true,
+                          title: Text(
+                            outComesListItems[index].categoryTextDetail,
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          value: selectedOutComesIndex == index,
+                          onChanged: (newValue) {
+                            setState(() {
+                              selectedOutComesIndex = index;
+                            });
+                            Navigator.pop(context);
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+                        );
+                      },
                     ),
-                    Text("Progress",
-                      style: TextStyle(
-                          color:colorGPNoProgress?Colors.red:Colors.grey,fontSize: 15
-                      ),
-                    )
-                  ],
-                )
-            ),
-            onTap: (){
-              setState(() {
-                colorGPMadeProgress = false;
-                colorGPpartialProgress = false;
-                colorGPNoProgress = true;
-              });
+                  );
+                },
+              );
             },
+            dense: true,
+            title: Text(
+              selectedOutComesIndex > -1 ? outComesListItems[selectedOutComesIndex].categoryTextDetail: 'Select Your Choice',
+            ),
+            trailing: Icon(Icons.keyboard_arrow_down),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
+  Widget _sessionTypeWidget(){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.only(left: 16, top: 8,),
+          child: Text(
+            'Session Type: ',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.only(left:5,right:5, top: 12),
+          decoration: BoxDecoration(
+            shape: BoxShape.rectangle,
+            color: getSessionColor(groupType, selectedSessionTypeIndex),
+            border: Border.all(
+              color: Colors.black,
+              width: 1,
+            ),
+          ),
+          child: ListTile(
+            onTap: () {
+              print(sessionTypeStrings.length);
+              showModalBottomSheet<void>(
+                context: context,
+                builder: (BuildContext context) {
+                  return SafeArea(
+                    maintainBottomViewPadding: true,
+                    child: ListView.separated(
+                      padding: EdgeInsets.only(top: 16),
+                      itemCount: sessionTypeStrings.length,
+                      separatorBuilder: (context, index) {
+                        return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+                      },
+                      itemBuilder: (context, index){
+                        return CheckboxListTile(
+                          dense: true,
+                          title: Text(
+                            sessionTypeStrings[index],
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          value: selectedSessionTypeIndex == index,
+                          onChanged: (newValue) {
+                            setState(() {
+                              selectedSessionTypeIndex = index;
+                            });
+                            Navigator.pop(context);
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+                        );
+                      },
+                    ),
+                  );
+                },
+              );
+            },
+            dense: true,
+            title: Text(
+              selectedSessionTypeIndex > -1 ? sessionTypeStrings[selectedSessionTypeIndex]: sessionTypeStrings[0],
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            trailing: Icon(Icons.keyboard_arrow_down),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(bottom: 16),
+        ),
+      ],
+    );
+  }
 
   Widget completedActivityReview(){
     return Container(
@@ -1781,50 +1876,20 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
       locationHomeOrSchool = completeSessionNotes.location;
       sessionType =  completeSessionNotes.sessionType;
-      if(sessionType ==  "Service Provided"){
-        setState(() {
-          sPSelected = true;
-          sPmSelected = false;
-          sASelected = false;
-          pASelected = false;
-          sUSelected = false;
-        });
+      setState(() {
+        if(sessionType ==  "Service Provided"){
+          selectedSessionTypeIndex = 0;
       }else if(sessionType ==  "Service Provided, Makeup"){
-        setState(() {
-          sPSelected = false;
-          sPmSelected = true;
-          sASelected = false;
-          pASelected = false;
-          sUSelected = false;
-        });
+          selectedSessionTypeIndex = 1;
       }else if(sessionType ==  "Student Absent"){
-        setState(() {
-          sPSelected = false;
-          sPmSelected = false;
-          sASelected = true;
-          pASelected = false;
-          sUSelected = false;
-        });
+          selectedSessionTypeIndex = 2;
       }else if(sessionType ==  "Provider Absent"){
-        setState(() {
-          sPSelected = false;
-          sPmSelected = false;
-          sASelected = false;
-          pASelected = true;
-          sUSelected = false;
-        });
+          selectedSessionTypeIndex = 3;
       }else{
+          selectedSessionTypeIndex = 5;
 
-        setState(() {
-
-          sPSelected = false;
-          sPmSelected = false;
-          sASelected = false;
-          pASelected = false;
-          sUSelected = true;
-
-        });
       }
+      });
 
       if(locationHomeOrSchool != null && locationHomeOrSchool.contains("School")){
         setState(() {
@@ -1839,20 +1904,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
       }
       settingsGroupOrNot = completeSessionNotes.group;
 
-      if(settingsGroupOrNot == "1"){
-
-        setState(() {
-
-          settingGroupSelectedButton = true;
-          settingPersonSelectedbutton = false;
-
-        });
-      }else{
-        setState(() {
-          settingGroupSelectedButton = false;
-          settingPersonSelectedbutton = true;
-        });
-      }
+      setState(() {
+        groupType = settingsGroupOrNot ?? 1;
+      });
 
       setState(() {
         duration =  completeSessionNotes.duration.toString();
@@ -1886,72 +1940,97 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
         if (GlobalCall.socialPragmatics.categoryData.length > 0) {
           if (GlobalCall.socialPragmatics.categoryData.length > 0) {
+            CategoryTextAndID temp;
             for (CategoryTextAndID data in GlobalCall.socialPragmatics.categoryData[0].categoryTextAndID){
-              bool isSelect = false;
               if (sessionNotesExtras.length > 0) {
                 sessionNotesExtras.forEach((element) {
                   if (element.sNECategoryID == GlobalCall.socialPragmatics.categoryData[0].mainCategoryID) {
                     if (element.sNECategoryDetailID == data.categoryTextID) {
-                      isSelect = true;
+                      temp = data;
                     }
                   }
                 });
               }
-              sPcheckListItems.add(
-                  CheckList(
-                    title: data.categoryTextDetail,
-                    checkVal: isSelect,
-                    id: data.categoryTextID,
-                  )
-              );
+            }
+//            sIcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: isSelect, id: data.categoryTextID));
+            if (temp != null) {
+              selectedSPIndex = sPcheckListItems.indexOf(temp) ?? -1;
             }
           }
 
           if (GlobalCall.SEITIntervention.categoryData.length > 0) {
             for (CategoryTextAndID data in GlobalCall.SEITIntervention.categoryData[0].categoryTextAndID){
-              bool isSelect = false;
+              CategoryTextAndID temp;
               if (sessionNotesExtras.length > 0) {
                 sessionNotesExtras.forEach((element) {
                   if (element.sNECategoryID == GlobalCall.SEITIntervention.categoryData[0].mainCategoryID) {
                     if (element.sNECategoryDetailID == data.categoryTextID) {
-                      isSelect = true;
+                      temp = data;
                     }
                   }
                 });
               }
-              sIcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: isSelect, id: data.categoryTextID));
+              if (temp != null) {
+                selectedSIIndex = sIcheckListItems.indexOf(temp) ?? -1;
+              }
+//              sIcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: isSelect, id: data.categoryTextID));
             }
           }
 
           if (GlobalCall.completedActivity.categoryData.length > 0) {
             for (CategoryTextAndID data in GlobalCall.completedActivity.categoryData[0].categoryTextAndID){
-              bool isSelect = false;
+              CategoryTextAndID temp;
               if (sessionNotesExtras.length > 0) {
                 sessionNotesExtras.forEach((element) {
                   if (element.sNECategoryID == GlobalCall.completedActivity.categoryData[0].mainCategoryID) {
                     if (element.sNECategoryDetailID == data.categoryTextID) {
-                      isSelect = true;
+                      temp = data;
                     }
                   }
                 });
               }
-              cAcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: isSelect, id: data.categoryTextID));
+              if (temp != null) {
+                selectedCAIconIndex = cAcheckListItems.indexOf(temp) ?? -1;
+              }
+//              cAcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: isSelect, id: data.categoryTextID));
             }
           }
 
           if (GlobalCall.jointAttention.categoryData.length > 0) {
             for (CategoryTextAndID data in GlobalCall.jointAttention.categoryData[0].categoryTextAndID){
-              bool isSelect = false;
+              CategoryTextAndID temp;
               if (sessionNotesExtras.length > 0) {
                 sessionNotesExtras.forEach((element) {
                   if (element.sNECategoryID == GlobalCall.jointAttention.categoryData[0].mainCategoryID) {
                     if (element.sNECategoryDetailID == data.categoryTextID) {
-                      isSelect = true;
+                      temp = data;
                     }
                   }
                 });
               }
-              jAcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: isSelect, id: data.categoryTextID));
+              if (temp != null) {
+                selectedJAIconIndex = jAcheckListItems.indexOf(temp) ?? -1;
+              }
+//              jAcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: isSelect, id: data.categoryTextID));
+            }
+          }
+
+          if (GlobalCall.outcomes.categoryData.length > 0) {
+            for (CategoryTextAndID data in GlobalCall.outcomes.categoryData[0].categoryTextAndID){
+              CategoryTextAndID temp;
+              if (sessionNotesExtras.length > 0) {
+                sessionNotesExtras.forEach((element) {
+                  if (element.sNECategoryID == GlobalCall.outcomes.categoryData[0].mainCategoryID) {
+                    if (element.sNECategoryDetailID == data.categoryTextID) {
+                      temp = data;
+                    }
+                  }
+                });
+              }
+              if (temp != null) {
+                selectedOutComesIndex = outComesListItems.indexOf(temp) ?? -1;
+              }
+//              jAcheckListItems.add(CheckList(title: data.categoryTextDetail, checkVal: isSelect, id: data.categoryTextID));
             }
           }
         }
@@ -2056,21 +2135,20 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
     }
     print("locationHomeOrSchool :: "+locationHomeOrSchool);
     if(settingGroupSelectedButton == true){
-      settingsGroupOrNot="0";
-
+      settingsGroupOrNot = 0;
     }else{
-      settingsGroupOrNot="1";
+      settingsGroupOrNot = 1;
     }
 
-    print("settingsGroupOrNot"+settingsGroupOrNot);
+    print("settingsGroupOrNot => $settingsGroupOrNot");
 
-    if(sPSelected == true){
+    if(selectedSessionTypeIndex == 0){
       sessionType = "Service Provided";
-    }else if(sPmSelected == true){
+    }else if(selectedSessionTypeIndex == 1){
       sessionType="Service Provided, Makeup";
-    }else if(sASelected == true){
+    }else if(selectedSessionTypeIndex == 2){
       sessionType="Student Absent";
-    }else if(pASelected == true){
+    }else if(selectedSessionTypeIndex == 3){
       sessionType="Provider Absent";
     }else{
       sessionType="Student unavailable";
@@ -2128,22 +2206,40 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
     goals.add(goal);
     List<SessionNoteExtrasList> sessionNoteExtrasList = [];
 
-    sPcheckListItems.forEach((element) {
-      if (element.checkVal) {
-        sessionNoteExtrasList.add(
-            SessionNoteExtrasList(sNECategoryID: GlobalCall.SEITIntervention.categoryData[0].mainCategoryID,
-                sNECategoryDetailID: element.id,
-                sNESubDetailID: 0));
-      }
-    });
-    sIcheckListItems.forEach((element) {
-      if (element.checkVal) {
-        sessionNoteExtrasList.add(
-            SessionNoteExtrasList(sNECategoryID: GlobalCall.SEITIntervention.categoryData[0].mainCategoryID,
-                sNECategoryDetailID: element.id,
-                sNESubDetailID: 0));
-      }
-    });
+    if (selectedSPIndex > -1) {
+      sessionNoteExtrasList.add(
+          SessionNoteExtrasList(sNECategoryID: GlobalCall.socialPragmatics.categoryData[0].mainCategoryID,
+              sNECategoryDetailID: sPcheckListItems[selectedSPIndex].categoryTextID,
+              sNESubDetailID: 0));
+    }
+    if (selectedSIIndex > -1) {
+      sessionNoteExtrasList.add(
+          SessionNoteExtrasList(sNECategoryID: GlobalCall.SEITIntervention.categoryData[0].mainCategoryID,
+              sNECategoryDetailID: sIcheckListItems[selectedSIIndex].categoryTextID,
+              sNESubDetailID: 0));
+    }
+
+    if (selectedOutComesIndex > -1) {
+      sessionNoteExtrasList.add(
+          SessionNoteExtrasList(sNECategoryID: GlobalCall.outcomes.categoryData[0].mainCategoryID,
+              sNECategoryDetailID: outComesListItems[selectedOutComesIndex].categoryTextID,
+              sNESubDetailID: 0));
+    }
+
+    if (selectedCAIconIndex > -1) {
+      sessionNoteExtrasList.add(
+          SessionNoteExtrasList(sNECategoryID: GlobalCall.completedActivity.categoryData[0].mainCategoryID,
+              sNECategoryDetailID: cAcheckListItems[selectedCAIconIndex].categoryTextID,
+              sNESubDetailID: 0));
+    }
+
+    if (selectedJAIconIndex > -1) {
+      sessionNoteExtrasList.add(
+          SessionNoteExtrasList(sNECategoryID: GlobalCall.jointAttention.categoryData[0].mainCategoryID,
+              sNECategoryDetailID: jAcheckListItems[selectedJAIconIndex].categoryTextID,
+              sNESubDetailID: 0));
+    }
+
     List<Activities> activities = List();
     activitiesListItems.forEach((key, alist) {
       for(int j = 1; j < alist.length; j++) {
