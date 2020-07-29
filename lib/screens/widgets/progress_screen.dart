@@ -1,4 +1,5 @@
 import 'package:aosny_services/api/progress_amount_api.dart';
+import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -9,6 +10,9 @@ import 'package:flutter/material.dart';
 
 
 class ProgressScreen extends StatefulWidget {
+  final MainScreenBloc mainScreenBloc;
+
+  ProgressScreen({this.mainScreenBloc});
 
   @override
   _ProgressScreenState createState() => _ProgressScreenState();

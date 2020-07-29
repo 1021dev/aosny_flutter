@@ -10,14 +10,10 @@ class HistoryApi{
 
   
   Future<List<HistoryModel>> getHistoryList({@required String sdate, @required String endDate}) async { 
-
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString('token');
     String providerid = prefs.getString('providerid');
-    
-  
-  
+
     //String url = "http://aosapi.pdgcorp.com/api/Provider/051829096/history?startdate=$sdate&enddate=$endDate";
     String url = baseURL + "Provider/" + providerid + "/history?startdate=$sdate&enddate=$endDate";
     List<HistoryModel> result;

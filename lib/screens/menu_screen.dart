@@ -3,12 +3,15 @@ import 'dart:async';
 
 import 'package:aosny_services/api/preload_api.dart';
 import 'package:aosny_services/api/student_api.dart';
+import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
+import 'package:aosny_services/main.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:aosny_services/screens/widgets/drawer/drawer_widget.dart';
 import 'package:aosny_services/screens/widgets/history_screen.dart';
 import 'package:aosny_services/screens/widgets/progress_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert' show json, base64, ascii;
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,14 +31,27 @@ class _MenuScreenState extends State<MenuScreen> {
   StreamController<bool> eventCategoryList = StreamController<bool>.broadcast();
   StreamController<bool> eventStudents = StreamController<bool>.broadcast();
 
+  MainScreenBloc mainScreenBloc;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[300],
-      body: MainTopTabBar(
-        loadCategories: eventCategoryList,
-        loadStudents: eventStudents,
-        selectedIndex: widget.selectedIndex,
+    return BlocListener(
+      cubit: mainScreenBloc,
+      listener: (BuildContext context, MainScreenState state) async {
+      },
+      child: BlocBuilder<MainScreenBloc, MainScreenState>(
+        cubit: mainScreenBloc,
+        builder: (BuildContext context, MainScreenState state) {
+          return Scaffold(
+            backgroundColor: Colors.grey[300],
+            body: MainTopTabBar(
+              mainScreenBloc: mainScreenBloc,
+              loadCategories: eventCategoryList,
+              loadStudents: eventStudents,
+              selectedIndex: widget.selectedIndex,
+            ),
+          );
+        },
       ),
     );
   }
@@ -48,6 +64,9 @@ class _MenuScreenState extends State<MenuScreen> {
 
   @override
   void initState() {
+    mainScreenBloc = MainScreenBloc(MainScreenState(isLoading: true));
+    mainScreenBloc.add(MainScreenInitialEvent());
+
     getDatafromToken();
     callStudentApi();
     callCategory();
@@ -91,6 +110,7 @@ class MainTopTabBar extends StatefulWidget {
 
   final StreamController<bool> loadStudents;
   final StreamController<bool> loadCategories;
+  final MainScreenBloc mainScreenBloc;
 
   final int selectedIndex;
   const MainTopTabBar({
@@ -98,6 +118,7 @@ class MainTopTabBar extends StatefulWidget {
     this.loadStudents,
     this.loadCategories,
     this.selectedIndex = 0,
+    this.mainScreenBloc,
   }) : super(key: key);
 
   @override
@@ -177,98 +198,113 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.lightBlue[200],
-        title: Text("My Sessions",style: TextStyle(fontSize: 18, fontWeight: FontWeight.normal),),
-        centerTitle: true,
-        actions: <Widget>[
-          PopupMenuButton<OverflowMenuItem>(
-            icon: Icon(Icons.filter_list),
-            offset: Offset(0, 100),
-            onSelected: (OverflowMenuItem item) => item.onTap(),
-            itemBuilder: (BuildContext context) {
-              return appBarPopupActions(context)
-                  .map((OverflowMenuItem item) {
-                    bool isChecked = false;
-                    if (item.title == 'Dates') {
-                      isChecked = GlobalCall.filterDates;
-                    } else if (item.title == 'Students') {
-                      isChecked = GlobalCall.filterStudents;
-                    } else if (item.title == 'Session Types') {
-                      isChecked = GlobalCall.filterSessionTypes;
-                    }
-                return PopupMenuItem<OverflowMenuItem>(
-                  value: item,
-                  child: Row(
-                    children: <Widget>[
-                      isChecked ? Icon(Icons.check, color: Colors.blue,) : Icon(Icons.check, color: Colors.transparent,),
-                      Text(
-                        item.title,
-                        style: TextStyle(color: item.textColor),
-                      ),
-                    ],
+
+    return BlocListener(
+      cubit: widget.mainScreenBloc,
+      listener: (BuildContext context, MainScreenState state) async {
+      },
+      child: BlocBuilder<MainScreenBloc, MainScreenState>(
+        cubit: widget.mainScreenBloc,
+        builder: (BuildContext context, MainScreenState state) {
+          return Scaffold(
+            appBar: AppBar(
+              backgroundColor: Colors.lightBlue[200],
+              title: Text("My Sessions",style: TextStyle(fontSize: 18, fontWeight: FontWeight.normal),),
+              centerTitle: true,
+              actions: <Widget>[
+                PopupMenuButton<OverflowMenuItem>(
+                  icon: Icon(Icons.filter_list),
+                  offset: Offset(0, 100),
+                  onSelected: (OverflowMenuItem item) => item.onTap(),
+                  itemBuilder: (BuildContext context) {
+                    return appBarPopupActions(context)
+                        .map((OverflowMenuItem item) {
+                      bool isChecked = false;
+                      if (item.title == 'Dates') {
+                        isChecked = GlobalCall.filterDates;
+                      } else if (item.title == 'Students') {
+                        isChecked = GlobalCall.filterStudents;
+                      } else if (item.title == 'Session Types') {
+                        isChecked = GlobalCall.filterSessionTypes;
+                      }
+                      return PopupMenuItem<OverflowMenuItem>(
+                        value: item,
+                        child: Row(
+                          children: <Widget>[
+                            isChecked ? Icon(Icons.check, color: Colors.blue,) : Icon(Icons.check, color: Colors.transparent,),
+                            Text(
+                              item.title,
+                              style: TextStyle(color: item.textColor),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
+              ],
+            ),
+            drawer: DrawerWidget(
+              currentIndex: selectedIndex,
+              loadStudents: widget.loadStudents,
+              loadCategories: widget.loadCategories,
+              currentRoute: 'session',
+              tabIndex: tabIndnex,
+            ),
+            body: DefaultTabController(
+              length: 2,
+              child: Scaffold(
+                appBar:
+                PreferredSize(
+                  preferredSize: Size.fromHeight(kToolbarHeight),
+                  child:
+                  Container(
+                    decoration: BoxDecoration(
+                      //border: Border.all(color: Colors.black),
+                      color: Colors.white,
+                    ),
+                    height: 50.0,
+                    child: new TabBar(
+                      indicatorColor: Colors.lightBlue,
+                      unselectedLabelColor: Colors.black,
+                      labelColor: Colors.black,
+                      controller: tabController,
+                      onTap: (index) {
+                        setState(() {
+                          tabIndex = index;
+                        });
+                      },
+                      tabs: [
+                        Tab(
+                          text: "History",
+                        ),
+                        Tab(
+                          text: "Progress",
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              }).toList();
-            },
-          ),
-        ],
-      ),
-      drawer: DrawerWidget(
-        currentIndex: selectedIndex,
-        loadStudents: widget.loadStudents,
-        loadCategories: widget.loadCategories,
-        currentRoute: 'session',
-        tabIndex: tabIndnex,
-      ),
-      body: DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar:
-          PreferredSize(
-            preferredSize: Size.fromHeight(kToolbarHeight),
-            child:
-            Container(
-              decoration: BoxDecoration(
-                //border: Border.all(color: Colors.black),
-                color: Colors.white,
-              ),
-              height: 50.0,
-              child: new TabBar(
-                indicatorColor: Colors.lightBlue,
-                unselectedLabelColor: Colors.black,
-                labelColor: Colors.black,
-                controller: tabController,
-                onTap: (index) {
-                  setState(() {
-                    tabIndex = index;
-                  });
-                },
-                tabs: [
-                  Tab(
-                    text: "History",
-                  ),
-                  Tab(
-                    text: "Progress",
-                  ),
-                ],
+                ),
+                body: TabBarView(
+                  controller: tabController,
+                  children: [
+                    HistoryScreen(
+                      mainScreenBloc: widget.mainScreenBloc,
+                      loadStudents: widget.loadStudents,
+                      loadCategoires: widget.loadCategories,
+                    ),
+                    ProgressScreen(
+                      mainScreenBloc: widget.mainScreenBloc,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          body: TabBarView(
-            controller: tabController,
-            children: [
-              HistoryScreen(
-                loadStudents: widget.loadStudents,
-                loadCategoires: widget.loadCategories,
-              ),
-              ProgressScreen(),
-            ],
-          ),
-        ),
+          );
+        },
       ),
     );
+
   }
 }
 
