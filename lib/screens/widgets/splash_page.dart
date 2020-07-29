@@ -2,7 +2,9 @@ import 'package:aosny_services/api/login_token_api.dart';
 import 'package:aosny_services/api/preload_api.dart';
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/screens/login_screen.dart';
+import 'package:aosny_services/screens/menu_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splashscreen/splashscreen.dart';
 
 
@@ -13,7 +15,7 @@ class SplashScreenPage extends StatefulWidget {
 
 class _MyAppState extends State<SplashScreenPage> {
   LoginApi loginapiCall = new LoginApi();
-
+  String token = '';
 
   @override
   void initState() {
@@ -23,6 +25,12 @@ class _MyAppState extends State<SplashScreenPage> {
     PreLoadApi().getPreLoadData('CompletedActivity');
     PreLoadApi().getPreLoadData('JointAttention');
     PreLoadApi().getPreLoadData('Activities');
+    SharedPreferences.getInstance().then((pref) {
+      String token = pref.getString('token') ?? '';
+      setState(() {
+        this.token = token;
+      });
+    });
     super.initState();
   }
 
@@ -30,7 +38,7 @@ class _MyAppState extends State<SplashScreenPage> {
   Widget build(BuildContext context) {
     return new SplashScreen(
       seconds: 3,
-      navigateAfterSeconds: new LoginScreen(),
+      navigateAfterSeconds: token != '' ? new MenuScreen(): new LoginScreen(),
       //title: new Text('Welcome In SplashScreen'),
       image: new Image.asset('assets/logo/ic_logo.png'),
       backgroundColor: Colors.white,

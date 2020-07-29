@@ -152,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 50,
                             width: MediaQuery.of(context).size.width / 1.3,
                             decoration: BoxDecoration(
-                                color: Colors.blueGrey,
+                                color: Colors.blue,
                                 borderRadius: BorderRadius.circular(30)),
                             child: Text('Log In',
                                 style: TextStyle(
@@ -222,10 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       print(response.token);
 
-      Utils().showToast(
-        context,
-        'Logged In Successfully',
-      );
+      Fluttertoast.showToast(msg: 'Logged In Successfully',);
       setState(() {
         _isLoading = false;
       });
@@ -237,16 +234,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => SignatureScreen()),
+        MaterialPageRoute(builder: (context) => MenuScreen()),
       );
     } else {
       setState(() {
         _isLoading = false;
       });
-      Utils().showToast(
-        context,
-        response.message,
-      );
+      Fluttertoast.showToast(msg: response.message);
     }
   }
 

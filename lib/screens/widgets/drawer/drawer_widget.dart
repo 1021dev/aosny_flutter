@@ -119,7 +119,9 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                                 (context)=> EnterSession(
                               loadCategories: widget.loadCategories,
                               loadStudents: widget.loadStudents,
-                            )));
+                            )
+                            )
+                        );
                       }
 
                     }
@@ -147,11 +149,10 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                       height: MediaQuery.of(context).size.height/35,
                       decoration: BoxDecoration(
                           color: Colors.red,
-                          borderRadius: BorderRadius.circular(10)
+                          borderRadius: BorderRadius.circular(10),
                       ),
                       child:  Text("1",style: TextStyle(color:Colors.white),),
-                    )
-
+                    ),
                 ),
                 new ListTile(
                   title: new Text("Settings"),
@@ -163,8 +164,6 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                   title: new Text("Help"),
                   onTap: (){
                   },
-
-
                 ),
               ],
             ),
@@ -191,7 +190,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                         height: 50,
                         width: 250,
                         decoration: BoxDecoration(
-                            color: Colors.indigo[800],
+                            color: Colors.blue,
                             borderRadius: BorderRadius.circular(30)
                         ),
                         child:GestureDetector(
