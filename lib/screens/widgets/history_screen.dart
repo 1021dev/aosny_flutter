@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:aosny_services/api/history_api.dart';
+import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/history_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
@@ -11,10 +12,12 @@ import 'package:intl/intl.dart';
 class HistoryScreen extends StatefulWidget {
   final StreamController<bool> loadStudents;
   final StreamController<bool> loadCategoires;
+  final MainScreenBloc mainScreenBloc;
 
   const HistoryScreen(
       {
         Key key,
+        this.mainScreenBloc,
         this.loadStudents,
         this.loadCategoires,
       })
