@@ -13,6 +13,7 @@ import 'package:aosny_services/models/students_details_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:aosny_services/api/env.dart';
@@ -20,10 +21,12 @@ import 'package:aosny_services/api/env.dart';
 
 List<String> sessionTypeStrings = [
   'Service Provided',
-  'Service Provided, Makeup',
+  'Service provided - Make-up',
   'Student Absent',
   'Provider Absent',
-  'Student unavailable'
+  'Student Unavailable',
+  'Non-Direct Care',
+  'Cancelled'
 ];
 
 List<Color> sessionColors = [
@@ -34,15 +37,20 @@ List<Color> sessionColors = [
 ];
 
 Color getSessionColor(int group, int sessionType) {
-  if (group == 1 && sessionType == 0) {
+  if (group == 1 && (sessionType == 0 || sessionType == 1)) {
     return Colors.green;
-  } else if (group == 2 && sessionType == 0) {
+  } else if (group == 2 && (sessionType == 0 || sessionType == 1)) {
     return Colors.blue;
   } else if (sessionType == 2 || sessionType == 3 || sessionType == 4) {
     return Colors.red;
+  } else if (sessionType == 5) {
+    return Colors.purple;
+  } else if (sessionType == 6) {
+    return Colors.red;
   }
-  return Colors.purple;
+  return Colors.white;
 }
+
 class AddEditSessionNote extends StatefulWidget {
   final StudentsDetailsModel student;
   final String selectedStudentName;
@@ -1877,18 +1885,10 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
       locationHomeOrSchool = completeSessionNotes.location;
       sessionType =  completeSessionNotes.sessionType;
       setState(() {
-        if(sessionType ==  "Service Provided"){
-          selectedSessionTypeIndex = 0;
-      }else if(sessionType ==  "Service Provided, Makeup"){
-          selectedSessionTypeIndex = 1;
-      }else if(sessionType ==  "Student Absent"){
-          selectedSessionTypeIndex = 2;
-      }else if(sessionType ==  "Provider Absent"){
-          selectedSessionTypeIndex = 3;
-      }else{
-          selectedSessionTypeIndex = 5;
-
-      }
+        int index = sessionTypeStrings.indexOf(sessionType);
+        if (index != null) {
+          selectedSessionTypeIndex = index;
+        }
       });
 
       if(locationHomeOrSchool != null && locationHomeOrSchool.contains("School")){
@@ -1911,7 +1911,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
       setState(() {
         duration =  completeSessionNotes.duration.toString();
         finalNumber = completeSessionNotes.duration;
-        sessionDateTime = completeSessionNotes.sessionDate+" "+completeSessionNotes.sessionTime;
+        sessionDateTime = '${completeSessionNotes.sessionDate} ${completeSessionNotes.sessionTime}';
         print("From API datetime:"+sessionDateTime);
         toPassDate = new DateFormat("MM/dd/yy hh:mm:ss").parse(sessionDateTime);
         sessionTime = DateFormat.jm().format(toPassDate);
@@ -2098,12 +2098,6 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
         }
         activitiesListItems[data.categoryTextID] = list;
       }
-      goalsAndProgress = true;
-      isActivities = true;
-      socialPragmaics = true;
-      seitIntervention = true;
-      competedActivites = true;
-      jointAttentionEyeContact = true;
     });
   }
 
@@ -2142,18 +2136,11 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
     print("settingsGroupOrNot => $settingsGroupOrNot");
 
-    if(selectedSessionTypeIndex == 0){
-      sessionType = "Service Provided";
-    }else if(selectedSessionTypeIndex == 1){
-      sessionType="Service Provided, Makeup";
-    }else if(selectedSessionTypeIndex == 2){
-      sessionType="Student Absent";
-    }else if(selectedSessionTypeIndex == 3){
-      sessionType="Provider Absent";
-    }else{
-      sessionType="Student unavailable";
+    if (selectedSessionTypeIndex > -1) {
+      sessionType = sessionTypeStrings[selectedSessionTypeIndex];
+    } else {
+      sessionType = sessionTypeStrings[0];
     }
-
     print("sessionType :: "+sessionType);
     confirmedVal="1";
 
@@ -2273,10 +2260,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
       setState(() {
         _isLoading = false;
       });
-      Utils().showToast(
-        context,
-        'Session Posted Successfully',
-      );
+      Fluttertoast.showToast(msg: 'Session Posted Successfully');
       Navigator.pop(context);
 
     } else{
@@ -2284,10 +2268,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
       setState(() {
         _isLoading = false;
       });
-      Utils().showToast(
-        context,
-        'Some Error Occurred, please try Again',
-      );
+      Fluttertoast.showToast(msg: 'Some Error Occurred, please try Again');
 
     }
   }

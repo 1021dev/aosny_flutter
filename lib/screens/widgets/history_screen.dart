@@ -346,7 +346,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                   InkWell(
                                                     child: Icon(
                                                       Icons.check_circle,
-                                                      color: Colors.green,
+                                                      color: snapshot.data[index].xid > 0 ? Colors.green: Colors.transparent,
                                                     ),
                                                     onTap: () {},
                                                   )
@@ -360,6 +360,12 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                     style: TextStyle(
                                                       fontWeight: FontWeight.bold,
                                                       fontSize: 16,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    snapshot.data[index].sessionType,
+                                                    style: TextStyle(
+                                                      color: getSessionColor(snapshot.data[index].grp, sessionTypeStrings.indexOf(snapshot.data[index].sessionType)),
                                                     ),
                                                   ),
                                                 ],
