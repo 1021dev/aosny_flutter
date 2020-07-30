@@ -7,15 +7,16 @@ import 'env.dart';
 
 class ProgressAmountApi{
     
-    Future<List<ProgressAmountModel>> getProgressAmountList(String sdate,String endDate) async {
+    Future<List<ProgressAmountModel>> getProgressAmountList(String startDate, String endDate) async {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString('token');
     String providerid = prefs.getString('providerid');
 
     //String url = "http://aosapi.pdgcorp.com/api/Provider/051829096/progress?startdate=$sdate&enddate=$endDate";
-    String url = baseURL + "Provider/" + providerid + "/progress?startdate=$sdate&enddate=$endDate";
+    String url = baseURL + "Provider/" + providerid + "/progress?startdate=$startDate&enddate=$endDate";
     print('URL:::$url');
+    print('Token:::$token');
     List<ProgressAmountModel> result;
 
     return http.get(url,headers:  {HttpHeaders.contentTypeHeader: "application/json", HttpHeaders.authorizationHeader: "Bearer $token"}).then((http.Response response) {

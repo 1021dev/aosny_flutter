@@ -59,6 +59,7 @@ class _MenuScreenState extends State<MenuScreen> {
   void dispose() {
     eventStudents.close();
     eventCategoryList.close();
+    mainScreenBloc.close();
     super.dispose();
   }
 
@@ -66,43 +67,7 @@ class _MenuScreenState extends State<MenuScreen> {
   void initState() {
     mainScreenBloc = MainScreenBloc(MainScreenState(isLoading: true));
     mainScreenBloc.add(MainScreenInitialEvent());
-
-    getDatafromToken();
-    callStudentApi();
-    callCategory();
     super.initState();
-  }
-
-  void callCategory() async {
-    if (GlobalCall.socialPragmatics.categoryData.length == 0) {
-      bool isLoad = await PreLoadApi().fetchPreLoad();
-      if (isLoad) {
-        eventCategoryList.sink.add(true);
-      }
-    } else {
-      eventCategoryList.sink.add(true);
-    }
-  }
-
-  void callStudentApi() async {
-    studentList = await studentapiCall.getAllStudentsList();
-    GlobalCall.globaleStudentList = studentList;
-    eventStudents.sink.add(true);
-  }
-
-  void getDatafromToken() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    String token = prefs.getString('token');
-    var jwt = token.split(".");
-    var payload = json.decode(ascii.decode(base64.decode(base64.normalize(jwt[1]))));
-    GlobalCall.email =  payload['Email'];
-
-    if(DateTime.fromMillisecondsSinceEpoch(payload["exp"]*1000).isAfter(DateTime.now())) {
-      //return HomePage(str, payload);
-    } else {
-      //return LoginPage();
-    }
   }
 }
 
