@@ -1,16 +1,20 @@
 import 'package:aosny_services/api/history_api.dart';
 import 'package:aosny_services/api/preload_api.dart';
+import 'package:aosny_services/api/progress_amount_api.dart';
 import 'package:aosny_services/api/student_api.dart';
 import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/history_model.dart';
+import 'package:aosny_services/models/progress_amount_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
+import 'package:flutter/animation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert' show json, base64, ascii;
 
 class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
   HistoryApi historyApi = new HistoryApi();
+  ProgressAmountApi progressApi = new ProgressAmountApi();
   StudentApi studentApi = new StudentApi();
   PreLoadApi preLoadApi = new PreLoadApi();
 
@@ -21,13 +25,17 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
   }
 
   @override
-  Stream<MainScreenState> mapEventToState(
-      MainScreenEvent event,
-      ) async* {
+  Stream<MainScreenState> mapEventToState(MainScreenEvent event,) async* {
     if (event is MainScreenInitialEvent) {
       yield* loadInitialData();
     } else if (event is GetHistoryEvent) {
       yield* getHistory(event.startDate, event.endDate);
+    } else if (event is RefreshHistoryEvent) {
+      yield* refreshHistory(event.startDate, event.endDate);
+    } else if (event is GetProgressEvent) {
+      yield* getProgress(event.startDate, event.endDate);
+    } else if (event is RefreshProgressEvent) {
+      yield* getProgress(event.startDate, event.endDate);
     }
   }
 
@@ -57,8 +65,6 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
     } catch (error) {
       yield MainScreenStateFailure(error: error.toString());
     }
-
-
   }
   //////////////////////////////////////////////////////////////////////////////
   //                      Get history
@@ -70,6 +76,38 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       List<HistoryModel> history = await historyApi.getHistoryList(
           sdate: startDate, endDate: endDate);
       yield state.copyWith(history: history, isLoading: false);
+    } catch (error) {
+      yield MainScreenStateFailure(error: error.toString());
+    }
+  }
+
+  Stream<MainScreenState> refreshHistory(String startDate, String endDate) async* {
+    try {
+      List<HistoryModel> history = await historyApi.getHistoryList(
+          sdate: startDate, endDate: endDate);
+      yield state.copyWith(history: history, isLoading: false);
+    } catch (error) {
+      yield MainScreenStateFailure(error: error.toString());
+    }
+  }
+  //////////////////////////////////////////////////////////////////////////////
+  //                      Get Progress
+  //////////////////////////////////////////////////////////////////////////////
+
+  Stream<MainScreenState> getProgress(String startDate, String endDate) async* {
+    try {
+      yield state.copyWith(isLoading: true);
+      List<ProgressAmountModel> progress = await progressApi.getProgressAmountList(startDate, endDate);
+      yield state.copyWith(progress: progress, isLoading: false);
+    } catch (error) {
+      yield MainScreenStateFailure(error: error.toString());
+    }
+  }
+
+  Stream<MainScreenState> refreshProgress(String startDate, String endDate) async* {
+    try {
+      List<ProgressAmountModel> progress = await progressApi.getProgressAmountList(startDate, endDate);
+      yield state.copyWith(progress: progress, isLoading: false);
     } catch (error) {
       yield MainScreenStateFailure(error: error.toString());
     }
