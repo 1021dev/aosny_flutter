@@ -1,10 +1,7 @@
 import 'package:aosny_services/bloc/session_note/session_note.dart';
-import 'package:aosny_services/helper/global_call.dart';
-import 'package:aosny_services/models/add_session_response.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
 import 'package:aosny_services/models/selected_longTerm_model.dart';
-import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -12,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:aosny_services/api/env.dart';
 
 
 List<String> sessionTypeStrings = [
@@ -70,53 +66,12 @@ class AddEditSessionNote extends StatefulWidget {
 class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
   SessionNoteScreenBloc screenBloc;
-  String noteText='',sessionDateTime='',sessionTime='',duration='',sessionEndTime='',
-      locationHomeOrSchool='',sessionType='',sessionIDValue='',confirmedVal='';
 
-  int settingsGroupOrNot = 0;
-  final myNotesController = TextEditingController();
-
-  AddSessionResponse responseAddSession;
-  bool settingPersonSelectedbutton = true;
-  bool settingGroupSelectedButton = false;
-  bool locHomeSelectedButton= true;
-  bool locBuildingSelectedButton = false;
-  String _dropDownValue;
-  bool checkedValue = false;
-  int groupType = 1;
   TextEditingController startTimeController = new TextEditingController(text: '9:00 AM');
   TextEditingController showTimeController = new TextEditingController(text: '30');
-  DateTime selectedDate;
-  DateTime toPassDate,endDateTime;
-  String showDate;
-  bool isSelectecDate = false;
-
-  bool colorGPMadeProgress = true;
-  bool colorGPpartialProgress = false;
-  bool colorGPNoProgress = false;
-
-
-  bool goalsAndProgress = false;
-  bool isActivities = false;
-  bool socialPragmaics = false;
-  bool seitIntervention = false;
-  bool competedActivites = false;
-  bool jointAttentionEyeContact = false;
-
-  int selectedSPIndex = -1;
-  int selectedSIIndex = -1;
-  int selectedOutComesIndex = -1;
-  int selectedCAIconIndex = -1;
-  int selectedJAIconIndex = -1;
-  int selectedSessionTypeIndex = 0;
-
-  bool colorJAPMadeProgress = true;
-  bool colorJApartialProgress = false;
-  bool colorJANoProgress = false;
-
-  TimeOfDay selectedTime ;
-  int finalNumber= 30;
-
+  TextEditingController noteTextController = new TextEditingController();
+  FocusNode noteFocus = FocusNode();
+  ScrollController scrollController = ScrollController();
   List<String> listValue =[
     'Select Long Term Goal',
     'Given the aid of verbal and visual cues',
@@ -130,8 +85,17 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
     Icons.not_interested,
   ];
 
+  List<IconData> completeIconsList = [
+    Icons.not_interested,
+    Icons.star_half,
+    Icons.check_circle,
+  ];
+
   @override
   void initState() {
+
+    super.initState();
+
     screenBloc = SessionNoteScreenBloc(SessionNoteScreenState(isLoading: true));
     screenBloc.add(
         SessionNoteScreenInitEvent(
@@ -144,40 +108,41 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
           student: widget.student,
         )
     );
-    showDate = DateFormat('EEEE, MMMM d').format(DateTime.now()).toString();
-    selectedTime = new TimeOfDay.now();
-    selectedDate = DateTime.now();
-
-    super.initState();
   }
 
-  static var  currentTime = DateTime(  DateTime.now().year, DateTime.now().month, DateTime.now().day,  TimeOfDay.now().hour, TimeOfDay.now().minute);
+  Future<Null> _selectDate(BuildContext context, SessionNoteScreenState state) async {
+    print('show DatePicker');
+    var datePick= await showDatePicker(
+      context: context,
+      initialDate: state.selectedDate,
+      firstDate: DateTime(state.selectedDate.year - 1),
+      lastDate: DateTime(DateTime.now().year + 1),
+    );
+    if (datePick != null && datePick != state.selectedDate ?? DateTime.now()) {
+      screenBloc.add(UpdateSelectedDate(selectedDate: datePick));
+    }
+  }
 
-  var pickedTime = DateFormat.jm().format(currentTime);
-  var pickedTimedt = currentTime;
-
-  Future<Null> _selectTime(BuildContext context) async {
+  Future<Null> _selectTime(BuildContext context, SessionNoteScreenState state) async {
     final TimeOfDay response = await showTimePicker(
       context: context,
-      initialTime: pickedTimedt ?? TimeOfDay.now(),
+      initialTime: state.selectedTime ?? TimeOfDay.now(),
     );
-    if (response != null && response != TimeOfDay.fromDateTime(pickedTimedt)) {
-      final dt = DateTime( DateTime.now().year, DateTime.now().month, DateTime.now().day, response.hour, response.minute);
-      final format = DateFormat.jm();
-      setState(() {
-        pickedTime = format.format(dt);
-        pickedTimedt=dt;
-        print('pickedTime :$pickedTime');
-      });
+    if (response != null && response != state.selectedTime ?? TimeOfDay.now()) {
+      screenBloc.add(UpdateSelectedTime(selectedTime: response));
     }
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
-    super.dispose();
     screenBloc.close();
-    myNotesController.dispose();
+    startTimeController.dispose();
+    showTimeController.dispose();
+    noteTextController.dispose();
+    noteFocus.dispose();
+    scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -185,176 +150,49 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
     return BlocListener(
       cubit: screenBloc,
       listener: (BuildContext context, SessionNoteScreenState state) async {
+        setState(() {
+          noteTextController.text = state.noteText;
+        });
       },
       child: BlocBuilder<SessionNoteScreenBloc, SessionNoteScreenState>(
-          cubit: screenBloc,
-          builder: (BuildContext context, SessionNoteScreenState state) {
-            return Scaffold(
-              backgroundColor: Colors.white,
-              appBar: AppBar(
-                automaticallyImplyLeading: true,
-                backgroundColor: Colors.lightBlue[200],
-                title: Text(
-                  'Add Session Note',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.normal,
+        cubit: screenBloc,
+        builder: (BuildContext context, SessionNoteScreenState state) {
+          return Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              automaticallyImplyLeading: true,
+              backgroundColor: Colors.lightBlue[200],
+              title: Text(
+                widget.sessionId != null ? 'Session Note Detail': 'Add Session Note',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ),
+            body: ModalProgressHUD(
+              inAsyncCall: state.isLoading,
+              child: new GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                },
+                child: SafeArea(
+                  child: Container(
+                    padding: const EdgeInsets.only(left: 5, right: 5, top: 16),
+                    child: _getBody(state),
                   ),
                 ),
               ),
-              body: ModalProgressHUD(
-                inAsyncCall: state.isLoading,
-                child: new GestureDetector(
-                  onTap: () {
-                    FocusScope.of(context).unfocus();
-                  },
-                  child: SafeArea(
-                    child: Container(
-                      padding: const EdgeInsets.only(left:5,right:5, top:25),
-                      child: _getBody(state),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
+            ),
+          );
+        },
       ),
     );
   }
 
   Widget _getBody(SessionNoteScreenState state) {
-    if (state.sessionNotes != null) {
-      noteText =  state.sessionNotes.notes;
-      myNotesController.text = noteText;
-
-      locationHomeOrSchool = state.sessionNotes.location;
-      sessionType =  state.sessionNotes.sessionType;
-      int index = sessionTypeStrings.indexOf(sessionType);
-      if (index != null) {
-        selectedSessionTypeIndex = index;
-      }
-      if(locationHomeOrSchool != null && locationHomeOrSchool.contains('School')){
-        locHomeSelectedButton = false;
-        locBuildingSelectedButton = true;
-      } else {
-        locHomeSelectedButton = false;
-        locBuildingSelectedButton = true;
-      }
-      settingsGroupOrNot = state.sessionNotes.group;
-
-      groupType = settingsGroupOrNot ?? 1;
-
-      duration =  state.sessionNotes.duration.toString();
-      finalNumber = state.sessionNotes.duration;
-      sessionDateTime = '${state.sessionNotes.sessionDate} ${state.sessionNotes.sessionTime}';
-      toPassDate = new DateFormat('MM/dd/yy hh:mm:ss').parse(sessionDateTime);
-      sessionTime = DateFormat.jm().format(toPassDate);
-      selectedDate = toPassDate;
-      pickedTimedt = selectedDate;
-      pickedTime = DateFormat.jm().format(pickedTimedt);
-
-      endDateTime =  toPassDate.add(Duration(days: 0, hours: 0, minutes: int.parse(duration)));
-
-      sessionEndTime = DateFormat.jm().format(endDateTime);
-      LongTermGpDropDownModel model = state.longTermGpDropDownList.firstWhere((element) => element.longGoalID == state.selectedLtGoalId);
-      if (model != null) {
-        _dropDownValue = model.longGoalText;
-      }
-      List<SessionNoteExtrasList> sessionNotesExtras = state.sessionNotes.sessionNoteExtrasList;
-
-      if (GlobalCall.socialPragmatics.categoryData.length > 0) {
-        if (GlobalCall.socialPragmatics.categoryData.length > 0) {
-          CategoryTextAndID temp;
-          for (CategoryTextAndID data in GlobalCall.socialPragmatics.categoryData[0].categoryTextAndID){
-            if (sessionNotesExtras.length > 0) {
-              sessionNotesExtras.forEach((element) {
-                if (element.sNECategoryID == GlobalCall.socialPragmatics.categoryData[0].mainCategoryID) {
-                  if (element.sNECategoryDetailID == data.categoryTextID) {
-                    temp = data;
-                  }
-                }
-              });
-            }
-          }
-          if (temp != null) {
-            selectedSPIndex = state.sPcheckListItems.indexOf(temp) ?? -1;
-          }
-        }
-
-        if (GlobalCall.SEITIntervention.categoryData.length > 0) {
-          for (CategoryTextAndID data in GlobalCall.SEITIntervention.categoryData[0].categoryTextAndID){
-            CategoryTextAndID temp;
-            if (sessionNotesExtras.length > 0) {
-              sessionNotesExtras.forEach((element) {
-                if (element.sNECategoryID == GlobalCall.SEITIntervention.categoryData[0].mainCategoryID) {
-                  if (element.sNECategoryDetailID == data.categoryTextID) {
-                    temp = data;
-                  }
-                }
-              });
-            }
-            if (temp != null) {
-              selectedSIIndex = state.sIcheckListItems.indexOf(temp) ?? -1;
-            }
-          }
-        }
-
-        if (GlobalCall.completedActivity.categoryData.length > 0) {
-          for (CategoryTextAndID data in GlobalCall.completedActivity.categoryData[0].categoryTextAndID){
-            CategoryTextAndID temp;
-            if (sessionNotesExtras.length > 0) {
-              sessionNotesExtras.forEach((element) {
-                if (element.sNECategoryID == GlobalCall.completedActivity.categoryData[0].mainCategoryID) {
-                  if (element.sNECategoryDetailID == data.categoryTextID) {
-                    temp = data;
-                  }
-                }
-              });
-            }
-            if (temp != null) {
-              selectedCAIconIndex = state.cAcheckListItems.indexOf(temp) ?? -1;
-            }
-          }
-        }
-
-        if (GlobalCall.jointAttention.categoryData.length > 0) {
-          for (CategoryTextAndID data in GlobalCall.jointAttention.categoryData[0].categoryTextAndID){
-            CategoryTextAndID temp;
-            if (sessionNotesExtras.length > 0) {
-              sessionNotesExtras.forEach((element) {
-                if (element.sNECategoryID == GlobalCall.jointAttention.categoryData[0].mainCategoryID) {
-                  if (element.sNECategoryDetailID == data.categoryTextID) {
-                    temp = data;
-                  }
-                }
-              });
-            }
-            if (temp != null) {
-              selectedJAIconIndex = state.jAcheckListItems.indexOf(temp) ?? -1;
-            }
-          }
-        }
-
-        if (GlobalCall.outcomes.categoryData.length > 0) {
-          for (CategoryTextAndID data in GlobalCall.outcomes.categoryData[0].categoryTextAndID){
-            CategoryTextAndID temp;
-            if (sessionNotesExtras.length > 0) {
-              sessionNotesExtras.forEach((element) {
-                if (element.sNECategoryID == GlobalCall.outcomes.categoryData[0].mainCategoryID) {
-                  if (element.sNECategoryDetailID == data.categoryTextID) {
-                    temp = data;
-                  }
-                }
-              });
-            }
-            if (temp != null) {
-              selectedOutComesIndex = state.outComesListItems.indexOf(temp) ?? -1;
-            }
-          }
-        }
-      }
-    }
     return SingleChildScrollView(
+      controller: scrollController,
       padding: EdgeInsets.only(bottom: 24),
       child: Column(
         children: <Widget>[
@@ -396,58 +234,48 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           Text(
-                            DateFormat('EEEE').format(selectedDate).toString(),
-                            style: TextStyle(color:Colors.grey,fontWeight: FontWeight.bold),
-                            //DateFormat('EEEE').format(toPassDate).toString(),
-                            //style: TextStyle(color:Colors.grey,fontWeight: FontWeight.bold),
-
+                            DateFormat('EEEE').format(state.selectedDate ?? DateTime.now()).toString(),
+                            style: TextStyle(
+                              color:Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           SizedBox(height:2),
-
                           InkWell(
-                            child: Container(
-                                alignment: Alignment.center,
-                                height: 64,
-                                width: MediaQuery.of(context).size.width/7,
-                                decoration: BoxDecoration(
-                                    border: Border.all(color:Colors.blue)
-                                ),
-                                child:Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Text( DateFormat('d').format(selectedDate).toString(),
-                                      style: TextStyle(
-                                          color:Colors.blue,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold
-                                      ),
-                                    ),
-                                    //sessionDateTime== '' ? Text(''):
-                                    Text( DateFormat('MMM').format(selectedDate).toString().toUpperCase(),
-                                      style: TextStyle(
-                                          color:Colors.blue,
-                                          fontWeight: FontWeight.normal
-                                      ),
-                                    ),
-                                  ],
-                                )
-                            ),
-                            onTap: () async {
-                              final datePick= await showDatePicker(
-                                context: context,
-                                initialDate: selectedDate ?? DateTime.now(),
-                                firstDate: DateTime(2018),
-                                lastDate: DateTime(2030),
-                              );
-                              if(datePick!=null && datePick!=selectedDate){
-                                setState(() {
-                                  selectedDate=datePick;
-                                  isSelectecDate= true;
-                                });
-                              }
+                            onTap: () {
+                              _selectDate(context, state);
                             },
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: 64,
+                              width: MediaQuery.of(context).size.width/7,
+                              decoration: BoxDecoration(
+                                  border: Border.all(color:Colors.blue)
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Text(
+                                    DateFormat('d').format(state.selectedDate ?? DateTime.now()).toString(),
+                                    style: TextStyle(
+                                        color:Colors.blue,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                  //sessionDateTime== '' ? Text(''):
+                                  Text(
+                                    DateFormat('MMM').format(state.selectedDate ?? DateTime.now()).toString().toUpperCase(),
+                                    style: TextStyle(
+                                        color:Colors.blue,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           )
-
                         ],
                       ),
                     ],
@@ -458,41 +286,40 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                   child: Column(
                     children: <Widget>[
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Column(
-                            children: <Widget>[
-                              Text('Start Time',
-                                style: TextStyle(
-                                  color:Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              InkWell(
-                                child: Container(
-                                  height: 44,
-                                  alignment: Alignment.center,
-                                  width: MediaQuery.of(context).size.width/4,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color:Colors.grey),
+                          Flexible(
+                            child: Column(
+                              children: <Widget>[
+                                Text('Start Time',
+                                  style: TextStyle(
+                                    color:Colors.black,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  child:  Text(
-                                    pickedTime.toString(),
-                                    style: TextStyle(
-                                      color:Colors.black,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                ),
+                                InkWell(
+                                  child: Container(
+                                    height: 44,
+                                    alignment: Alignment.center,
+                                    width: MediaQuery.of(context).size.width/4,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color:Colors.grey),
+                                    ),
+                                    child:  Text(
+                                      DateFormat.jm().format(state.selectedDate ?? DateTime.now()),
+                                      style: TextStyle(
+                                        color:Colors.black,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
+                                  onTap: () async {
+                                    await _selectTime(context, state);
+                                  },
                                 ),
-                                onTap: (){
-                                  setState(() {
-                                    _selectTime(context);
-                                  });
-                                },
-                              )
-
-                            ],
+                              ],
+                            ),
                           ),
                           // SizedBox(width:40),
                           Column(
@@ -512,9 +339,8 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                       child: Icon(Icons.remove,color: Colors.white,),
                                     ),
                                     onTap: (){
-                                      setState(() {
-                                        finalNumber = finalNumber - 1;
-                                      });
+                                      int finalNumber = state.finalNumber - 1;
+                                      screenBloc.add(UpdateFinalNumber(finalNumber: finalNumber));
                                     },
                                   ),
                                   Container(
@@ -525,7 +351,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                       border: Border.all(color:Colors.grey,width: 0.5),
                                     ),
                                     child:  Text(
-                                      finalNumber.toString(),
+                                      state.finalNumber.toString(),
                                       style: TextStyle(
                                         color:Colors.black,
                                         fontSize: 16,
@@ -545,48 +371,45 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                     ),
                                     onTap: (){
                                       setState(() {
-                                        finalNumber = finalNumber +1;
+                                        int finalNumber = state.finalNumber + 1;
+                                        screenBloc.add(UpdateFinalNumber(finalNumber: finalNumber));
                                       });
                                     },
                                   ),
                                 ],
                               ),
-                              // )
-
                             ],
                           ),
-                          Column(
-                            children: <Widget>[
-                              Text('End Time',
-                                style: TextStyle(
-                                  color:Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Container(
-                                height: 44,
-                                alignment: Alignment.center,
-                                width: MediaQuery.of(context).size.width/4,
-                                decoration: BoxDecoration(
-                                    border: Border.all(color:Colors.grey)
-                                ),
-                                child: Text(
-                                  DateFormat.jm().format(pickedTimedt.add(new Duration(minutes: finalNumber))).toString(),//'10:21 PM',
+                          Flexible(
+                            child: Column(
+                              children: <Widget>[
+                                Text('End Time',
                                   style: TextStyle(
                                     color:Colors.black,
-                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-
-                              ),
-                            ],
+                                Container(
+                                  height: 44,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                      border: Border.all(color:Colors.grey)
+                                  ),
+                                  child: Text(
+                                    DateFormat.jm().format((state.selectedDate ?? DateTime.now()).add(new Duration(minutes: state.finalNumber))).toString(),//'10:21 PM',
+                                    style: TextStyle(
+                                      color:Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ) ,
-
                       SizedBox(height: 30,),
-
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: <Widget>[
@@ -608,59 +431,54 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                             alignment: Alignment.center,
                                             width: MediaQuery.of(context).size.width/6.5,
                                             decoration: BoxDecoration(
-                                                color: locHomeSelectedButton ?
-                                                Color(0xff4A4A4A) :Colors.white,
+                                                color: state.isHome ?
+                                                  Color(0xff4A4A4A) : Colors.white,
                                                 border: Border.all(color:Colors.grey,width: 0.5)
                                             ),
-                                            child: Icon(Icons.home,
-                                              color: locHomeSelectedButton
+                                            child: Icon(
+                                              Icons.home,
+                                              color: state.isHome
                                                   ? Colors.white:Color(0xff4A4A4A),
                                             ),
                                           ),
                                           onTap: (){
-                                            setState(() {
-                                              locHomeSelectedButton = true;
-                                              locBuildingSelectedButton = false;
-                                            });
+                                            screenBloc.add(UpdateHomeBuilding(isHome: true));
                                           },
-
                                         ),
-
-                                        Text('Home',style: TextStyle(fontSize: 11),),
+                                        Text(
+                                          'Home',
+                                          style: TextStyle(fontSize: 11),
+                                        ),
                                       ],
                                     ),
-
                                     Container(width: 2,),
-
                                     Column(
                                       children: <Widget>[
-
                                         InkWell(
                                           child: Container(
                                             height: 44,
                                             alignment: Alignment.center,
                                             width: MediaQuery.of(context).size.width/6.5,
                                             decoration: BoxDecoration(
-                                                color: locBuildingSelectedButton
+                                                color: !state.isHome
                                                     ? Color(0xff4A4A4A): Colors.white,
                                                 border: Border.all(color:Colors.grey,width: 0.5)
                                             ),
                                             child: Icon(Icons.school,
-                                              color: locBuildingSelectedButton
+                                              color: !state.isHome
                                                   ? Colors.white: Color(0xff4A4A4A),
                                             ),
                                           ),
                                           onTap: (){
-                                            setState(() {
-                                              locHomeSelectedButton = false;
-                                              locBuildingSelectedButton = true;
-                                            });
+                                            screenBloc.add(UpdateHomeBuilding(isHome: false));
                                           },
-
                                         ),
-
-                                        Text('School',style: TextStyle(fontSize: 11),),
-
+                                        Text(
+                                          'School',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -686,50 +504,41 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                               alignment: Alignment.center,
                                               width: MediaQuery.of(context).size.width/6.5,
                                               decoration: BoxDecoration(
-                                                  color: groupType == 1
+                                                  color: state.groupType == 1
                                                       ? Color(0xff4A4A4A): Colors.white,
                                                   border: Border.all(color:Colors.grey,width: 0.5)
                                               ),
                                               child: Icon(Icons.person,
-                                                color: groupType == 1
+                                                color: state.groupType == 1
                                                     ? Colors.white: Color(0xff4A4A4A),
                                               ),
                                             ),
                                             onTap: (){
-                                              setState(() {
-                                                groupType = 1;
-                                              });
+                                              screenBloc.add(UpdateSchoolGroup(groupType: 1));
                                             },
-
                                           ),
                                           Text('Individual',style: TextStyle(fontSize: 11),),
-
-                                        ]
+                                        ],
                                     ),
-
                                     Column(
                                       children:<Widget>[
-
                                         InkWell(
                                           child: Container(
                                             height: 44,
                                             alignment: Alignment.center,
                                             width: MediaQuery.of(context).size.width/6.5,
                                             decoration: BoxDecoration(
-                                                color: groupType == 2
+                                                color: state.groupType == 2
                                                     ?Color(0xff4A4A4A):Colors.white,
                                                 border: Border.all(color:Colors.grey,width: 0.5)
                                             ),
                                             child: Icon(Icons.group,
-                                              color: groupType == 2
+                                              color: state.groupType == 2
                                                   ?Colors.white:Color(0xff4A4A4A),
                                             ),
                                           ),
                                           onTap: (){
-                                            setState(() {
-                                              groupType = 2;
-                                            });
-
+                                            screenBloc.add(UpdateSchoolGroup(groupType: 2));
                                           },
 
                                         ),
@@ -757,9 +566,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
           //Container(height: 10,),
           GestureDetector(
             onTap: (){
-              setState(() {
-                goalsAndProgress = !goalsAndProgress;
-              });
+              bool isSelect = state.goalsAndProgress;
+              print(state.longTermGpDropDownList.length);
+              screenBloc.add(SelectGoalSection(isSelect: !isSelect));
             },
             child: Container(
               height: 44,
@@ -774,10 +583,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                           style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
                       ),
                       padding: const EdgeInsets.all(0)),
-
                   Container(
                     alignment: Alignment.centerRight,
-                    child: goalsAndProgress ? Icon(Icons.arrow_drop_down,
+                    child: state.goalsAndProgress ? Icon(Icons.arrow_drop_down,
                       color:Colors.white,
                       size: 35,
                     ) : Icon(Icons.arrow_right,
@@ -790,7 +598,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
             ),
           ),
 
-          goalsAndProgress ? Container(
+          state.goalsAndProgress ? Container(
             margin: const EdgeInsets.all(5),
             padding:  const EdgeInsets.all(5.0),
             height: 50,
@@ -799,15 +607,15 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
             ),
             child: DropdownButton(
               underline: Container(),
-              hint: _dropDownValue == null
+              hint: state.dropDownValue == null
                   ? Text(
                 state.longTermGpDropDownList.length > 0  ? state.longTermGpDropDownList[0].longGoalText : '' ,
                 maxLines: 1,
               )
                   : Text(
-                _dropDownValue,
+                state.dropDownValue,
                 maxLines: 1,
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(color: Colors.blue),
               ),
               isExpanded: true,
               // elevation: 10,
@@ -846,65 +654,58 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                 }
                 screenBloc.add(SelectLongTermID(id: selectedLtGoalId));
                 screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
-                setState(() {
-                  _dropDownValue = val.longGoalText;
-                });
+                screenBloc.add(UpdateDropdownValue(longGoalText: val.longGoalText));
               },
-              //  selectedItemBuilder: (context){
-
-              //   },
             ),
           ) : Container(),
-          goalsAndProgress ? Container(
+          state.goalsAndProgress ? Container(
             margin: const EdgeInsets.only(left:5,right:5),
             width: MediaQuery.of(context).size.width,
-            child: ListView.separated(
-              itemCount: state.selectedShortTermResultListModel.length,
-              physics: const NeverScrollableScrollPhysics(),
-              //scrollDirection: Axis.horizontal,
-              separatorBuilder: (context, index) {
-                return Container();//Divider(height: 0, color: Colors.transparent, thickness: 1,);
-              },
-              shrinkWrap: true,
-              itemBuilder: (context, index){
-                return Column(
-                  children: <Widget>[
-                    Container(
-                        child: CheckboxListTile(
-                          title: Text(
-                            state.selectedShortTermResultListModel[index].selectedShortgoaltext,
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          value: state.selectedShortTermResultListModel[index].checkVal,
-                          onChanged: (newValue) {
-                            List<SelectedShortTermResultListModel> selected = state.selectedShortTermResultListModel;
-                            selected[index].checkVal = newValue;
-                            screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selected));
-                          },
-                          controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-                        )
-                    ),
-                    //Divider(color: Colors.black,)
-                  ],
+            child: Wrap(
+              children: state.selectedShortTermResultListModel.map( (item) {
+                return CheckboxListTile(
+                  title: Text(
+                    item.selectedShortgoaltext,
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  value: item.checkVal,
+                  onChanged: (newValue) {
+                    List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
+
+                    for(int i = 0; i < state.selectedShortTermResultListModel.length; i++){
+                      if (item.id == state.selectedShortTermResultListModel[i].id){
+                        selectedShortTermResultListModel.add(
+                            SelectedShortTermResultListModel(
+                              id: state.selectedShortTermResultListModel[i].id,
+                              selectedId: state.selectedShortTermResultListModel[i].selectedId,
+                              selectedShortgoaltext: state.selectedShortTermResultListModel[i].selectedShortgoaltext,
+                              checkVal: newValue,
+                            )
+                        );
+                      } else {
+                        selectedShortTermResultListModel.add(
+                            state.selectedShortTermResultListModel[i]
+                        );
+                      }
+                    }
+                    screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
                 );
               },
-            ),
-          ) : Container(),
-          goalsAndProgress ? goalprogressReview(state) : Container(),
-          goalsAndProgress ? Container(
+            ).toList(),
+          ),
+          ): Container(),
+          state.goalsAndProgress ? goalprogressReview(state) : Container(),
+          state.goalsAndProgress ? Container(
               margin: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                //border: Border.all(color:Colors.grey)
-              ),
               child: CheckboxListTile(
                 title: Text('Regression Noted?',
                   style: TextStyle(fontSize:18),
                 ),
-                value: checkedValue,
+                value: state.checkedValue,
                 onChanged: (newValue) {
-                  setState(() {
-                    checkedValue = newValue;
-                  });
+                  screenBloc.add(UpdateCheckedValue(checkedValue: newValue));
                 },
                 controlAffinity: ListTileControlAffinity.leading,
               )
@@ -913,10 +714,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
           SizedBox(height:20),
           GestureDetector(
             onTap: (){
-              setState(() {
-                isActivities =  !isActivities;
-              });
-
+              print(state.activitiesListItems);
+              bool isSelect = state.isActivities;
+              screenBloc.add(SelectActivitySection(isSelect: !isSelect));
             },
             child:Container(
               alignment: Alignment.center,
@@ -935,7 +735,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                     Container(
                       alignment: Alignment.centerRight,
 
-                      child: isActivities ? Icon(Icons.arrow_drop_down,
+                      child: state.isActivities ? Icon(Icons.arrow_drop_down,
                         color:Colors.white,
                         size: 35,
                       ) :Icon(Icons.arrow_right,
@@ -948,12 +748,11 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
             ),
           ),
           SizedBox(height:16),
-          isActivities ? activitiesDropdownWidget(state) : Container(),
+          state.isActivities ? activitiesDropdownWidget(state) : Container(),
           GestureDetector(
             onTap: (){
-              setState(() {
-                socialPragmaics = !socialPragmaics;
-              });
+              bool isSelect = state.socialPragmaics;
+              screenBloc.add(SelectSPSection(isSelect: !isSelect));
             },
             child: Container(
               alignment: Alignment.center,
@@ -971,7 +770,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                   ),
                   Container(
                     alignment: Alignment.centerRight,
-                    child:socialPragmaics?Icon(Icons.arrow_drop_down,
+                    child: state.socialPragmaics?Icon(Icons.arrow_drop_down,
                       color:Colors.white,
                       size: 35,
                     ) :Icon(Icons.arrow_right,
@@ -984,7 +783,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
             ),
           ),
 
-          socialPragmaics ? Container(
+          state.socialPragmaics ? Container(
             margin: EdgeInsets.only(left:5,right:5, top: 12),
             decoration: BoxDecoration(
               shape: BoxShape.rectangle,
@@ -998,29 +797,34 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                 showModalBottomSheet<void>(
                   context: context,
                   builder: (BuildContext context) {
-                    return SafeArea(
-                      child: ListView.separated(
-                        itemCount: state.sPcheckListItems.length,
-                        separatorBuilder: (context, index) {
-                          return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
-                        },
-                        itemBuilder: (context, index){
-                          return CheckboxListTile(
-                            dense: true,
-                            title: Text(
-                              state.sPcheckListItems[index].categoryTextDetail,
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            value: selectedSPIndex == index,
-                            onChanged: (newValue) {
-                              setState(() {
-                                selectedSPIndex = index;
-                              });
-                              Navigator.pop(context);
-                            },
-                            controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-                          );
-                        },
+                    var height = state.sPcheckListItems.length * 50.0 + MediaQuery.of(context).viewPadding.bottom;
+                    if (height > MediaQuery.of(context).size.height / 2.0) {
+                      height = MediaQuery.of(context).size.height / 2.0;
+                    }
+                    return Container(
+                      height: height,
+                      child: SafeArea(
+                        child: ListView.separated(
+                          itemCount: state.sPcheckListItems.length,
+                          separatorBuilder: (context, index) {
+                            return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+                          },
+                          itemBuilder: (context, index){
+                            return CheckboxListTile(
+                              dense: true,
+                              title: Text(
+                                state.sPcheckListItems[index].categoryTextDetail,
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              value: state.selectedSPIndex == index,
+                              onChanged: (newValue) {
+                                screenBloc.add(UpdateSPIndex(selectedSPIndex: index));
+                                Navigator.pop(context);
+                              },
+                              controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+                            );
+                          },
+                        ),
                       ),
                     );
                   },
@@ -1028,7 +832,10 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
               },
               dense: true,
               title: Text(
-                selectedSPIndex > -1 ? state.sPcheckListItems[selectedSPIndex].categoryTextDetail: 'Select Your Choice',
+                state.selectedSPIndex > -1 ? state.sPcheckListItems[state.selectedSPIndex].categoryTextDetail: 'Select Your Choice',
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
               ),
               trailing: Icon(Icons.keyboard_arrow_down),
             ),
@@ -1037,9 +844,8 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
           SizedBox(height:20),
           GestureDetector(
             onTap: (){
-              setState(() {
-                seitIntervention =  !seitIntervention;
-              });
+              bool isSelect = state.seitIntervention;
+              screenBloc.add(SelectSISection(isSelect: !isSelect));
             },
             child: Container(
               alignment: Alignment.center,
@@ -1047,28 +853,33 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
               width: MediaQuery.of(context).size.width,
               color: Color(0xff4A4A4A),
               child: Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    Container(
-                      alignment: Alignment.center,
-                      child: Text('SEIT Intervention',
-                          style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
+                alignment: Alignment.center,
+                children: <Widget>[
+                  Container(
+                    alignment: Alignment.center,
+                    child: Text(
+                      'SEIT Intervention',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.normal,
                       ),
                     ),
-                    Container(
-                      alignment: Alignment.centerRight,
-                      child:seitIntervention?Icon(Icons.arrow_drop_down,
-                        color:Colors.white,
-                        size: 35,
-                      ) :Icon(Icons.arrow_right,
-                        color:Colors.white,
-                        size: 35,
-                      ),),
-                  ]
+                  ),
+                  Container(
+                    alignment: Alignment.centerRight,
+                    child: state.seitIntervention ? Icon(Icons.arrow_drop_down,
+                      color:Colors.white,
+                      size: 35,
+                    ) :Icon(Icons.arrow_right,
+                      color:Colors.white,
+                      size: 35,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          seitIntervention ? Container(
+          state.seitIntervention ? Container(
             margin: EdgeInsets.only(left:5,right:5, top: 12),
             decoration: BoxDecoration(
               shape: BoxShape.rectangle,
@@ -1095,12 +906,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                               state.sIcheckListItems[index].categoryTextDetail,
                               style: TextStyle(fontSize: 14),
                             ),
-                            value: selectedSIIndex == index,
+                            value: state.selectedSIIndex == index,
                             onChanged: (newValue) {
-                              setState(() {
-//                                            sIcheckListItems[index].checkVal = newValue;
-                                selectedSIIndex = index;
-                              });
+                              screenBloc.add(UpdateSIIndex(selectedSIIndex: index));
                               Navigator.pop(context);
                             },
                             controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
@@ -1113,7 +921,10 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
               },
               dense: true,
               title: Text(
-                selectedSIIndex > -1 ? state.sIcheckListItems[selectedSIIndex].categoryTextDetail: 'Select Your Choice',
+                state.selectedSIIndex > -1 ? state.sIcheckListItems[state.selectedSIIndex].categoryTextDetail: 'Select Your Choice',
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
               ),
               trailing: Icon(Icons.keyboard_arrow_down),
             ),
@@ -1123,10 +934,8 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
           GestureDetector(
             onTap: (){
-              setState(() {
-                competedActivites =  !competedActivites;
-              });
-
+              bool isSelect = state.competedActivites;
+              screenBloc.add(SelectCASection(isSelect: !isSelect));
             },
             child: Container(
               alignment: Alignment.center,
@@ -1150,7 +959,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                     Container(
                       alignment: Alignment.centerRight,
 
-                      child:competedActivites?Icon(Icons.arrow_drop_down,
+                      child: state.competedActivites?Icon(Icons.arrow_drop_down,
                         color:Colors.white,
                         size: 35,
                       ) :Icon(Icons.arrow_right,
@@ -1162,14 +971,12 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
 
             ),),
-          competedActivites ? completedActivityReview(state) : Container(),
+          state.competedActivites ? completedActivityReview(state) : Container(),
           SizedBox(height:20),
           GestureDetector(
             onTap: (){
-              setState(() {
-                jointAttentionEyeContact =  !jointAttentionEyeContact;
-              });
-
+              bool isSelect = state.jointAttentionEyeContact;
+              screenBloc.add(SelectJASection(isSelect: !isSelect));
             },
             child: Container(
               alignment: Alignment.center,
@@ -1179,32 +986,31 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
               child: Stack(
                   alignment: Alignment.center,
                   children: <Widget>[
-
                     Container(
-
                       alignment: Alignment.center,
                       child: Text('Joint Attention / Eye Contact',
                           style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
-
-                      ),),
-
-
+                      ),
+                    ),
                     Container(
                       alignment: Alignment.centerRight,
 
-                      child:jointAttentionEyeContact?Icon(Icons.arrow_drop_down,
+                      child: state.jointAttentionEyeContact ? Icon(
+                        Icons.arrow_drop_down,
                         color:Colors.white,
                         size: 35,
-                      ) :Icon(Icons.arrow_right,
+                      ) :
+                      Icon(
+                        Icons.arrow_right,
                         color:Colors.white,
                         size: 35,
-                      ),),
-                  ]
+                      ),
+                    ),
+                  ],
               ), ///Text('Activities',
-
-
-            ),),
-          jointAttentionEyeContact? jointAttentionOrEyeContactReview(state): Container(),
+            ),
+          ),
+          state.jointAttentionEyeContact? jointAttentionOrEyeContactReview(state): Container(),
 
           Padding(padding: EdgeInsets.only(top: 16),),
           Container(
@@ -1220,30 +1026,35 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
             ),
           ),
 
-          Container(
+          state.isLoading ? Container() : Container(
             alignment: Alignment.topLeft,
             margin: const EdgeInsets.only(left:20,right:20,top:2),
-            decoration:BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                border: Border.all(color: Colors.grey,width: 1)
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(
+                color: Colors.grey,
+                width: 1,
+              ),
             ) ,
             child: TextField(
-              maxLines: 5,
-              controller: myNotesController,
-              decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.all(8),
-                  // enabled: false,
-                  hintText: '',
-                  // noteText,
-                  //widget.noteText == '' ? 'Placeholder':widget.noteText,
-                  hintStyle: TextStyle(fontSize: 16,color: Colors.black),
-                  border: InputBorder.none
-              ),
-              onChanged: (val){
-                setState(() {
+              focusNode: noteFocus,
+              onChanged: (val) {
 
-                });
               },
+              controller: noteTextController,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.newline,
+              maxLines: null,
+              scrollPhysics: NeverScrollableScrollPhysics(),
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.all(8),
+                hintText: '',
+                hintStyle: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black,
+                ),
+                border: InputBorder.none,
+              ),
             ),
           ),
           SizedBox(height:30),
@@ -1254,7 +1065,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
             ),
             child: InkWell(
               onTap: (){
-                addSaveNotesApiCall(state);
+                screenBloc.add(SaveSessionNoteEvent());
               },
               child: Container(
                   color: Colors.blue,
@@ -1286,14 +1097,24 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                 CheckList item = list[index1];
                 return InkWell(
                   onTap: () {
-                      item.checkVal = !item.checkVal;
-                      list[index1] = item;
-
-                      Map activitiesListItems = state.activitiesListItems;
-                      activitiesListItems[key] = list;
-
-                      screenBloc.add(UpdateActivityListItem(activitiesListItems: activitiesListItems));
-
+                    Map<int, List<CheckList>> map = {};
+                    for (int i = 0; i < state.activitiesListItems.keys.toList().length; i++) {
+                      int key = state.activitiesListItems.keys.toList()[i];
+                      List<CheckList> list = [];
+                      for (int j = 0; j < state.activitiesListItems[key].length; j ++) {
+                        if (i == index && j == index1) {
+                          list.add(CheckList(
+                            id: state.activitiesListItems[key][j].id,
+                            title: state.activitiesListItems[key][j].title,
+                            checkVal: !state.activitiesListItems[key][j].checkVal,
+                          ));
+                        } else {
+                          list.add(state.activitiesListItems[key][j]);
+                        }
+                      }
+                      map[key] = list;
+                    }
+                    screenBloc.add(UpdateActivityListItem(activitiesListItems: map));
                   },
                   splashColor: Color(0xFFEFEFEF),
                   highlightColor: Color(0xFFEFEFEF),
@@ -1351,7 +1172,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
         Padding(
           padding: EdgeInsets.only(left: 16, top: 8, bottom: 4),
           child: Text(
-              'Outcomes: '
+            'Outcomes: ',
           ),
         ),
         Container(
@@ -1374,7 +1195,11 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                       padding: EdgeInsets.only(top: 16),
                       itemCount: state.outComesListItems.length,
                       separatorBuilder: (context, index) {
-                        return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+                        return Divider(
+                          color: Colors.black38,
+                          height: 0,
+                          thickness: 0.5,
+                        );
                       },
                       itemBuilder: (context, index){
                         return CheckboxListTile(
@@ -1383,11 +1208,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                             state.outComesListItems[index].categoryTextDetail,
                             style: TextStyle(fontSize: 14),
                           ),
-                          value: selectedOutComesIndex == index,
+                          value: state.selectedOutComesIndex == index,
                           onChanged: (newValue) {
-                            setState(() {
-                              selectedOutComesIndex = index;
-                            });
+                            screenBloc.add(UpdateOutComeIndex(selectedOutComesIndex: index));
                             Navigator.pop(context);
                           },
                           controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
@@ -1400,7 +1223,10 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
             },
             dense: true,
             title: Text(
-              selectedOutComesIndex > -1 ? state.outComesListItems[selectedOutComesIndex].categoryTextDetail: 'Select Your Choice',
+              state.selectedOutComesIndex > -1 ? state.outComesListItems[state.selectedOutComesIndex].categoryTextDetail: 'Select Your Choice',
+              style: TextStyle(
+                color: Colors.blue,
+              ),
             ),
             trailing: Icon(Icons.keyboard_arrow_down),
           ),
@@ -1428,7 +1254,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
           margin: EdgeInsets.only(left:5,right:5, top: 12),
           decoration: BoxDecoration(
             shape: BoxShape.rectangle,
-            color: getSessionColor(groupType, selectedSessionTypeIndex),
+            color: getSessionColor(state.groupType, state.selectedSessionTypeIndex),
             border: Border.all(
               color: Colors.black,
               width: 1,
@@ -1455,11 +1281,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                             sessionTypeStrings[index],
                             style: TextStyle(fontSize: 16),
                           ),
-                          value: selectedSessionTypeIndex == index,
+                          value: state.selectedSessionTypeIndex == index,
                           onChanged: (newValue) {
-                            setState(() {
-                              selectedSessionTypeIndex = index;
-                            });
+                            screenBloc.add(UpdateSessionType(selectedSessionTypeIndex: index));
                             Navigator.pop(context);
                           },
                           controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
@@ -1472,7 +1296,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
             },
             dense: true,
             title: Text(
-              selectedSessionTypeIndex > -1 ? sessionTypeStrings[selectedSessionTypeIndex]: sessionTypeStrings[0],
+              state.selectedSessionTypeIndex > -1 ? sessionTypeStrings[state.selectedSessionTypeIndex]: sessionTypeStrings[0],
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -1490,97 +1314,254 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
   Widget completedActivityReview(SessionNoteScreenState state){
     return Container(
-      margin: EdgeInsets.only(left:10 ,right: 10, top: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: state.cAcheckListItems.map((e) {
-          int index = state.cAcheckListItems.indexOf(e);
-          return InkWell(
-            child: Container(
-              height: 110,
-              width: 90,
-              decoration: BoxDecoration(
-                  border: Border.all(color:Colors.grey,width: 0.5)
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(
-                    iconsList[index],
-                    color: selectedCAIconIndex == index ? Colors.green:Colors.grey,
-                    size: 40,
-                  ) ,
-                  Text('Made',
-                    style: TextStyle(
-                        color: selectedCAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
-                    ),
+      margin: EdgeInsets.only(left:5,right:5, top: 12),
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        border: Border.all(
+          color: Colors.black,
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        onTap: () {
+          showModalBottomSheet<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return Container(
+                height: 200,
+                child: SafeArea(
+                  child: ListView.separated(
+                    itemCount: state.cAcheckListItems.length,
+                    separatorBuilder: (context, index) {
+                      return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+                    },
+                    itemBuilder: (context, index){
+                      return CheckboxListTile(
+                        dense: true,
+                        title: Row(
+                          children: <Widget>[
+                            Icon(
+                              completeIconsList[index],
+                              size: 24,
+                              color: state.selectedCAIconIndex == index ? Colors.blue: Colors.grey,
+                            ),
+                            SizedBox(width: 8,),
+                            Flexible(
+                              child: Text(
+                                state.cAcheckListItems[index].categoryTextDetail,
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            )
+                          ],
+                        ),
+                        value: state.selectedCAIconIndex == index,
+                        selected: state.selectedCAIconIndex == index,
+                        onChanged: (newValue) {
+                          screenBloc.add(UpdateCAIndex(selectedCAIconIndex: index));
+                          Navigator.pop(context);
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+                      );
+                    },
                   ),
-                  Text('Progress',
-                    style: TextStyle(
-                        color: selectedCAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
-                    ),
-                  ),
-                ],
-              ) ,
-            ),
-            onTap: (){
-              setState(() {
-                selectedCAIconIndex = index;
-              });
+                ),
+              );
             },
           );
         },
-        ).toList(),
+        dense: true,
+        title: Row(
+          children: <Widget>[
+            state.selectedCAIconIndex > -1 ? Icon(
+              completeIconsList[state.selectedCAIconIndex],
+              size: 24,
+              color: Colors.blue,
+            ) : Container(),
+            SizedBox(width: 8,),
+            Flexible(
+              child: Text(
+                state.selectedCAIconIndex > -1 ? state.cAcheckListItems[state.selectedCAIconIndex].categoryTextDetail: 'Select Your Choice',
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          ],
+        ),
+        trailing: Icon(Icons.keyboard_arrow_down),
       ),
     );
+//    return Container(
+//      margin: EdgeInsets.only(left:10 ,right: 10, top: 16),
+//      child: Row(
+//        mainAxisAlignment: MainAxisAlignment.center,
+//        children: state.cAcheckListItems.map((e) {
+//          int index = state.cAcheckListItems.indexOf(e);
+//          return InkWell(
+//            child: Container(
+//              height: 110,
+//              width: 90,
+//              decoration: BoxDecoration(
+//                  border: Border.all(color:Colors.grey,width: 0.5)
+//              ),
+//              child: Column(
+//                mainAxisAlignment: MainAxisAlignment.center,
+//                children: <Widget>[
+//                  Icon(
+//                    iconsList[index],
+//                    color: selectedCAIconIndex == index ? Colors.green:Colors.grey,
+//                    size: 40,
+//                  ) ,
+//                  Text('Made',
+//                    style: TextStyle(
+//                        color: selectedCAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
+//                    ),
+//                  ),
+//                  Text('Progress',
+//                    style: TextStyle(
+//                        color: selectedCAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
+//                    ),
+//                  ),
+//                ],
+//              ) ,
+//            ),
+//            onTap: (){
+//              setState(() {
+//                selectedCAIconIndex = index;
+//              });
+//            },
+//          );
+//        },
+//        ).toList(),
+//      ),
+//    );
   }
 
 
   Widget jointAttentionOrEyeContactReview(SessionNoteScreenState state){
     return Container(
-      margin: EdgeInsets.only(left:10 ,right: 10, top :16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: state.jAcheckListItems.map((e) {
-          int index = state.jAcheckListItems.indexOf(e);
-          return InkWell(
-            child: Container(
-              height: 110,
-              width: 90,
-              decoration: BoxDecoration(
-                  border: Border.all(color:Colors.grey,width: 0.5)
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(
-                    iconsList[index],
-                    color: selectedJAIconIndex == index ? Colors.green:Colors.grey,
-                    size: 40,
-                  ) ,
-                  Text('Made',
-                    style: TextStyle(
-                        color: selectedJAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
-                    ),
+      margin: EdgeInsets.only(left:5,right:5, top: 12),
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        border: Border.all(
+          color: Colors.black,
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        onTap: () {
+          showModalBottomSheet<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return Container(
+                height: 200,
+                child: SafeArea(
+                  child: ListView.separated(
+                    itemCount: state.jAcheckListItems.length,
+                    separatorBuilder: (context, index) {
+                      return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+                    },
+                    itemBuilder: (context, index){
+                      return CheckboxListTile(
+                        dense: true,
+                        title: Row(
+                          children: <Widget>[
+                            Icon(
+                              iconsList[index],
+                              size: 24,
+                              color: state.selectedJAIconIndex == index ? Colors.blue: Colors.grey,
+                            ),
+                            SizedBox(width: 8,),
+                            Flexible(
+                              child: Text(
+                                state.jAcheckListItems[index].categoryTextDetail,
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            )
+                          ],
+                        ),
+                        value: state.selectedJAIconIndex == index,
+                        selected: state.selectedJAIconIndex == index,
+                        onChanged: (newValue) {
+                          screenBloc.add(UpdateJAIndex(selectedJAIconIndex: index));
+                          Navigator.pop(context);
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+                      );
+                    },
                   ),
-                  Text('Progress',
-                    style: TextStyle(
-                        color: selectedJAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
-                    ),
-                  ),
-                ],
-              ) ,
-            ),
-            onTap: (){
-              setState(() {
-                selectedJAIconIndex = index;
-              });
+                ),
+              );
             },
           );
         },
-        ).toList(),
+        dense: true,
+        title: Row(
+          children: <Widget>[
+            state.selectedJAIconIndex > -1 ? Icon(
+              iconsList[state.selectedJAIconIndex],
+              size: 24,
+              color: Colors.blue,
+            ) : Container(),
+            SizedBox(width: 8,),
+            Flexible(
+              child: Text(
+                state.selectedJAIconIndex > -1 ? state.jAcheckListItems[state.selectedJAIconIndex].categoryTextDetail: 'Select Your Choice',
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          ],
+        ),
+        trailing: Icon(Icons.keyboard_arrow_down),
       ),
     );
+
+//    return Container(
+//      margin: EdgeInsets.only(left:10 ,right: 10, top :16),
+//      child: Row(
+//        mainAxisAlignment: MainAxisAlignment.center,
+//        children: state.jAcheckListItems.map((e) {
+//          int index = state.jAcheckListItems.indexOf(e);
+//          return InkWell(
+//            child: Container(
+//              height: 110,
+//              width: 90,
+//              decoration: BoxDecoration(
+//                  border: Border.all(color:Colors.grey,width: 0.5)
+//              ),
+//              child: Column(
+//                mainAxisAlignment: MainAxisAlignment.center,
+//                children: <Widget>[
+//                  Icon(
+//                    iconsList[index],
+//                    color: selectedJAIconIndex == index ? Colors.green:Colors.grey,
+//                    size: 40,
+//                  ) ,
+//                  Text('Made',
+//                    style: TextStyle(
+//                        color: selectedJAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
+//                    ),
+//                  ),
+//                  Text('Progress',
+//                    style: TextStyle(
+//                        color: selectedJAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
+//                    ),
+//                  ),
+//                ],
+//              ) ,
+//            ),
+//            onTap: (){
+//              setState(() {
+//                selectedJAIconIndex = index;
+//              });
+//            },
+//          );
+//        },
+//        ).toList(),
+//      ),
+//    );
   }
 
   Widget editWidget(){
@@ -1737,116 +1718,8 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
     );
   }
 
-  void addSaveNotesApiCall(SessionNoteScreenState state) async {
-    var selectedDate1 = new DateFormat('MM/dd/yy hh:mm:ss');
-
-    String dateFinal =  selectedDate1.format(selectedDate);
-
-    sessionTime = DateFormat.jm().format(selectedDate);
-
-    print('date ::'+dateFinal);
-    //String dd = dateFinal.split(' ').toString();
-    print('time ::'+pickedTime);
-
-    print('duration'+finalNumber.toString());
-    noteText = myNotesController.text.toString();
-    sessionDateTime = dateFinal;
-    sessionTime=pickedTime;
-    duration=finalNumber.toString();
-
-    if(locHomeSelectedButton == true){
-      locationHomeOrSchool='Home|Class';
-    }else{
-      locationHomeOrSchool = 'School|Class';
-    }
-    print('locationHomeOrSchool :: '+locationHomeOrSchool);
-    if(settingGroupSelectedButton == true){
-      settingsGroupOrNot = 0;
-    }else{
-      settingsGroupOrNot = 1;
-    }
-
-    print('settingsGroupOrNot => $settingsGroupOrNot');
-
-    if (selectedSessionTypeIndex > -1) {
-      sessionType = sessionTypeStrings[selectedSessionTypeIndex];
-    } else {
-      sessionType = sessionTypeStrings[0];
-    }
-    print('sessionType :: '+sessionType);
-    confirmedVal='1';
-
-    String url =  widget.sessionId != null ? baseURL + 'SessionNote/${widget.sessionId}/CompleteSessionNote': baseURL + 'SessionNote/0/CompleteSessionNote';
-
-    List<Goals> goals = List();
-    List<ShortGoalIDs> shortTerms = List();
-    for (SelectedShortTermResultListModel model in state.selectedShortTermResultListModel) {
-      if (model.checkVal) {
-        shortTerms.add(ShortGoalIDs(shortGoalID: model.id));
-      }
-    }
-    var goal = Goals(longGoalID: state.selectedLtGoalId, shortGoalIDs: shortTerms);
-    goals.add(goal);
-    List<SessionNoteExtrasList> sessionNoteExtrasList = [];
-
-    if (selectedSPIndex > -1) {
-      sessionNoteExtrasList.add(
-          SessionNoteExtrasList(sNECategoryID: GlobalCall.socialPragmatics.categoryData[0].mainCategoryID,
-              sNECategoryDetailID: state.sPcheckListItems[selectedSPIndex].categoryTextID,
-              sNESubDetailID: 0));
-    }
-    if (selectedSIIndex > -1) {
-      sessionNoteExtrasList.add(
-          SessionNoteExtrasList(sNECategoryID: GlobalCall.SEITIntervention.categoryData[0].mainCategoryID,
-              sNECategoryDetailID: state.sIcheckListItems[selectedSIIndex].categoryTextID,
-              sNESubDetailID: 0));
-    }
-
-    if (selectedOutComesIndex > -1) {
-      sessionNoteExtrasList.add(
-          SessionNoteExtrasList(sNECategoryID: GlobalCall.outcomes.categoryData[0].mainCategoryID,
-              sNECategoryDetailID: state.outComesListItems[selectedOutComesIndex].categoryTextID,
-              sNESubDetailID: 0));
-    }
-
-    if (selectedCAIconIndex > -1) {
-      sessionNoteExtrasList.add(
-          SessionNoteExtrasList(sNECategoryID: GlobalCall.completedActivity.categoryData[0].mainCategoryID,
-              sNECategoryDetailID: state.cAcheckListItems[selectedCAIconIndex].categoryTextID,
-              sNESubDetailID: 0));
-    }
-
-    if (selectedJAIconIndex > -1) {
-      sessionNoteExtrasList.add(
-          SessionNoteExtrasList(sNECategoryID: GlobalCall.jointAttention.categoryData[0].mainCategoryID,
-              sNECategoryDetailID: state.jAcheckListItems[selectedJAIconIndex].categoryTextID,
-              sNESubDetailID: 0));
-    }
-
-    List<Activities> activities = List();
-    state.activitiesListItems.forEach((key, alist) {
-      for(int j = 1; j < alist.length; j++) {
-        if (alist[j].checkVal) {
-          activities.add(Activities(activityDetailID: alist[j].id, categoryDetailID: alist[0].id));
-        }
-      }
-    });
-    CompleteSessionNotes newPost = new CompleteSessionNotes(
-      sessionDate: sessionDateTime,
-      sessionTime:sessionTime,
-      duration:finalNumber,
-      group: settingsGroupOrNot,
-      location: locationHomeOrSchool,
-      sessionType: sessionType,
-      notes: noteText,
-      confirmed: 1,
-      goals: goals,
-      activities: activities,
-      sessionID: 0,
-      sessionNoteExtrasList: sessionNoteExtrasList,
-    );
-
-    screenBloc.add(SaveSessionNoteEvent(url: url, completeSessionNotes: newPost));
+  void addSaveNotesApiCall()  {
+      screenBloc.add(SaveSessionNoteEvent());
   }
 
 }

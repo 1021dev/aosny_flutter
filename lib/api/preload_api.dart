@@ -39,7 +39,9 @@ class PreLoadApi{
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     String token = prefs.getString('token') ?? '';
-
+    if (token == '') {
+      return result;
+    }
     return http.get(url,
         headers:  {HttpHeaders.contentTypeHeader: "application/json", HttpHeaders.authorizationHeader: "Bearer $token"}
     ).then((http.Response response) {

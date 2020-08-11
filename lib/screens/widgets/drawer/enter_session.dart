@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'package:aosny_services/api/student_api.dart';
-import 'package:aosny_services/models/gp_Listview_model.dart';
-import 'package:aosny_services/models/gp_dropdown_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
-import 'package:aosny_services/screens/widgets/drawer/session_note.dart';
 import 'package:flutter/material.dart';
 
+import '../../login_screen.dart';
+import '../../menu_screen.dart';
 import 'drawer_widget.dart';
+import 'notification_screen.dart';
 
 class EnterSession extends StatefulWidget {
   static const String routeName = '/enterSession';
@@ -61,9 +61,57 @@ class _EnterSessionState extends State<EnterSession>
         title: Text("Enter sessions",style: TextStyle(fontSize: 18,fontWeight: FontWeight.normal),),
       ),
       drawer: DrawerWidget(
-        currentRoute: 'enterSession',
-        loadCategories: widget.loadCategories,
-        loadStudents: widget.loadStudents,
+        openEnterSession: () {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder:
+                  (context)=> EnterSession(
+                loadCategories: widget.loadCategories,
+                loadStudents: widget.loadStudents,
+              )
+              )
+          );
+        },
+        openNotification: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context)=> NotificationScreen(
+                loadCategories: widget.loadCategories,
+                loadStudents: widget.loadStudents,
+              ),
+            ),
+          );
+        },
+        openHelp: () {
+
+        },
+        openHistory: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder:
+                (context)=> MenuScreen(
+              selectedIndex: 0,
+            ),
+            ),
+          );
+        },
+        openProgress: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder:
+                (context)=> MenuScreen(
+              selectedIndex: 1,
+            ),
+            ),
+          );
+        },
+        openSettings: () {
+
+        },
+        signOut: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) =>
+                LoginScreen()),
+          );
+        },
       ),
       body: Container(
           padding: const EdgeInsets.all(10),

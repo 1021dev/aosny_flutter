@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:aosny_services/models/gp_dropdown_model.dart';

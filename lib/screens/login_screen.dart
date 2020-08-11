@@ -1,11 +1,8 @@
 import 'package:aosny_services/api/login_token_api.dart';
-import 'package:aosny_services/api/preload_api.dart';
 import 'package:aosny_services/helper/global_call.dart';
-import 'package:aosny_services/helper/utils.dart';
 import 'package:aosny_services/models/login_post_data_model.dart';
 import 'package:aosny_services/models/login_response.dart';
 import 'package:aosny_services/screens/menu_screen.dart';
-import 'package:aosny_services/screens/signature_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
@@ -55,6 +52,8 @@ class _LoginScreenState extends State<LoginScreen> {
     double minWidth = width > height ? height : width;
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomPadding: false,
+      resizeToAvoidBottomInset: false,
       body:
       ModalProgressHUD(
         inAsyncCall: _isLoading,
@@ -220,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setString('token', response.token);
       prefs.setString('password', passwordString);
 
-      print(response.token);
+      print(response);
 
       Fluttertoast.showToast(msg: 'Logged In Successfully',);
       setState(() {
