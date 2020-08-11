@@ -1,6 +1,5 @@
 import 'package:aosny_services/api/login_token_api.dart';
 import 'package:aosny_services/api/preload_api.dart';
-import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/screens/login_screen.dart';
 import 'package:aosny_services/screens/menu_screen.dart';
 import 'package:flutter/material.dart';

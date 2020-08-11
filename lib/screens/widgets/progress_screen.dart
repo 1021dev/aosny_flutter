@@ -1,6 +1,6 @@
-import 'package:aosny_services/api/progress_amount_api.dart';
 import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -26,15 +26,9 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
 
   var refreshKey = GlobalKey<RefreshIndicatorState>();
   bool isFiltered = false;
-  bool isStart = false;
-  bool isEnd = false;
-  DateTime selectedCurrentDate;
-  DateTime selectedStartDate;
-  DateTime selectedEndDate;
 
-  String startDate =' ';
-  String endDate=' ';
-  ProgressAmountApi progressAmountApi = new ProgressAmountApi();
+  String startDate ='';
+  String endDate='';
   String durationToString(int minutes) {
     var d = Duration(minutes:minutes);
     List<String> parts = d.toString().split(':');
@@ -46,33 +40,35 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
     if(whichStringType == 'Start Date'){
       final datePick= await showDatePicker(
         context: context,
-        initialDate: selectedStartDate ?? DateTime.now(),
+        initialDate: GlobalCall.proStartDate ?? DateTime.now(),
         firstDate: DateTime(2018),
         lastDate: DateTime(2030),
       );
-      if(datePick != null && datePick != selectedStartDate){
+      if(datePick != null && datePick != GlobalCall.proStartDate){
         setState(() {
-          selectedStartDate = datePick;
+          GlobalCall.proStartDate = datePick;
           startDate = DateFormat('MM/dd/yyyy').format(datePick);
-          isStart = true;
+          DateTime sevenDaysAgo = GlobalCall.proStartDate.add(new Duration(days: 7));
+          GlobalCall.proStartDate = sevenDaysAgo;
+          endDate = DateFormat('MM/dd/yyyy').format(sevenDaysAgo);
         });
-        if (endDate != null) {
-          widget.mainScreenBloc.add(GetProgressEvent(startDate: startDate, endDate: endDate));
-        }
+        widget.mainScreenBloc.add(GetProgressEvent(startDate: startDate, endDate: endDate));
       }
 
     }else{
       final datePick= await showDatePicker(
         context: context,
-        initialDate: selectedEndDate ?? DateTime.now(),
+        initialDate: GlobalCall.proEndDate ?? DateTime.now(),
         firstDate: DateTime(2018),
         lastDate: DateTime(2030),
       );
-      if(datePick != null && datePick != selectedEndDate){
+      if(datePick != null && datePick != GlobalCall.proEndDate){
         setState(() {
-          selectedEndDate = datePick;
+          GlobalCall.proEndDate = datePick;
           endDate = DateFormat('MM/dd/yyyy').format(datePick);
-          isEnd = true;
+          DateTime sevenDaysAgo = GlobalCall.proEndDate.subtract(new Duration(days: 7));
+          GlobalCall.proStartDate = sevenDaysAgo;
+          startDate = DateFormat('MM/dd/yyyy').format(sevenDaysAgo);
         });
         if (startDate != null) {
           widget.mainScreenBloc.add(GetProgressEvent(startDate: startDate, endDate: endDate));
@@ -108,19 +104,15 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
                               Text(
-                                  'Start Date'
+                                'Start Date',
                               ),
                               FlatButton(
                                 color: Colors.blue,
                                 onPressed: () async {
                                   showDateTimePicker('Start Date');
                                 },
-                                child: isStart ? Text(
+                                child: Text(
                                   startDate,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                  ),
-                                ) : Text('Start Date',
                                   style: TextStyle(
                                     color: Colors.white,
                                   ),
@@ -137,18 +129,15 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
                               Text(
-                                  'End Date'
+                                'End Date',
                               ),
                               FlatButton(
                                 color: Colors.blue,
                                 onPressed: (){
                                   showDateTimePicker('End Date');
                                 },
-                                child: isEnd ? Text(
-                                  endDate,style: TextStyle(
-                                  color:Colors.white,
-                                ),
-                                ) : Text('End Date',
+                                child: Text(
+                                  endDate,
                                   style: TextStyle(
                                     color:Colors.white,
                                   ),
@@ -169,7 +158,11 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                         padding: const EdgeInsets.fromLTRB(5, 5, 5, 10),
                         child: RefreshIndicator(
                           key: refreshKey,
-                          child: ListView.separated(
+                          child: state.progress.length == 0 ? Center(
+                            child: Text(
+                              'No progress data, please try to change start/end Date',
+                            ),
+                          ) : ListView.separated(
                               separatorBuilder: (context, index) {
                                 return Divider(height: 0, thickness: 0.5,);
                               },
@@ -199,8 +192,6 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: <Widget>[
                                           Padding(
                                             padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
@@ -213,7 +204,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                             ),
                                           ),
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: <Widget>[
                                               Flexible(
                                                 child: Row(
@@ -235,41 +226,48 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                                           ? Colors.blue
                                                           : double.parse(sessionPercentResultInString) >= 0.3 ? Colors.orange : Colors.red,
                                                     ),
-                                                    Column(
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: <Widget>[
-                                                        Text(
-                                                          'Sessions',
-                                                          style: TextStyle(
-                                                            fontWeight:FontWeight.bold,
+                                                    Padding(
+                                                      padding: EdgeInsets.only(left: 8),
+                                                    ),
+                                                    Flexible(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: <Widget>[
+                                                          Text(
+                                                            'Sessions',
+                                                            style: TextStyle(
+                                                              fontWeight:FontWeight.bold,
+                                                            ),
                                                           ),
-                                                        ),
-                                                        SizedBox(height:5),
-                                                        Text(
-                                                          'of ${mandatedMins.split(':')[0]} Hour',
-                                                          style: TextStyle(
-                                                            color:Colors.grey,
-                                                            fontSize: 12,
+                                                          SizedBox(height:5),
+                                                          Text(
+                                                            'of ${mandatedMins.split(':')[0]} Hour',
+                                                            style: TextStyle(
+                                                              color:Colors.grey,
+                                                              fontSize: 12,
+                                                            ),
                                                           ),
-                                                        ),
-                                                        SizedBox(height:5),
-                                                        SizedBox(
-                                                          child: FittedBox(
-                                                            child: Text(
-                                                              '${int.parse(mandatedMins.split(':')[0])-int.parse(serviceMins.split(':')[0])} Hour Remaining',
-                                                              style: TextStyle(color:Colors.red,
-                                                                fontSize: 14,
+                                                          SizedBox(height:5),
+                                                          SizedBox(
+                                                            child: FittedBox(
+                                                              child: Text(
+                                                                '${int.parse(mandatedMins.split(':')[0])-int.parse(serviceMins.split(':')[0])} Hour Remaining',
+                                                                style: TextStyle(color:Colors.red,
+                                                                  fontSize: 14,
+                                                                ),
                                                               ),
                                                             ),
                                                           ),
-                                                        ),
-                                                      ],
-                                                    )
+                                                        ],
+                                                      ),
+                                                    ),
                                                   ],
                                                 ),
                                               ),
                                               //------------non-direct----------------
+                                              Padding(
+                                                padding: EdgeInsets.only(left: 8),
+                                              ),
                                               Flexible(
                                                 child: Row(
                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -289,37 +287,41 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                                             ? Colors.blue
                                                             : double.parse(ndPercentResultInString) >= 0.3 ? Colors.orange :Colors.red
                                                     ),
-                                                    SizedBox(width:5),
-                                                    Column(
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: <Widget>[
-                                                        Text(
-                                                          'Non-Direct',
-                                                          style: TextStyle(
-                                                            fontWeight:FontWeight.bold,
+                                                    Padding(
+                                                      padding: EdgeInsets.only(left: 8),
+                                                    ),
+                                                    Flexible(
+                                                      child: Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: <Widget>[
+                                                          Text(
+                                                            'Non-Direct',
+                                                            style: TextStyle(
+                                                              fontWeight:FontWeight.bold,
+                                                            ),
                                                           ),
-                                                        ),
-                                                        SizedBox(height:5),
-                                                        Text('of ${mandatedNDMins.split(':')[0]} Hour',
-                                                          style: TextStyle(
-                                                            color:Colors.grey,
-                                                            fontSize: 12,
+                                                          SizedBox(height:5),
+                                                          Text('of ${mandatedNDMins.split(':')[0]} Hour',
+                                                            style: TextStyle(
+                                                              color:Colors.grey,
+                                                              fontSize: 12,
+                                                            ),
                                                           ),
-                                                        ),
-                                                        SizedBox(height:5),
-                                                        SizedBox(
-                                                          child: FittedBox(
-                                                            child: Text(
-                                                              '${int.parse(mandatedNDMins.split(':')[0])-int.parse(nDMins.split(':')[0])} Hour Remaining',
-                                                              style: TextStyle(color:Colors.red,
-                                                                fontSize: 14,
+                                                          SizedBox(height:5),
+                                                          SizedBox(
+                                                            child: FittedBox(
+                                                              child: Text(
+                                                                '${int.parse(mandatedNDMins.split(':')[0])-int.parse(nDMins.split(':')[0])} Hour Remaining',
+                                                                style: TextStyle(color:Colors.red,
+                                                                  fontSize: 14,
+                                                                ),
                                                               ),
                                                             ),
                                                           ),
-                                                        ),
-                                                      ],
-                                                    )
+                                                        ],
+                                                      ),
+                                                    ),
                                                   ],
                                                 ),
                                               ),
@@ -356,15 +358,9 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
   @override
   void initState() {
 
-    selectedCurrentDate =  new DateTime.now();
-    startDate =   DateFormat('MM/dd/yyyy').format(DateTime.now()).toString();
-    DateTime today = new DateTime.now();
-    DateTime fiftyDaysAgo = today.subtract(new Duration(days: 7));
-    endDate =  DateFormat('MM/dd/yyyy').format(fiftyDaysAgo).toString();
-    setState(() {
-      isStart =  false ;
-      isEnd  = false ;
-    });
+    startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
+    DateTime fiftyDaysAgo = GlobalCall.proStartDate.subtract(new Duration(days: 7));
+    endDate =  DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
     super.initState();
   }
 

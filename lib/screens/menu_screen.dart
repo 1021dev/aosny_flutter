@@ -1,20 +1,21 @@
 
 import 'dart:async';
 
-import 'package:aosny_services/api/preload_api.dart';
 import 'package:aosny_services/api/student_api.dart';
 import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
-import 'package:aosny_services/main.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:aosny_services/screens/widgets/drawer/drawer_widget.dart';
+import 'package:aosny_services/screens/widgets/drawer/notification_screen.dart';
 import 'package:aosny_services/screens/widgets/history_screen.dart';
 import 'package:aosny_services/screens/widgets/progress_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:convert' show json, base64, ascii;
+import 'package:intl/intl.dart';
 
-import 'package:shared_preferences/shared_preferences.dart';
+import 'login_screen.dart';
+import 'widgets/drawer/enter_session.dart';
+
 
 
 class MenuScreen extends StatefulWidget {
@@ -38,6 +39,13 @@ class _MenuScreenState extends State<MenuScreen> {
     return BlocListener(
       cubit: mainScreenBloc,
       listener: (BuildContext context, MainScreenState state) async {
+        if (state is MainScreenStateFailure) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) =>
+                LoginScreen()),
+          );
+        }
       },
       child: BlocBuilder<MainScreenBloc, MainScreenState>(
         cubit: mainScreenBloc,
@@ -132,6 +140,15 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
     setState(() {
       tabIndex = tabController.index;
     });
+    if (tabIndex == 0) {
+      String startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.startDate).toString();
+      String endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.endDate).toString();
+      widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));
+    } else {
+      String startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
+      String endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proEndDate).toString();
+      widget.mainScreenBloc.add(GetProgressEvent(startDate: startDate, endDate: endDate));
+    }
   }
 
   @override
@@ -210,11 +227,45 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
               ],
             ),
             drawer: DrawerWidget(
-              currentIndex: selectedIndex,
-              loadStudents: widget.loadStudents,
-              loadCategories: widget.loadCategories,
-              currentRoute: 'session',
-              tabIndex: tabIndnex,
+              openEnterSession: () {
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder:
+                        (context)=> EnterSession(
+                      loadCategories: widget.loadCategories,
+                      loadStudents: widget.loadStudents,
+                    )
+                    )
+                );
+              },
+              openNotification: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context)=> NotificationScreen(
+                      loadCategories: widget.loadCategories,
+                      loadStudents: widget.loadStudents,
+                    ),
+                  ),
+                );
+              },
+              openHelp: () {
+
+              },
+              openHistory: () {
+                tabIndnex.sink.add(0);
+              },
+              openProgress: () {
+                tabIndnex.sink.add(1);
+              },
+              openSettings: () {
+
+              },
+              signOut: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) =>
+                      LoginScreen()),
+                );
+              },
             ),
             body: DefaultTabController(
               length: 2,

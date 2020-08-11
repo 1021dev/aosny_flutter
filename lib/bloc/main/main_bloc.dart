@@ -7,7 +7,6 @@ import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/history_model.dart';
 import 'package:aosny_services/models/progress_amount_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
-import 'package:flutter/animation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert' show json, base64, ascii;
@@ -41,6 +40,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
 
   Stream<MainScreenState> loadInitialData() async* {
     try {
+      yield state.copyWith(isLoading: true);
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String token = prefs.getString('token');
       var jwt = token.split(".");
@@ -56,13 +56,16 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
         if (GlobalCall.socialPragmatics.categoryData.length == 0) {
           bool isLoad = await preLoadApi.fetchPreLoad();
           if (!isLoad) {
+            yield state.copyWith( isLoading: false);
             yield MainScreenStateFailure(error: 'Session Expired');
           }
         }
       } else {
+        yield state.copyWith( isLoading: false);
         yield MainScreenStateFailure(error: 'Session Expired');
       }
     } catch (error) {
+      yield state.copyWith( isLoading: false);
       yield MainScreenStateFailure(error: error.toString());
     }
   }
@@ -72,11 +75,14 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
 
   Stream<MainScreenState> getHistory(String startDate, String endDate) async* {
     try {
-      yield state.copyWith(isLoading: true);
+      if (state.history.length == 0) {
+        yield state.copyWith(isLoading: true);
+      }
       List<HistoryModel> history = await historyApi.getHistoryList(
           sdate: startDate, endDate: endDate);
       yield state.copyWith(history: history, isLoading: false);
     } catch (error) {
+      yield state.copyWith( isLoading: false);
       yield MainScreenStateFailure(error: error.toString());
     }
   }
@@ -87,6 +93,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
           sdate: startDate, endDate: endDate);
       yield state.copyWith(history: history, isLoading: false);
     } catch (error) {
+      yield state.copyWith( isLoading: false);
       yield MainScreenStateFailure(error: error.toString());
     }
   }
@@ -100,6 +107,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       List<ProgressAmountModel> progress = await progressApi.getProgressAmountList(startDate, endDate);
       yield state.copyWith(progress: progress, isLoading: false);
     } catch (error) {
+      yield state.copyWith( isLoading: false);
       yield MainScreenStateFailure(error: error.toString());
     }
   }
@@ -109,6 +117,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       List<ProgressAmountModel> progress = await progressApi.getProgressAmountList(startDate, endDate);
       yield state.copyWith(progress: progress, isLoading: false);
     } catch (error) {
+      yield state.copyWith( isLoading: false);
       yield MainScreenStateFailure(error: error.toString());
     }
   }

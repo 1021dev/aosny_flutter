@@ -105,7 +105,7 @@ packages:
       name: dio
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.9"
+    version: "3.0.10"
   equatable:
     dependency: "direct main"
     description:
@@ -148,7 +148,7 @@ packages:
       name: fluttertoast
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "7.0.1+1"
+    version: "7.0.2"
   http:
     dependency: "direct main"
     description:

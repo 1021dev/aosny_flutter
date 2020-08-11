@@ -1,7 +1,11 @@
 import 'dart:async';
 
+import 'package:aosny_services/screens/menu_screen.dart';
 import 'package:aosny_services/screens/widgets/drawer/drawer_widget.dart';
 import 'package:flutter/material.dart';
+
+import '../../login_screen.dart';
+import 'enter_session.dart';
 
 class NotificationScreen extends StatefulWidget {
   static const String routeName = '/notificaiton';
@@ -26,9 +30,49 @@ class _NotificationScreenState extends State<NotificationScreen> {
         centerTitle: true,
       ),
       drawer: DrawerWidget(
-        currentRoute: 'notification',
-        loadCategories: widget.loadCategories,
-        loadStudents: widget.loadStudents,
+        openEnterSession: () {
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder:
+                  (context)=> EnterSession(
+                loadCategories: widget.loadCategories,
+                loadStudents: widget.loadStudents,
+              )
+              )
+          );
+        },
+        openNotification: () {
+        },
+        openHelp: () {
+
+        },
+        openHistory: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder:
+                (context)=> MenuScreen(
+              selectedIndex: 0,
+            ),
+            ),
+          );
+        },
+        openProgress: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder:
+                (context)=> MenuScreen(
+              selectedIndex: 1,
+            ),
+            ),
+          );
+        },
+        openSettings: () {
+
+        },
+        signOut: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) =>
+                LoginScreen()),
+          );
+        },
       ),
       body: Container(
         padding: const EdgeInsets.all(8),

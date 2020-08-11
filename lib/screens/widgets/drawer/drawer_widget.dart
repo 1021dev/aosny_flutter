@@ -1,34 +1,32 @@
-import 'dart:async';
 
-import 'package:aosny_services/api/session_api.dart';
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
-import 'package:aosny_services/screens/login_screen.dart';
-import 'package:aosny_services/screens/menu_screen.dart';
-import 'package:aosny_services/screens/widgets/drawer/enter_session.dart';
-import 'package:aosny_services/screens/widgets/drawer/notification_screen.dart';
 import 'package:flutter/material.dart';
 
 class DrawerWidget extends StatefulWidget {
-  final StreamController<bool> loadStudents;
-  final StreamController<bool> loadCategories;
-  final StreamController<int> tabIndex;
-  final String currentRoute;
-  final int currentIndex;
+  final Function openHistory;
+  final Function openProgress;
+  final Function openEnterSession;
+  final Function openNotification;
+  final Function openSettings;
+  final Function openHelp;
+  final Function signOut;
+
   DrawerWidget({
-    this.loadCategories,
-    this.loadStudents,
-    this.currentRoute = '',
-    this.currentIndex = 0,
-    this.tabIndex,
+    this.openHistory,
+    this.openProgress,
+    this.openEnterSession,
+    this.openNotification,
+    this.openSettings,
+    this.openHelp,
+    this.signOut,
   });
   @override
   _DrawerWidgetState createState() => _DrawerWidgetState();
 }
 
 class _DrawerWidgetState extends State<DrawerWidget> {
-  SessionApi _sessionApi = new SessionApi();
   GlobalCall globalCall =  new GlobalCall();
 
   List<LongTermGpDropDownModel> longTermGpDropDownList = new List();
@@ -53,7 +51,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                   ),
                   accountName: Container(
                     height: 20,
-                    child:Text("Test User",
+                    child: Text("Test User",
 
                       style: TextStyle(fontSize: 16,color: Colors.white,fontWeight: FontWeight.normal),
                       //style: Theme.of(context).textTheme.headline
@@ -71,77 +69,30 @@ class _DrawerWidgetState extends State<DrawerWidget> {
 
                 new ListTile(
                     title: Text("My Sessions"),
-                    onTap:  () {
-                      print(GlobalCall.isHistoryOrProgress);
-                      if (widget.currentRoute == 'session') {
-                        widget.tabIndex.sink.add(0);
-                        Navigator.pop(context);
-                      } else {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context)=> MenuScreen(
-                              selectedIndex: 0,
-                            ),
-                          ),
-                        );
-                      }
+                    onTap: () {
+                      Navigator.pop(context);
+                      widget.openHistory();
                     }
-
                 ),
-
                 new ListTile(
                   title: Text("My Progress"),
                   onTap: () {
-                    if (widget.currentRoute == 'session') {
-                      widget.tabIndex.sink.add(1);
-                      Navigator.pop(context);
-                    } else {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context)=> MenuScreen(
-                            selectedIndex: 1,
-                          ),
-                        ),
-                      );
-                    }
+                    Navigator.pop(context);
+                    widget.openProgress();
                   },
                 ),
-
-
                 new ListTile(
                     title: Text("Enter Session Notes"),
                     onTap: () {
-                      if (widget.currentRoute == 'enterSession') {
-                        Navigator.pop(context);
-                      } else {
-                        Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder:
-                                (context)=> EnterSession(
-                              loadCategories: widget.loadCategories,
-                              loadStudents: widget.loadStudents,
-                            )
-                            )
-                        );
-                      }
-
-                    }
+                      Navigator.pop(context);
+                      widget.openEnterSession();
+                    },
                 ),
-
                 new ListTile(
                     title: new Text("Notifications"),
-                    onTap: (){
-                      if (widget.currentRoute == 'notification') {
-                        Navigator.pop(context);
-                      } else {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context)=> NotificationScreen(
-                              loadCategories: widget.loadCategories,
-                              loadStudents: widget.loadStudents,
-                            ),
-                          ),
-                        );
-                      }
+                    onTap: () {
+                      Navigator.pop(context);
+                      widget.openNotification();
                     },
                     trailing:Container(
                       alignment: Alignment.center,
@@ -185,7 +136,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                   child: Container(
                     height: 100,
                     child: Center(
-                      child:Container(
+                      child: Container(
                         alignment: Alignment.center,
                         height: 50,
                         width: 250,
@@ -193,16 +144,9 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                             color: Colors.blue,
                             borderRadius: BorderRadius.circular(30)
                         ),
-                        child:GestureDetector(
-                            onTap: (){
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) =>
-                                    LoginScreen()),
-                              );
-                            },
-                            child:Text(
+                        child: GestureDetector(
+                            onTap: widget.signOut,
+                            child: Text(
                                 "Sign Out",
                                 style: TextStyle(color: Colors.white),
                             ),

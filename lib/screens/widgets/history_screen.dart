@@ -37,8 +37,6 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
   DateTime selectedEndDate;
   String startDate ="";
   String endDate="";
-  bool isStartDate= false;
-  bool isEndDate=  false;
 
   String displayStartDate = "Start Date";
   String displayEndDate = "End Date";
@@ -53,7 +51,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
   @override
   void initState() {
 
-    endDate  =   DateFormat('MM/dd/yyyy').format(GlobalCall.endDate).toString();
+    endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.endDate).toString();
     print("DateFormat currentDate:::"+'$endDate');
 
     selectedEndDate = GlobalCall.endDate;
@@ -61,11 +59,6 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
 
     selectedStartDate = GlobalCall.startDate;
     print("before 7 days::::"+startDate.toString());
-
-    setState(() {
-      isStartDate = true;
-      isEndDate   = true;
-    });
 
     if (widget.loadStudents != null) {
       widget.loadCategoires.stream.listen((event) {
@@ -80,6 +73,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
         });
       });
     }
+    widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));
     super.initState();
   }
 
@@ -91,24 +85,20 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
       lastDate: DateTime(2030),
     );
     if (whichStringType == 'Start Date') {
-      if (datePick != null && datePick != selectedStartDate) {
+      if (datePick != null && datePick != GlobalCall.startDate) {
         setState(() {
           GlobalCall.startDate = datePick;
           startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.startDate);
-          isStartDate= true;
-
         });
         if (endDate != null) {
           widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));
         }
       }
     } else {
-      if (datePick != null && datePick != selectedEndDate) {
+      if (datePick != null && datePick != GlobalCall.endDate) {
         setState(() {
           GlobalCall.endDate = datePick;
           endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.endDate);
-          isEndDate =true;
-          print('enddate');
         });
         if (startDate != null) {
           widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));
@@ -158,13 +148,9 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                         onPressed: () async {
                                           showDateTimePicker('Start Date', GlobalCall.startDate);
                                         },
-                                        child: isStartDate ?
+                                        child:
                                         Text(
-                                          startDate,
-                                          style: TextStyle(color:Colors.white),
-                                        ) :
-                                        Text(
-                                          "Select Start Date",
+                                          startDate == '' ? 'Start Date' : startDate,
                                           style: TextStyle(color:Colors.white),
                                         ),
                                       ),
@@ -188,13 +174,8 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                         },
                                         //child:  Text( "Select End Date",
                                         //  style: TextStyle(color:Colors.white),
-                                        child: isEndDate ?
-                                        Text(
-                                          endDate,
-                                          style: TextStyle(color:Colors.white),
-                                        ) :
-                                        Text(
-                                          "Select End Date",
+                                        child: Text(
+                                          endDate == '' ? 'End Date': endDate,
                                           style: TextStyle(color:Colors.white),
                                         ),
                                       ),
@@ -256,148 +237,148 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                               child: CircularProgressIndicator(),
                             ),
                           ) : RefreshIndicator(
-                              key: refreshKey,
-                              onRefresh: refreshList,
-                              child: Container(
-                                alignment: Alignment.center,
-                                height: MediaQuery.of(context).size.height,
-                                width: MediaQuery.of(context).size.width,
-                                child: state.history.length == 0 ? Center(
-                                  child: Text('No history data'),
-                                ): ListView.builder(
-                                    itemCount: state.history.length,
-                                    padding: EdgeInsets.fromLTRB(0, 0, 0, 60),
-                                    itemBuilder: (context, index) {
-                                      return Column(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          SizedBox(height: 10),
-                                          Text(
-                                            DateFormat('EEEE, MMMM d').format(
-                                                DateTime.parse(
-                                                    '${state.history[index].sdate.split('/')[2]}-${state.history[index].sdate.split('/')[0]}-${state.history[index].sdate.split('/')[1]}')),
-                                            style: TextStyle(
-                                              color: Colors.grey,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
+                            key: refreshKey,
+                            onRefresh: refreshList,
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: MediaQuery.of(context).size.height,
+                              width: MediaQuery.of(context).size.width,
+                              child: state.history.length == 0 ? Center(
+                                child: Text('No history data, please try to change the start/end Date.'),
+                              ): ListView.builder(
+                                  itemCount: state.history.length,
+                                  padding: EdgeInsets.fromLTRB(0, 0, 0, 60),
+                                  itemBuilder: (context, index) {
+                                    return Column(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        SizedBox(height: 10),
+                                        Text(
+                                          DateFormat('EEEE, MMMM d').format(
+                                              DateTime.parse(
+                                                  '${state.history[index].sdate.split('/')[2]}-${state.history[index].sdate.split('/')[0]}-${state.history[index].sdate.split('/')[1]}')),
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
                                           ),
-                                          SizedBox(height: 4),
+                                        ),
+                                        SizedBox(height: 4),
 
-                                          state.history[index].fname ==
-                                              'School Closed'
-                                              ? Container(
-                                            padding: const EdgeInsets.only(left: 5),
-                                            decoration: BoxDecoration(
-                                              color: Colors.orange,
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: <Widget>[
-                                                Text(
-                                                  "School Closed",
-                                                  style: TextStyle(
-                                                    fontWeight:
-                                                    FontWeight.bold,
-                                                    fontSize: 20,
-                                                  ),
+                                        state.history[index].fname ==
+                                            'School Closed'
+                                            ? Container(
+                                          padding: const EdgeInsets.only(left: 5),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange,
+                                            borderRadius: BorderRadius.circular(5),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: <Widget>[
+                                              Text(
+                                                "School Closed",
+                                                style: TextStyle(
+                                                  fontWeight:
+                                                  FontWeight.bold,
+                                                  fontSize: 20,
                                                 ),
-                                                IconButton(
-                                                  icon: Icon(Icons.cancel),
-                                                  color: Colors.red,
-                                                  onPressed: () {},
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                              : GestureDetector(
-                                            onTap: () {
-                                              GlobalCall.sessionID = state.history[index].iD.toString();
-                                              String studentId = state.history[index].osis.toString().replaceAll('-', '');
-                                              int id = int.parse(studentId);
-                                              StudentsDetailsModel studentsDetailsModel = getStudent(id);
-                                              if (studentsDetailsModel == null) {
-                                                return ;
-                                              }
-                                              Navigator.of(context).push(
-                                                MaterialPageRoute(
-                                                  builder: (context) => AddEditSessionNote(
-                                                    eventType: "Edit",
-                                                    student: studentsDetailsModel,
-                                                    sessionId: state.history[index].iD.toString(),
-                                                    selectedStudentName: state.history[index].fname + ' ' + state.history[index].lname,
-                                                    noteText: state.history[index].notes,
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            child: Container(
-                                              padding: const EdgeInsets.all(5),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.circular(8),
-                                                border:Border.all(width:0.5),
                                               ),
-                                              child: Column(
-                                                children: <Widget>[
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: <Widget>[
-                                                      Text(
-                                                        '${state.history[index].stime} - ${state.history[index].etime}',
-                                                        style: TextStyle(
-                                                          fontSize: 12,
-                                                        ),
+                                              IconButton(
+                                                icon: Icon(Icons.cancel),
+                                                color: Colors.red,
+                                                onPressed: () {},
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                            : GestureDetector(
+                                          onTap: () {
+                                            GlobalCall.sessionID = state.history[index].iD.toString();
+                                            String studentId = state.history[index].osis.toString().replaceAll('-', '');
+                                            int id = int.parse(studentId);
+                                            StudentsDetailsModel studentsDetailsModel = getStudent(id);
+                                            if (studentsDetailsModel == null) {
+                                              return ;
+                                            }
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => AddEditSessionNote(
+                                                  eventType: "Edit",
+                                                  student: studentsDetailsModel,
+                                                  sessionId: state.history[index].iD.toString(),
+                                                  selectedStudentName: state.history[index].fname + ' ' + state.history[index].lname,
+                                                  noteText: state.history[index].notes,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(5),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(8),
+                                              border:Border.all(width:0.5),
+                                            ),
+                                            child: Column(
+                                              children: <Widget>[
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: <Widget>[
+                                                    Text(
+                                                      '${state.history[index].stime} - ${state.history[index].etime}',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
                                                       ),
-                                                      InkWell(
-                                                        child: Icon(
-                                                          Icons.check_circle,
-                                                          color: state.history[index].xid > 0 ? Colors.green: Colors.transparent,
-                                                        ),
-                                                        onTap: () {},
-                                                      )
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: <Widget>[
-                                                      Text(
-                                                        '${state.history[index].fname} ${state.history[index].lname}',
-                                                        style: TextStyle(
-                                                          fontWeight: FontWeight.bold,
-                                                          fontSize: 16,
-                                                        ),
+                                                    ),
+                                                    InkWell(
+                                                      child: Icon(
+                                                        Icons.check_circle,
+                                                        color: state.history[index].xid > 0 ? Colors.green: Colors.transparent,
                                                       ),
-                                                      Text(
-                                                        state.history[index].sessionType,
-                                                        style: TextStyle(
-                                                          color: getSessionColor(state.history[index].grp, sessionTypeStrings.indexOf(state.history[index].sessionType)),
-                                                        ),
+                                                      onTap: () {},
+                                                    )
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: <Widget>[
+                                                    Text(
+                                                      '${state.history[index].fname} ${state.history[index].lname}',
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16,
                                                       ),
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                    children: <Widget>[
-                                                      Column(
-                                                        mainAxisAlignment: MainAxisAlignment.start,
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                    ),
+                                                    Text(
+                                                      state.history[index].sessionType,
+                                                      style: TextStyle(
+                                                        color: getSessionColor(state.history[index].grp, sessionTypeStrings.indexOf(state.history[index].sessionType)),
                                                       ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: <Widget>[
+                                                    Column(
+                                                      mainAxisAlignment: MainAxisAlignment.start,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                    ),
 //                                                editButton(context,
 //                                                    snapshot.data[index]),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
+                                                  ],
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                        ],
-                                      );
-                                    }),
-                                // margin: EdgeInsets.fromLTRB(0, 0, 0,20),
-                              )
+                                        ),
+                                      ],
+                                    );
+                                  }),
+                              // margin: EdgeInsets.fromLTRB(0, 0, 0,20),
+                            )
                           ),
                         ),
                       ),
@@ -493,6 +474,9 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
       ),
     );
   }
+
+
+
   Future<Null> refreshList() async {
     refreshKey.currentState?.show(atTop: false);
     widget.mainScreenBloc.add(RefreshHistoryEvent(startDate: startDate, endDate: endDate));

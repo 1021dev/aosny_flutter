@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 class CategoryList {
   List<CategoryData> categoryData;
