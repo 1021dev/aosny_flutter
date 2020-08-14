@@ -3,6 +3,7 @@ import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/login_post_data_model.dart';
 import 'package:aosny_services/models/login_response.dart';
 import 'package:aosny_services/screens/menu_screen.dart';
+import 'package:aosny_services/screens/signature_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
@@ -226,15 +227,15 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = false;
       });
 
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => SignatureScreen()),
+      );
+
 //      Navigator.pushReplacement(
 //        context,
 //        MaterialPageRoute(builder: (context) => MenuScreen()),
 //      );
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MenuScreen()),
-      );
     } else {
       setState(() {
         _isLoading = false;

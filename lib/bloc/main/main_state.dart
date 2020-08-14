@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 class MainScreenState extends Equatable {
   final bool isLoading;
   final List<HistoryModel> history;
+  final List<HistoryModel> filterHistory;
   final List<ProgressAmountModel> progress;
   final String startDate;
   final String endDate;
@@ -16,6 +17,7 @@ class MainScreenState extends Equatable {
   MainScreenState({
     this.isLoading = false,
     this.history = const [],
+    this.filterHistory = const [],
     this.progress = const [],
     this.startDate,
     this.endDate,
@@ -27,6 +29,7 @@ class MainScreenState extends Equatable {
   List<Object> get props => [
     isLoading,
     history,
+    filterHistory,
     progress,
     startDate,
     endDate,
@@ -37,6 +40,7 @@ class MainScreenState extends Equatable {
   MainScreenState copyWith({
     bool isLoading,
     List<HistoryModel> history,
+    List<HistoryModel> filterHistory,
     List<ProgressAmountModel> progress,
     String startDate,
     String endDate,
@@ -46,6 +50,7 @@ class MainScreenState extends Equatable {
     return MainScreenState(
       isLoading: isLoading ?? this.isLoading,
       history: history ?? this.history,
+      filterHistory: filterHistory ?? this.filterHistory,
       progress: progress ?? this.progress,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,

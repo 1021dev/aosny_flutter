@@ -25,6 +25,8 @@ class GlobalCall extends ChangeNotifier{
  static CategoryList outcomes = new CategoryList();
  static bool filterDates = true;
  static bool filterStudents = false;
+ static String student = '';
+ static String sessionType = '';
  static bool filterSessionTypes = false;
 
 }

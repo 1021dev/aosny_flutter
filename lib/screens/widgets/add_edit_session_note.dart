@@ -1262,7 +1262,6 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
           ),
           child: ListTile(
             onTap: () {
-              print(sessionTypeStrings.length);
               showModalBottomSheet<void>(
                 context: context,
                 builder: (BuildContext context) {

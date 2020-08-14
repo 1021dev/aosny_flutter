@@ -94,16 +94,16 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                       Navigator.pop(context);
                       widget.openNotification();
                     },
-                    trailing:Container(
-                      alignment: Alignment.center,
-                      width: MediaQuery.of(context).size.width/30,
-                      height: MediaQuery.of(context).size.height/35,
-                      decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(10),
-                      ),
-                      child:  Text("1",style: TextStyle(color:Colors.white),),
-                    ),
+//                    trailing:Container(
+//                      alignment: Alignment.center,
+//                      width: MediaQuery.of(context).size.width/30,
+//                      height: MediaQuery.of(context).size.height/35,
+//                      decoration: BoxDecoration(
+//                          color: Colors.red,
+//                          borderRadius: BorderRadius.circular(10),
+//                      ),
+//                      child:  Text("1",style: TextStyle(color:Colors.white),),
+//                    ),
                 ),
                 new ListTile(
                   title: new Text("Settings"),
