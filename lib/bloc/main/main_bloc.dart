@@ -35,6 +35,8 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       yield* getProgress(event.startDate, event.endDate);
     } else if (event is RefreshProgressEvent) {
       yield* getProgress(event.startDate, event.endDate);
+    } else if (event is UpdateSortFilterEvent) {
+      yield* filterHistory();
     }
   }
 
@@ -80,7 +82,9 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       }
       List<HistoryModel> history = await historyApi.getHistoryList(
           sdate: startDate, endDate: endDate);
+      if (history.length > 0) history.sort((a,b) => a.starttime.compareTo(b.starttime));
       yield state.copyWith(history: history, isLoading: false);
+      add(UpdateSortFilterEvent());
     } catch (error) {
       yield state.copyWith( isLoading: false);
       yield MainScreenStateFailure(error: error.toString());
@@ -91,7 +95,33 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
     try {
       List<HistoryModel> history = await historyApi.getHistoryList(
           sdate: startDate, endDate: endDate);
+      if (history.length > 0) history.sort((a,b) => a.starttime.compareTo(b.starttime));
       yield state.copyWith(history: history, isLoading: false);
+      add(UpdateSortFilterEvent());
+    } catch (error) {
+      yield state.copyWith( isLoading: false);
+      yield MainScreenStateFailure(error: error.toString());
+    }
+  }
+
+  Stream<MainScreenState> filterHistory() async* {
+    try {
+      List<HistoryModel> history = [];
+      List<HistoryModel> filter = [];
+      history.addAll(state.history);
+      if (history.length > 0) {
+        history.sort((a,b) => a.starttime.compareTo(b.starttime));
+
+        if (GlobalCall.filterStudents && GlobalCall.student != '') {
+          filter = history.where((element) => element.sname == GlobalCall.student).toList();
+        } else {
+          filter = history;
+        }
+        if (GlobalCall.filterSessionTypes && GlobalCall.sessionType != '') {
+          filter = filter.where((element) => element.sessionType == GlobalCall.sessionType).toList();
+        }
+      }
+      yield state.copyWith(filterHistory: filter, isLoading: false);
     } catch (error) {
       yield state.copyWith( isLoading: false);
       yield MainScreenStateFailure(error: error.toString());

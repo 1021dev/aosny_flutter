@@ -5,6 +5,7 @@ import 'package:aosny_services/api/student_api.dart';
 import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/students_details_model.dart';
+import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
 import 'package:aosny_services/screens/widgets/drawer/drawer_widget.dart';
 import 'package:aosny_services/screens/widgets/drawer/notification_screen.dart';
 import 'package:aosny_services/screens/widgets/history_screen.dart';
@@ -115,6 +116,7 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
           setState(() {
             GlobalCall.filterDates = !GlobalCall.filterDates;
           });
+          widget.mainScreenBloc.add(UpdateSortFilterEvent());
         },
       ),
       OverflowMenuItem(
@@ -122,7 +124,10 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
         onTap: () {
           setState(() {
             GlobalCall.filterStudents = !GlobalCall.filterStudents;
+            GlobalCall.student = GlobalCall.filterStudents ? '${GlobalCall.globaleStudentList.first.firstName} ${GlobalCall.globaleStudentList.first.lastName}': '';
+            print(GlobalCall.student);
           });
+          widget.mainScreenBloc.add(UpdateSortFilterEvent());
         },
       ),
       OverflowMenuItem(
@@ -130,7 +135,9 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
         onTap: () {
           setState(() {
             GlobalCall.filterSessionTypes = !GlobalCall.filterSessionTypes;
+            GlobalCall.sessionType = GlobalCall.filterSessionTypes ? sessionTypeStrings[0]: '';
           });
+          widget.mainScreenBloc.add(UpdateSortFilterEvent());
         },
       ),
     ];

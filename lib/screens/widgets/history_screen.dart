@@ -216,10 +216,51 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                         () {
                                       dropDownValue =
                                           val.firstName + " " + val.lastName;
+                                      GlobalCall.student = dropDownValue;
                                       studentID = val.id.toString();
                                       print(studentID);
                                     },
                                   );
+                                  widget.mainScreenBloc.add(UpdateSortFilterEvent());
+                                },
+                              ),
+                            ) : Container(),
+                            Padding(
+                              padding: EdgeInsets.only(top: 4),
+                            ),
+                            GlobalCall.filterSessionTypes ? Container(
+                              alignment: Alignment.center,
+                              height: 40,
+                              padding: const EdgeInsets.all(5),
+                              color: Colors.white,
+                              child: DropdownButton(
+                                underline: Container(),
+                                hint: GlobalCall.sessionType == ''
+                                    ? Text('Session Type')
+                                    : Text(
+                                  GlobalCall.sessionType,
+                                  style: TextStyle(color: Colors.black,
+                                  ),
+                                ),
+                                isExpanded: true,
+                                elevation: 5,
+                                icon: Icon(Icons.keyboard_arrow_down),
+                                iconSize: 30.0,
+                                style: TextStyle(color: Colors.black),
+                                items: sessionTypeStrings.map(
+                                      (val) {
+                                    return DropdownMenuItem<String>(
+                                      value: val,
+                                      child: Text(val),
+                                    );
+                                  },
+                                ).toList(),
+                                onChanged: (val) {
+                                  setState(() {
+                                      GlobalCall.sessionType = val;
+                                    },
+                                  );
+                                  widget.mainScreenBloc.add(UpdateSortFilterEvent());
                                 },
                               ),
                             ) : Container(),
@@ -243,10 +284,10 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                               alignment: Alignment.center,
                               height: MediaQuery.of(context).size.height,
                               width: MediaQuery.of(context).size.width,
-                              child: state.history.length == 0 ? Center(
+                              child: state.filterHistory.length == 0 ? Center(
                                 child: Text('No history data, please try to change the start/end Date.'),
                               ): ListView.builder(
-                                  itemCount: state.history.length,
+                                  itemCount: state.filterHistory.length,
                                   padding: EdgeInsets.fromLTRB(0, 0, 0, 60),
                                   itemBuilder: (context, index) {
                                     return Column(
@@ -257,7 +298,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                         Text(
                                           DateFormat('EEEE, MMMM d').format(
                                               DateTime.parse(
-                                                  '${state.history[index].sdate.split('/')[2]}-${state.history[index].sdate.split('/')[0]}-${state.history[index].sdate.split('/')[1]}')),
+                                                  '${state.filterHistory[index].sdate.split('/')[2]}-${state.filterHistory[index].sdate.split('/')[0]}-${state.filterHistory[index].sdate.split('/')[1]}')),
                                           style: TextStyle(
                                             color: Colors.grey,
                                             fontWeight: FontWeight.bold,
@@ -266,7 +307,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                         ),
                                         SizedBox(height: 4),
 
-                                        state.history[index].fname ==
+                                        state.filterHistory[index].fname ==
                                             'School Closed'
                                             ? Container(
                                           padding: const EdgeInsets.only(left: 5),
@@ -295,8 +336,8 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                         )
                                             : GestureDetector(
                                           onTap: () {
-                                            GlobalCall.sessionID = state.history[index].iD.toString();
-                                            String studentId = state.history[index].osis.toString().replaceAll('-', '');
+                                            GlobalCall.sessionID = state.filterHistory[index].iD.toString();
+                                            String studentId = state.filterHistory[index].osis.toString().replaceAll('-', '');
                                             int id = int.parse(studentId);
                                             StudentsDetailsModel studentsDetailsModel = getStudent(id);
                                             if (studentsDetailsModel == null) {
@@ -307,9 +348,9 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                 builder: (context) => AddEditSessionNote(
                                                   eventType: "Edit",
                                                   student: studentsDetailsModel,
-                                                  sessionId: state.history[index].iD.toString(),
-                                                  selectedStudentName: state.history[index].fname + ' ' + state.history[index].lname,
-                                                  noteText: state.history[index].notes,
+                                                  sessionId: state.filterHistory[index].iD.toString(),
+                                                  selectedStudentName: state.filterHistory[index].fname + ' ' + state.filterHistory[index].lname,
+                                                  noteText: state.filterHistory[index].notes,
                                                 ),
                                               ),
                                             );
@@ -327,7 +368,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: <Widget>[
                                                     Text(
-                                                      '${state.history[index].stime} - ${state.history[index].etime}',
+                                                      '${state.filterHistory[index].stime} - ${state.filterHistory[index].etime}',
                                                       style: TextStyle(
                                                         fontSize: 12,
                                                       ),
@@ -335,7 +376,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                     InkWell(
                                                       child: Icon(
                                                         Icons.check_circle,
-                                                        color: state.history[index].xid > 0 ? Colors.green: Colors.transparent,
+                                                        color: state.filterHistory[index].xid > 0 ? Colors.green: Colors.transparent,
                                                       ),
                                                       onTap: () {},
                                                     )
@@ -345,16 +386,16 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: <Widget>[
                                                     Text(
-                                                      '${state.history[index].fname} ${state.history[index].lname}',
+                                                      '${state.filterHistory[index].fname} ${state.filterHistory[index].lname}',
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 16,
                                                       ),
                                                     ),
                                                     Text(
-                                                      state.history[index].sessionType,
+                                                      state.filterHistory[index].sessionType,
                                                       style: TextStyle(
-                                                        color: getSessionColor(state.history[index].grp, sessionTypeStrings.indexOf(state.history[index].sessionType)),
+                                                        color: getSessionColor(state.filterHistory[index].grp, sessionTypeStrings.indexOf(state.filterHistory[index].sessionType)),
                                                       ),
                                                     ),
                                                   ],
