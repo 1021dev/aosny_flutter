@@ -118,14 +118,14 @@ class UpdateCheckedValue extends SessionNoteScreenEvent {
   UpdateCheckedValue({this.checkedValue});
 }
 
-class UpdateSPIndex extends SessionNoteScreenEvent {
-  final int selectedSPIndex;
-  UpdateSPIndex({this.selectedSPIndex});
+class UpdateSpCheckValue extends SessionNoteScreenEvent {
+  final List<CheckList> list;
+  UpdateSpCheckValue({this.list});
 }
 
-class UpdateSIIndex extends SessionNoteScreenEvent {
-  final int selectedSIIndex;
-  UpdateSIIndex({this.selectedSIIndex});
+class UpdateSiCheckValue extends SessionNoteScreenEvent {
+  final List<CheckList> list;
+  UpdateSiCheckValue({this.list});
 }
 
 class UpdateOutComeIndex extends SessionNoteScreenEvent {

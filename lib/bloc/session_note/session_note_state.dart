@@ -16,8 +16,10 @@ class SessionNoteScreenState extends Equatable {
   final List<CheckList> gPcheckListItems;
   final Map<int, List<CheckList>> activitiesListItems;
   final List<CategoryTextAndID> outComesListItems;
-  final List<CategoryTextAndID> sPcheckListItems;
-  final List<CategoryTextAndID> sIcheckListItems;
+  final List<CategoryTextAndID> spListItems;
+  final List<CheckList> sPcheckListItems;
+  final List<CategoryTextAndID> siListItems;
+  final List<CheckList> sIcheckListItems;
   final List<CategoryTextAndID> jAcheckListItems;
   final List<CategoryTextAndID> cAcheckListItems;
   final List<SelectedShortTermResultListModel> selectedShortTermResultListModel;
@@ -72,6 +74,8 @@ class SessionNoteScreenState extends Equatable {
     this.activitiesListItems = const {},
     this.outComesListItems = const [],
     this.sPcheckListItems = const [],
+    this.siListItems = const [],
+    this.spListItems = const [],
     this.sIcheckListItems = const [],
     this.jAcheckListItems = const [],
     this.cAcheckListItems = const [],
@@ -141,6 +145,8 @@ class SessionNoteScreenState extends Equatable {
     sIcheckListItems,
     jAcheckListItems,
     cAcheckListItems,
+    siListItems,
+    spListItems,
     selectedShortTermResultListModel,
     selectedLtGoalId,
     student,
@@ -200,8 +206,10 @@ class SessionNoteScreenState extends Equatable {
     List<CheckList> gPcheckListItems,
     Map<int, List<CheckList>> activitiesListItems,
     List<CategoryTextAndID> outComesListItems,
-    List<CategoryTextAndID> sPcheckListItems,
-    List<CategoryTextAndID> sIcheckListItems,
+    List<CheckList> sPcheckListItems,
+    List<CheckList> sIcheckListItems,
+    List<CategoryTextAndID> spListItems,
+    List<CategoryTextAndID> siListItems,
     List<CategoryTextAndID> jAcheckListItems,
     List<CategoryTextAndID> cAcheckListItems,
     List<SelectedShortTermResultListModel> selectedShortTermResultListModel,
@@ -255,6 +263,8 @@ class SessionNoteScreenState extends Equatable {
       outComesListItems: outComesListItems ?? this.outComesListItems,
       sPcheckListItems: sPcheckListItems ?? this.sPcheckListItems,
       sIcheckListItems: sIcheckListItems ?? this.sIcheckListItems,
+      siListItems: siListItems ?? this.siListItems,
+      spListItems: spListItems ?? this.spListItems,
       jAcheckListItems: jAcheckListItems ?? this.jAcheckListItems,
       cAcheckListItems: cAcheckListItems ?? this.cAcheckListItems,
       selectedShortTermResultListModel: selectedShortTermResultListModel ?? this.selectedShortTermResultListModel,

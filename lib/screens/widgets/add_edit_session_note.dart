@@ -794,62 +794,97 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
           ): Container(),
 
           state.socialPragmaics ? Container(
-            margin: EdgeInsets.only(left:5,right:5, top: 12),
-            decoration: BoxDecoration(
-              shape: BoxShape.rectangle,
-              border: Border.all(
-                color: Colors.black,
-                width: 1,
-              ),
-            ),
-            child: ListTile(
-              onTap: () {
-                showModalBottomSheet<void>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    var height = state.sPcheckListItems.length * 50.0 + MediaQuery.of(context).viewPadding.bottom;
-                    if (height > MediaQuery.of(context).size.height / 2.0) {
-                      height = MediaQuery.of(context).size.height / 2.0;
+            margin: const EdgeInsets.only(left:5,right:5),
+            width: MediaQuery.of(context).size.width,
+            child: Wrap(
+              children: List.generate(state.sPcheckListItems.length, (index) {
+                return CheckboxListTile(
+                  title: Text(
+                    state.sPcheckListItems[index].title,
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  dense: true,
+                  value: state.sPcheckListItems[index].checkVal,
+                  onChanged: (newValue) {
+                    List<CheckList> checklist = [];
+                    for (int i = 0; i < state.sPcheckListItems.length; i++) {
+                      if (i == index) {
+                        CheckList check = state.sPcheckListItems[i];
+                        check.checkVal = newValue;
+                        checklist.add(check);
+                      } else {
+                        checklist.add(state.sPcheckListItems[i]);
+                      }
                     }
-                    return Container(
-                      height: height,
-                      child: SafeArea(
-                        child: ListView.separated(
-                          itemCount: state.sPcheckListItems.length,
-                          separatorBuilder: (context, index) {
-                            return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
-                          },
-                          itemBuilder: (context, index){
-                            return CheckboxListTile(
-                              dense: true,
-                              title: Text(
-                                state.sPcheckListItems[index].categoryTextDetail,
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              value: state.selectedSPIndex == index,
-                              onChanged: (newValue) {
-                                screenBloc.add(UpdateSPIndex(selectedSPIndex: index));
-                                Navigator.pop(context);
-                              },
-                              controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-                            );
-                          },
-                        ),
-                      ),
-                    );
+                    screenBloc.add(UpdateSpCheckValue(list: checklist));
+                    setState(() {
+
+                    });
                   },
+                  controlAffinity: ListTileControlAffinity.leading,
                 );
               },
-              dense: true,
-              title: Text(
-                state.selectedSPIndex > -1 ? state.sPcheckListItems[state.selectedSPIndex].categoryTextDetail: 'Select Your Choice',
-                style: TextStyle(
-                  color: Colors.blue,
-                ),
-              ),
-              trailing: Icon(Icons.keyboard_arrow_down),
+              ).toList(),
             ),
-          ) : Container(),
+          ): Container(),
+
+          // state.socialPragmaics ? Container(
+          //   margin: EdgeInsets.only(left:5,right:5, top: 12),
+          //   decoration: BoxDecoration(
+          //     shape: BoxShape.rectangle,
+          //     border: Border.all(
+          //       color: Colors.black,
+          //       width: 1,
+          //     ),
+          //   ),
+          //   child: ListTile(
+          //     onTap: () {
+          //       showModalBottomSheet<void>(
+          //         context: context,
+          //         builder: (BuildContext context) {
+          //           var height = state.sPcheckListItems.length * 50.0 + MediaQuery.of(context).viewPadding.bottom;
+          //           if (height > MediaQuery.of(context).size.height / 2.0) {
+          //             height = MediaQuery.of(context).size.height / 2.0;
+          //           }
+          //           return Container(
+          //             height: height,
+          //             child: SafeArea(
+          //               child: ListView.separated(
+          //                 itemCount: state.sPcheckListItems.length,
+          //                 separatorBuilder: (context, index) {
+          //                   return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+          //                 },
+          //                 itemBuilder: (context, index){
+          //                   return CheckboxListTile(
+          //                     dense: true,
+          //                     title: Text(
+          //                       state.sPcheckListItems[index].categoryTextDetail,
+          //                       style: TextStyle(fontSize: 14),
+          //                     ),
+          //                     value: state.selectedSPIndex == index,
+          //                     onChanged: (newValue) {
+          //                       screenBloc.add(UpdateSPIndex(selectedSPIndex: index));
+          //                       Navigator.pop(context);
+          //                     },
+          //                     controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+          //                   );
+          //                 },
+          //               ),
+          //             ),
+          //           );
+          //         },
+          //       );
+          //     },
+          //     dense: true,
+          //     title: Text(
+          //       state.selectedSPIndex > -1 ? state.sPcheckListItems[state.selectedSPIndex].categoryTextDetail: 'Select Your Choice',
+          //       style: TextStyle(
+          //         color: Colors.blue,
+          //       ),
+          //     ),
+          //     trailing: Icon(Icons.keyboard_arrow_down),
+          //   ),
+          // ) : Container(),
 
           SizedBox(height:20),
           GestureDetector(
@@ -890,55 +925,90 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
             ),
           ),
           state.seitIntervention ? Container(
-            margin: EdgeInsets.only(left:5,right:5, top: 12),
-            decoration: BoxDecoration(
-              shape: BoxShape.rectangle,
-              border: Border.all(
-                color: Colors.black,
-                width: 1,
-              ),
-            ),
-            child: ListTile(
-              onTap: () {
-                showModalBottomSheet<void>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return SafeArea(
-                      child: ListView.separated(
-                        itemCount: state.sIcheckListItems.length,
-                        separatorBuilder: (context, index) {
-                          return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
-                        },
-                        itemBuilder: (context, index){
-                          return CheckboxListTile(
-                            dense: true,
-                            title: Text(
-                              state.sIcheckListItems[index].categoryTextDetail,
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            value: state.selectedSIIndex == index,
-                            onChanged: (newValue) {
-                              screenBloc.add(UpdateSIIndex(selectedSIIndex: index));
-                              Navigator.pop(context);
-                            },
-                            controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-                          );
-                        },
-                      ),
-                    );
+            margin: EdgeInsets.only(left:5,right:5),
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              children: List.generate(state.sIcheckListItems.length, (index) {
+                CheckList check = state.sIcheckListItems[index];
+                return CheckboxListTile(
+                  title: Text(
+                    check.title,
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  dense: true,
+                  value: check.checkVal,
+                  onChanged: (newValue) async {
+                    List<CheckList> checklist = [];
+                    for (int i = 0; i < state.sIcheckListItems.length; i++) {
+                      if (i == index) {
+                        CheckList check = state.sIcheckListItems[i];
+                        check.checkVal = newValue;
+                        checklist.add(check);
+                      } else {
+                        checklist.add(state.sIcheckListItems[i]);
+                      }
+                    }
+                    screenBloc.add(UpdateSiCheckValue(list: checklist));
+                    setState(() {
+
+                    });
                   },
+                  controlAffinity: ListTileControlAffinity.leading,
                 );
               },
-              dense: true,
-              title: Text(
-                state.selectedSIIndex > -1 ? state.sIcheckListItems[state.selectedSIIndex].categoryTextDetail: 'Select Your Choice',
-                style: TextStyle(
-                  color: Colors.blue,
-                ),
-              ),
-              trailing: Icon(Icons.keyboard_arrow_down),
+              ).toList(),
             ),
-          ) : Container(),
+          ): Container(),
+          // state.seitIntervention ? Container(
+          //   margin: EdgeInsets.only(left:5,right:5, top: 12),
+          //   decoration: BoxDecoration(
+          //     shape: BoxShape.rectangle,
+          //     border: Border.all(
+          //       color: Colors.black,
+          //       width: 1,
+          //     ),
+          //   ),
+          //   child: ListTile(
+          //     onTap: () {
+          //       showModalBottomSheet<void>(
+          //         context: context,
+          //         builder: (BuildContext context) {
+          //           return SafeArea(
+          //             child: ListView.separated(
+          //               itemCount: state.sIcheckListItems.length,
+          //               separatorBuilder: (context, index) {
+          //                 return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+          //               },
+          //               itemBuilder: (context, index){
+          //                 return CheckboxListTile(
+          //                   dense: true,
+          //                   title: Text(
+          //                     state.sIcheckListItems[index].categoryTextDetail,
+          //                     style: TextStyle(fontSize: 14),
+          //                   ),
+          //                   value: state.selectedSIIndex == index,
+          //                   onChanged: (newValue) {
+          //                     screenBloc.add(UpdateSIIndex(selectedSIIndex: index));
+          //                     Navigator.pop(context);
+          //                   },
+          //                   controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+          //                 );
+          //               },
+          //             ),
+          //           );
+          //         },
+          //       );
+          //     },
+          //     dense: true,
+          //     title: Text(
+          //       state.selectedSIIndex > -1 ? state.sIcheckListItems[state.selectedSIIndex].categoryTextDetail: 'Select Your Choice',
+          //       style: TextStyle(
+          //         color: Colors.blue,
+          //       ),
+          //     ),
+          //     trailing: Icon(Icons.keyboard_arrow_down),
+          //   ),
+          // ) : Container(),
 
           SizedBox(height:20),
 
@@ -1052,7 +1122,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
 
               },
               controller: noteTextController,
-              keyboardType: TextInputType.text,
+              keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
               maxLines: null,
               scrollPhysics: NeverScrollableScrollPhysics(),
