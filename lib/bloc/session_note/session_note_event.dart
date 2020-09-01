@@ -36,22 +36,6 @@ class SessionNoteScreenInitEvent extends SessionNoteScreenEvent {
   });
 }
 
-@immutable
-class GetHistoryEvent extends SessionNoteScreenEvent {
-  final String startDate;
-  final String endDate;
-
-  GetHistoryEvent({this.startDate, this.endDate});
-}
-
-@immutable
-class GetProgressEvent extends SessionNoteScreenEvent {
-  final String startDate;
-  final String endDate;
-
-  GetProgressEvent({this.startDate, this.endDate});
-}
-
 class UpdateSelectedShortTerms extends SessionNoteScreenEvent {
   final List<SelectedShortTermResultListModel> selectedShortTermResultListModel;
   UpdateSelectedShortTerms({this.selectedShortTermResultListModel});

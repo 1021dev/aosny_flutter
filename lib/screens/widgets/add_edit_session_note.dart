@@ -150,6 +150,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
     return BlocListener(
       cubit: screenBloc,
       listener: (BuildContext context, SessionNoteScreenState state) async {
+        if (state is SessionNoteScreenStateSuccess) {
+          Navigator.pop(context);
+        }
         setState(() {
           noteTextController.text = state.noteText;
         });
@@ -236,7 +239,6 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                           Text(
                             DateFormat('EEEE').format(state.selectedDate ?? DateTime.now()).toString(),
                             style: TextStyle(
-                              color:Colors.grey,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -289,9 +291,11 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
                           Flexible(
+                            flex: 1,
                             child: Column(
                               children: <Widget>[
-                                Text('Start Time',
+                                Text(
+                                  'Start Time',
                                   style: TextStyle(
                                     color:Colors.black,
                                     fontWeight: FontWeight.bold,
@@ -321,66 +325,72 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                               ],
                             ),
                           ),
-                          // SizedBox(width:40),
-                          Column(
-                            children: <Widget>[
-                              Text('',
-                                  style: TextStyle(color:Colors.black,fontWeight: FontWeight.bold)),
-                              Row(
-                                children: <Widget>[
-                                  InkWell(
-                                    child: Container(
-                                      height: 44,
-                                      width: MediaQuery.of(context).size.width/8.5,
-                                      decoration: BoxDecoration(
+                          Flexible(
+                            flex: 1,
+                            child: Column(
+                              children: <Widget>[
+                                Text('Minutes',
+                                  style: TextStyle(
+                                    color:Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    InkWell(
+                                      child: Container(
+                                        height: 44,
+                                        width: 44,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
                                           border: Border.all(color:Colors.grey,width: 0.5),
-                                          color: Colors.blue
+                                          color: state.finalNumber == 30 ? Colors.blue: Colors.white,
+                                        ),
+                                        child:  Text(
+                                          '30',
+                                          style: TextStyle(
+                                            color: state.finalNumber == 30 ? Colors.white: Colors.black,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
-                                      child: Icon(Icons.remove,color: Colors.white,),
+                                      onTap: (){
+                                        screenBloc.add(UpdateFinalNumber(finalNumber: 30));
+                                      },
                                     ),
-                                    onTap: (){
-                                      int finalNumber = state.finalNumber - 1;
-                                      screenBloc.add(UpdateFinalNumber(finalNumber: finalNumber));
-                                    },
-                                  ),
-                                  Container(
-                                    height: 44,
-                                    alignment: Alignment.center,
-                                    width: MediaQuery.of(context).size.width/8.5,
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color:Colors.grey,width: 0.5),
-                                    ),
-                                    child:  Text(
-                                      state.finalNumber.toString(),
-                                      style: TextStyle(
-                                        color:Colors.black,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  InkWell(
-                                    child: Container(
-                                      height: 44,
-                                      width: MediaQuery.of(context).size.width/8.5,
-                                      decoration: BoxDecoration(
+                                    InkWell(
+                                      child: Container(
+                                        height: 44,
+                                        width: 44,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
                                           border: Border.all(color:Colors.grey,width: 0.5),
-                                          color: Colors.blue
+                                          color: state.finalNumber == 60 ? Colors.blue: Colors.white,
+                                        ),
+                                        child:  Text(
+                                          '60',
+                                          style: TextStyle(
+                                            color: state.finalNumber == 60 ? Colors.white: Colors.black,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
-                                      child: Icon(Icons.add,color: Colors.white,),
+                                      onTap: (){
+                                        setState(() {
+                                          screenBloc.add(UpdateFinalNumber(finalNumber: 60));
+                                        });
+                                      },
                                     ),
-                                    onTap: (){
-                                      setState(() {
-                                        int finalNumber = state.finalNumber + 1;
-                                        screenBloc.add(UpdateFinalNumber(finalNumber: finalNumber));
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                           Flexible(
+                            flex: 1,
                             child: Column(
                               children: <Widget>[
                                 Text('End Time',
@@ -749,7 +759,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
           ),
           SizedBox(height:16),
           state.isActivities ? activitiesDropdownWidget(state) : Container(),
-          GestureDetector(
+          state.selectedSessionTypeIndex != 5 ? GestureDetector(
             onTap: (){
               bool isSelect = state.socialPragmaics;
               screenBloc.add(SelectSPSection(isSelect: !isSelect));
@@ -781,7 +791,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                 ] ,
               ),
             ),
-          ),
+          ): Container(),
 
           state.socialPragmaics ? Container(
             margin: EdgeInsets.only(left:5,right:5, top: 12),

@@ -4,10 +4,14 @@ import 'package:flutter/cupertino.dart';
 
 class GlobalCall extends ChangeNotifier{
 
+ static String terms = 'https://auditoryoralservices.com/app_tos.htm';
+ static String privacy = 'https://auditoryoralservices.com/app_privacy.htm';
  static var isHistoryOrProgress = "";
 
  static var token = "";
  static var email  = "";
+ static var singUpEmil  = "";
+ static var name  = "";
  static var sessionID = "";
 
  static List<StudentsDetailsModel> globaleStudentList = new List();

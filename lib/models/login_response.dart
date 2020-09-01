@@ -1,10 +1,16 @@
 class LoginResponse {
   int userId;
+  String userName;
+  String firstName;
+  String lastName;
   String email;
   String password;
   String providerid;
   String token;
   String message;
+  String signatureFilename;
+  String createdDate;
+  String updatedDate;
 
   LoginResponse(
       {this.userId, this.email, this.password, this.providerid, this.token});

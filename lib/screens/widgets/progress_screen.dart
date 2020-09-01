@@ -1,6 +1,7 @@
 import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -49,13 +50,14 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
           GlobalCall.proStartDate = datePick;
           startDate = DateFormat('MM/dd/yyyy').format(datePick);
           DateTime sevenDaysAgo = GlobalCall.proStartDate.add(new Duration(days: 7));
-          GlobalCall.proStartDate = sevenDaysAgo;
+          GlobalCall.proEndDate = sevenDaysAgo;
           endDate = DateFormat('MM/dd/yyyy').format(sevenDaysAgo);
         });
         widget.mainScreenBloc.add(GetProgressEvent(startDate: startDate, endDate: endDate));
       }
 
     }else{
+      print(GlobalCall.proEndDate);
       final datePick= await showDatePicker(
         context: context,
         initialDate: GlobalCall.proEndDate ?? DateTime.now(),
@@ -103,8 +105,8 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
-                              Text(
-                                'Start Date',
+                              Flexible(
+                                child: Text('Start Date', style: TextStyle(fontSize: 12),),
                               ),
                               FlatButton(
                                 color: Colors.blue,
@@ -128,8 +130,8 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
-                              Text(
-                                'End Date',
+                              Flexible(
+                                child: Text('End Date', style: TextStyle(fontSize: 12),),
                               ),
                               FlatButton(
                                 color: Colors.blue,
@@ -358,9 +360,11 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
   @override
   void initState() {
 
-    startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
-    DateTime fiftyDaysAgo = GlobalCall.proStartDate.subtract(new Duration(days: 7));
-    endDate =  DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
+    setState(() {
+      startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
+      GlobalCall.proEndDate = GlobalCall.proStartDate.add(new Duration(days: 7));
+      endDate =  DateFormat('MM/dd/yyyy').format(GlobalCall.proEndDate).toString();
+    });
     super.initState();
   }
 
