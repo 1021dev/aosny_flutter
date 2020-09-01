@@ -2,7 +2,10 @@
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
+import 'package:aosny_services/screens/widgets/splash_page.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:splashscreen/splashscreen.dart';
 
 class DrawerWidget extends StatefulWidget {
   final Function openHistory;
@@ -31,14 +34,25 @@ class _DrawerWidgetState extends State<DrawerWidget> {
 
   List<LongTermGpDropDownModel> longTermGpDropDownList = new List();
   List<ShortTermGpModel> shortTermGpList = new List();
+  SharedPreferences preferences;
 
   @override
   void initState() {
     super.initState();
+    SharedPreferences.getInstance().then((value) {
+      setState(() {
+        preferences = value;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    String name = '';
+    if (preferences != null) {
+      name = preferences.getString('name') ?? 'Test User';
+      GlobalCall.name = name;
+    }
     return Drawer(
       child: Column(
         children: <Widget>[
@@ -51,12 +65,13 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                   ),
                   accountName: Container(
                     height: 20,
-                    child: Text("Test User",
-
+                    child: Text(
+                      GlobalCall.name != '' ? GlobalCall.name : 'Test User',
                       style: TextStyle(fontSize: 16,color: Colors.white,fontWeight: FontWeight.normal),
-                      //style: Theme.of(context).textTheme.headline
-                    ), ),
-                  accountEmail: Text(GlobalCall.email,
+                    ),
+                  ),
+                  accountEmail: Text(
+                      GlobalCall.singUpEmil != '' ? GlobalCall.singUpEmil: GlobalCall.email,
                       style: TextStyle(fontSize: 13,color: Colors.white)
                     // Theme.of(context).textTheme.subhead Tex
                   ),
@@ -68,51 +83,41 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 ),
 
                 new ListTile(
-                    title: Text("My Sessions"),
+                    title: Text('My Sessions'),
                     onTap: () {
                       Navigator.pop(context);
                       widget.openHistory();
                     }
                 ),
                 new ListTile(
-                  title: Text("My Progress"),
+                  title: Text('My Progress'),
                   onTap: () {
                     Navigator.pop(context);
                     widget.openProgress();
                   },
                 ),
                 new ListTile(
-                    title: Text("Enter Session Notes"),
-                    onTap: () {
-                      Navigator.pop(context);
-                      widget.openEnterSession();
-                    },
+                  title: Text('Enter Session Notes'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.openEnterSession();
+                  },
                 ),
                 new ListTile(
-                    title: new Text("Notifications"),
-                    onTap: () {
-                      Navigator.pop(context);
-                      widget.openNotification();
-                    },
-//                    trailing:Container(
-//                      alignment: Alignment.center,
-//                      width: MediaQuery.of(context).size.width/30,
-//                      height: MediaQuery.of(context).size.height/35,
-//                      decoration: BoxDecoration(
-//                          color: Colors.red,
-//                          borderRadius: BorderRadius.circular(10),
-//                      ),
-//                      child:  Text("1",style: TextStyle(color:Colors.white),),
-//                    ),
+                  title: new Text('Notifications'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.openNotification();
+                  },
                 ),
                 new ListTile(
-                  title: new Text("Settings"),
+                  title: new Text('Settings'),
                   onTap: (){
 
                   },
                 ),
                 new ListTile(
-                  title: new Text("Help"),
+                  title: new Text('Help'),
                   onTap: (){
                   },
                 ),
@@ -123,38 +128,45 @@ class _DrawerWidgetState extends State<DrawerWidget> {
             height: MediaQuery.of(context).size.height/7,
             width:  MediaQuery.of(context).size.width/2.5,
             decoration:BoxDecoration(
-              // color: Colors.red,
-                image: DecorationImage(
-                    image: AssetImage("assets/logo/ic_logo.png"),
-                    fit: BoxFit.contain
-                )
+              image: DecorationImage(
+                image: AssetImage('assets/logo/ic_logo.png'),
+                fit: BoxFit.contain,
+              ),
             ),
           ),
           Container(
-              child: Align(
-                  alignment: FractionalOffset.bottomCenter,
+            child: Align(
+              alignment: FractionalOffset.bottomCenter,
+              child: Container(
+                height: 100,
+                child: Center(
                   child: Container(
-                    height: 100,
-                    child: Center(
-                      child: Container(
-                        alignment: Alignment.center,
-                        height: 50,
-                        width: 250,
-                        decoration: BoxDecoration(
-                            color: Colors.blue,
-                            borderRadius: BorderRadius.circular(30)
-                        ),
-                        child: GestureDetector(
-                            onTap: widget.signOut,
-                            child: Text(
-                                "Sign Out",
-                                style: TextStyle(color: Colors.white),
-                            ),
-                        ),
+                    alignment: Alignment.center,
+                    height: 50,
+                    width: 250,
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: GestureDetector(
+                      onTap: () async {
+                        SharedPreferences preferences = await SharedPreferences.getInstance();
+                        preferences.setString('token', '');
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context)=> SplashScreenPage(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Sign Out',
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
                   ),
+                ),
               ),
+            ),
           ),
         ],
       ),

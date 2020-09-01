@@ -137,11 +137,12 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: <Widget>[
                                 Flexible(
+                                  flex: 1,
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
                                       Flexible(
-                                        child: Text('Start Date'),
+                                        child: Text('Start Date', style: TextStyle(fontSize: 12),),
                                       ),
                                       FlatButton(
                                         color: Colors.blue,
@@ -161,11 +162,12 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                   padding: EdgeInsets.only(left: 8),
                                 ),
                                 Flexible(
+                                  flex: 1,
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
                                       Flexible(
-                                        child: Text('End Date'),
+                                        child: Text('End Date', style: TextStyle(fontSize: 12),),
                                       ),
                                       FlatButton(
                                         color: Colors.blue,
@@ -385,17 +387,27 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                 Row(
                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: <Widget>[
-                                                    Text(
-                                                      '${state.filterHistory[index].fname} ${state.filterHistory[index].lname}',
-                                                      style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 16,
+                                                    Flexible(
+                                                      flex: 3,
+                                                      child: Text(
+                                                        '${state.filterHistory[index].fname} ${state.filterHistory[index].lname}',
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                        ),
                                                       ),
                                                     ),
-                                                    Text(
-                                                      state.filterHistory[index].sessionType,
-                                                      style: TextStyle(
-                                                        color: getSessionColor(state.filterHistory[index].grp, sessionTypeStrings.indexOf(state.filterHistory[index].sessionType)),
+                                                    Flexible(
+                                                      flex: 2,
+                                                      child: Text(
+                                                        state.filterHistory[index].sessionType,
+                                                        style: TextStyle(
+                                                          color: getSessionColor(state.filterHistory[index].grp,
+                                                            sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
+                                                          ),
+                                                          fontSize: 12,
+                                                        ),
+                                                        textAlign: TextAlign.right,
                                                       ),
                                                     ),
                                                   ],

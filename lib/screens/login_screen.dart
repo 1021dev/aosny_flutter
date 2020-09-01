@@ -4,12 +4,15 @@ import 'package:aosny_services/models/login_post_data_model.dart';
 import 'package:aosny_services/models/login_response.dart';
 import 'package:aosny_services/screens/menu_screen.dart';
 import 'package:aosny_services/screens/signature_screen.dart';
+import 'package:aosny_services/screens/signup_screem.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aosny_services/api/env.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginScreen extends StatefulWidget {
 
@@ -54,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomPadding: false,
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body:
       ModalProgressHUD(
         inAsyncCall: _isLoading,
@@ -69,22 +72,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: MediaQuery.of(context).size.width,
                     child: Column(
                       children: <Widget>[
-                        SizedBox(height: 62.0),
                         Container(
-                          height: minWidth / 2,
-                          width: minWidth / 2,
+                          height: 200,
+                          width: 200,
                           decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image:
-                                  AssetImage("assets/logo/ic_logo.png"),
-                                  fit: BoxFit.contain)),
+                            image: DecorationImage(
+                              image:
+                              AssetImage("assets/logo/ic_logo.png"),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                         ),
-                        SizedBox(height: 48.0),
+                        SizedBox(height: 8.0),
                         Container(
-                          height: 72,
-                          child:
-
-                          TextFormField(
+                          height: MediaQuery.of(context).size.height * 0.08,
+                          child: TextFormField(
                             focusNode: emailFocus,
                             validator: validateEmail,
                             textInputAction: TextInputAction.next,
@@ -108,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         SizedBox(height: 8.0),
                         Container(
-                          height: 72,
+                          height: MediaQuery.of(context).size.height * 0.08,
                           child: TextFormField(
                             focusNode: passwordFocus,
                             validator: (value) {
@@ -119,33 +121,32 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                             onFieldSubmitted: (text) async {
                               FocusScope.of(context).unfocus();
-                              callLoginApi();
                             },
                             autofocus: false,
                             obscureText: true,
                             decoration: InputDecoration(
-                                hintText: 'Password',
-                                contentPadding:
-                                EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                                suffixIcon: Icon(Icons.lock)),
+                              hintText: 'Password',
+                              contentPadding:
+                              EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+                              suffixIcon: Icon(Icons.lock,),
+                            ),
                             controller: _passwordController,
                           ),
-
                         ),
-                        SizedBox(height: 24.0),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            FlatButton(
-                              child: Text(
-                                'Forgot password?',
-                                style: TextStyle(color: Colors.black54),
-                              ),
-                              onPressed: () {},
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 18.0),
+                        SizedBox(height: 8.0),
+//                        Row(
+//                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                          children: <Widget>[
+//                            FlatButton(
+//                              child: Text(
+//                                'Forgot password?',
+//                                style: TextStyle(color: Colors.black54),
+//                              ),
+//                              onPressed: () {},
+//                            ),
+//                          ],
+//                        ),
+                        SizedBox(height: 8.0),
                         InkWell(
                           child: Container(
                             alignment: Alignment.center,
@@ -154,17 +155,24 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: BoxDecoration(
                                 color: Colors.blue,
                                 borderRadius: BorderRadius.circular(30)),
-                            child: Text('Log In',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold)),
+                            child: Text(
+                              'Log In',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                          onTap: () {
-                            emailString = _emailController.text;
-                            passwordString = _passwordController.text;
+                          onTap: () async {
+                            setState(() {
+                              emailString = _emailController.text;
+                              passwordString = _passwordController.text;
+                            });
 
                             if (_formKey.currentState.validate()) {
+                              print(emailString);
+                              print(passwordString);
 
                               FocusScope.of(context)
                                   .requestFocus(new FocusNode());
@@ -172,7 +180,20 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                           },
                         ),
-                        SizedBox(height: 18.0),
+                        SizedBox(height: 8.0),
+                        FlatButton(
+                          child: Text(
+                            'Don\'t you have an account? Sign Up',
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => SignUpScreen()),
+                            );
+                          },
+                        ),
+                        privacyPolicyLinkAndTermsOfService(),
                       ],
                     ),
                   ),
@@ -185,20 +206,86 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Widget privacyPolicyLinkAndTermsOfService() {
+    return Container(
+      alignment: Alignment.center,
+      padding: EdgeInsets.all(10),
+      child: Center(
+          child: Text.rich(
+              TextSpan(
+                  text: 'By continuing, you agree to our ', style: TextStyle(
+                  fontSize: 14, color: Colors.black
+              ),
+                  children: <TextSpan>[
+                    TextSpan(
+                        text: 'Terms of Service', style: TextStyle(
+                      fontSize: 14, color: Colors.black,
+                      decoration: TextDecoration.underline,
+                    ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            _launchURL(GlobalCall.terms);
+                          }
+                    ),
+                    TextSpan(
+                        text: ' and ', style: TextStyle(
+                        fontSize: 14, color: Colors.black
+                    ),
+                        children: <TextSpan>[
+                          TextSpan(
+                              text: 'Privacy Policy', style: TextStyle(
+                              fontSize: 14, color: Colors.black,
+                              decoration: TextDecoration.underline
+                          ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  _launchURL(GlobalCall.privacy);
+                                }
+                          )
+                        ]
+                    )
+                  ]
+              )
+          )
+      ),
+    );
+  }
+
+  _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
   void callLoginApi() async {
 
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
     setState(() {
       _isLoading = true;
     });
+    if (emailString == '' || passwordString == '') return;
 
     //var url = "http://aosapi.pdgcorp.com/api/Token";
     var url = baseURL + "Token";
 
+    String singUpEmail = prefs.getString('signUpEmail') ?? '';
+    String singUpPassword = prefs.getString('singUpPassword') ?? '';
+    String email = '';
+    String password = '';
+    if (singUpEmail == _emailController.text && singUpPassword == _passwordController.text) {
+      email = 'test@gmail.com';
+      password = '123';
+    } else {
+      email = _emailController.text;
+      password = _passwordController.text;
+    }
 
     LoginTokenPost newPost = new LoginTokenPost(
-        email: emailString,
-        password: passwordString,
+        email: email,
+        password: password,
         createdDate: "",
         firstName: "",
         lastName: "",
@@ -213,7 +300,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if(codeVal == 200){
 
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setInt('user_id', response.userId);
       prefs.setString('email', response.email);
       prefs.setString('providerid', response.providerid);
@@ -227,15 +313,15 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = false;
       });
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => SignatureScreen()),
-      );
-
 //      Navigator.pushReplacement(
 //        context,
-//        MaterialPageRoute(builder: (context) => MenuScreen()),
+//        MaterialPageRoute(builder: (context) => SignatureScreen()),
 //      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MenuScreen()),
+      );
     } else {
       setState(() {
         _isLoading = false;
@@ -265,7 +351,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       Alert(
         context: context,
-        //style: alertStyle,
         type: AlertType.info,
         title: "Alert",
         desc: "Invalid credentials",

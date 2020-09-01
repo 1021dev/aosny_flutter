@@ -466,6 +466,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
 
 
   Stream<SessionNoteScreenState> saveSessionNote(String url, CompleteSessionNotes completeSessionNotes) async* {
+    yield state.copyWith(isLoading: true);
     var selectedDate1 = new DateFormat('MM/dd/yy hh:mm:ss');
 
     String dateFinal =  selectedDate1.format(state.selectedDate);
@@ -539,13 +540,14 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       location: locationHomeOrSchool,
       sessionType: state.sessionType,
       notes: state.noteText,
-      confirmed: int.parse(state.confirmedVal),
+      confirmed: int.parse(state.confirmedVal ?? '0'),
       goals: goals,
       activities: activities,
       sessionID: 0,
       sessionNoteExtrasList: sessionNoteExtrasList,
     );
     AddSessionResponse responseAddSession = await addSessionNoteApi.addSessionDetails(url, body: newPost.toJson());
+    yield state.copyWith(isLoading: false);
+    yield SessionNoteScreenStateSuccess();
   }
-
 }

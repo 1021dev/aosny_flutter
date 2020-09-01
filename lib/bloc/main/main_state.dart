@@ -62,6 +62,16 @@ class MainScreenState extends Equatable {
 
 class MainScreenStateSuccess extends MainScreenState {}
 
+class MainScreenEmptyData extends MainScreenState {
+  final String error;
+
+  MainScreenEmptyData({@required this.error}) : super();
+
+  @override
+  String toString() => 'MainScreenStateFailure { error: $error }';
+
+}
+
 class MainScreenStateFailure extends MainScreenState {
   final String error;
 

@@ -87,7 +87,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       add(UpdateSortFilterEvent());
     } catch (error) {
       yield state.copyWith( isLoading: false);
-      yield MainScreenStateFailure(error: error.toString());
+      yield MainScreenEmptyData(error: error.toString());
     }
   }
 
@@ -100,7 +100,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       add(UpdateSortFilterEvent());
     } catch (error) {
       yield state.copyWith( isLoading: false);
-      yield MainScreenStateFailure(error: error.toString());
+      yield MainScreenEmptyData(error: error.toString());
     }
   }
 
@@ -124,7 +124,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       yield state.copyWith(filterHistory: filter, isLoading: false);
     } catch (error) {
       yield state.copyWith( isLoading: false);
-      yield MainScreenStateFailure(error: error.toString());
+      yield MainScreenEmptyData(error: error.toString());
     }
   }
   //////////////////////////////////////////////////////////////////////////////
@@ -138,7 +138,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       yield state.copyWith(progress: progress, isLoading: false);
     } catch (error) {
       yield state.copyWith( isLoading: false);
-      yield MainScreenStateFailure(error: error.toString());
+      yield MainScreenEmptyData(error: error.toString());
     }
   }
 
@@ -148,7 +148,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       yield state.copyWith(progress: progress, isLoading: false);
     } catch (error) {
       yield state.copyWith( isLoading: false);
-      yield MainScreenStateFailure(error: error.toString());
+      yield MainScreenEmptyData(error: error.toString());
     }
   }
 }

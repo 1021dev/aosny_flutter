@@ -3,7 +3,7 @@ class AddSessionResponse {
   String sessionDate;
   String sessionTime;
   int duration;
-  String group;
+  num group;
   String location;
   String sessionType;
   String notes;
