@@ -266,12 +266,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 
     LoginTokenPost newPost = new LoginTokenPost(
-        email: 'test@gmail.com',
-        password: '123',
-        createdDate: '',
-        firstName: '',
-        lastName: '',
-        userId: 0);
+      userName: 'testuser',
+      password: '123',
+    );
 
 
 

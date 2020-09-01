@@ -88,7 +88,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: MediaQuery.of(context).size.height * 0.08,
                           child: TextFormField(
                             focusNode: emailFocus,
-                            validator: validateEmail,
+                            validator: (val) {
+                              if (val.isEmpty) {
+                                return 'User Name is required';
+                              }
+                              return null;
+                            },
                             textInputAction: TextInputAction.next,
                             keyboardType: TextInputType.emailAddress,
                             onFieldSubmitted: (text) {
@@ -276,7 +281,7 @@ class _LoginScreenState extends State<LoginScreen> {
     String email = '';
     String password = '';
     if (singUpEmail == _emailController.text && singUpPassword == _passwordController.text) {
-      email = 'test@gmail.com';
+      email = 'testuser';
       password = '123';
     } else {
       email = _emailController.text;
@@ -284,12 +289,9 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     LoginTokenPost newPost = new LoginTokenPost(
-        email: email,
-        password: password,
-        createdDate: "",
-        firstName: "",
-        lastName: "",
-        userId: 0);
+      userName: email,
+      password: password,
+    );
 
 
 
@@ -330,15 +332,15 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  String validateEmail(String value) {
-    Pattern pattern =
-        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-    RegExp regex = new RegExp(pattern);
-    if (!regex.hasMatch(value))
-      return 'Please Enter Valid Email Address';
-    else
-      return null;
-  }
+  // String validateEmail(String value) {
+  //   Pattern pattern =
+  //       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+  //   RegExp regex = new RegExp(pattern);
+  //   if (!regex.hasMatch(value))
+  //     return 'Please Enter Valid Email Address';
+  //   else
+  //     return null;
+  // }
 
   void handleTimeout() {
     if (GlobalCall.token.length > 33) {

@@ -95,10 +95,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield state.copyWith(dropDownValue: event.longGoalText);
     } else if (event is UpdateCheckedValue) {
       yield state.copyWith(checkedValue: event.checkedValue);
-    } else if (event is UpdateSPIndex) {
-      yield state.copyWith(selectedSPIndex: event.selectedSPIndex);
-    } else if (event is UpdateSIIndex) {
-      yield state.copyWith(selectedSIIndex: event.selectedSIIndex);
+    } else if (event is UpdateSpCheckValue) {
+      yield state.copyWith(sPcheckListItems: event.list);
+    } else if (event is UpdateSiCheckValue) {
+      yield state.copyWith(sIcheckListItems: event.list);
     } else if (event is UpdateOutComeIndex) {
       yield state.copyWith(selectedOutComesIndex: event.selectedOutComesIndex);
     } else if (event is UpdateSessionType) {
@@ -117,8 +117,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       List<ShortTermGpModel> shortTermGpList = await _sessionApi.getShortTermGpList(studentId);
 
       List<CheckList> gPcheckListItems = [];
-      List<CategoryTextAndID> sPcheckListItems = [];
-      List<CategoryTextAndID> sIcheckListItems = [];
+      List<CategoryTextAndID> spListItems = [];
+      List<CategoryTextAndID> siListItems = [];
+      List<CheckList> sPcheckListItems = [];
+      List<CheckList> sIcheckListItems = [];
       List<CategoryTextAndID> cAcheckListItems = [];
       List<CategoryTextAndID> jAcheckListItems = [];
       List<CategoryTextAndID> outComesListItems = [];
@@ -135,14 +137,24 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         if (GlobalCall.socialPragmatics.categoryData.length > 0) {
           GlobalCall.socialPragmatics.categoryData[0].categoryTextAndID
               .forEach((element) {
-            sPcheckListItems.add(element);
+            sPcheckListItems.add(CheckList(
+              id: element.categoryTextID,
+              title: element.categoryTextDetail,
+              checkVal: false,
+            ));
+            siListItems.add(element);
           });
         }
 
         if (GlobalCall.SEITIntervention.categoryData.length > 0) {
           GlobalCall.SEITIntervention.categoryData[0].categoryTextAndID
               .forEach((element) {
-            sIcheckListItems.add(element);
+            sIcheckListItems.add(CheckList(
+              id: element.categoryTextID,
+              title: element.categoryTextDetail,
+              checkVal: false,
+            ));
+            siListItems.add(element);
           });
         }
 
@@ -340,38 +352,36 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
 
         if (GlobalCall.socialPragmatics.categoryData.length > 0) {
           if (GlobalCall.socialPragmatics.categoryData.length > 0) {
-            CategoryTextAndID temp;
+            sPcheckListItems.clear();
             for (CategoryTextAndID data in GlobalCall.socialPragmatics.categoryData[0].categoryTextAndID){
+              bool hasvalue = false;
               if (sessionNotesExtras.length > 0) {
                 sessionNotesExtras.forEach((element) {
                   if (element.sNECategoryID == GlobalCall.socialPragmatics.categoryData[0].mainCategoryID) {
                     if (element.sNECategoryDetailID == data.categoryTextID) {
-                      temp = data;
+                      hasvalue = true;
                     }
                   }
                 });
               }
-            }
-            if (temp != null) {
-              selectedSPIndex = state.sPcheckListItems.indexOf(temp) ?? -1;
+              sPcheckListItems.add(CheckList(id: data.categoryTextID, title: data.categoryTextDetail, checkVal: hasvalue));
             }
           }
 
           if (GlobalCall.SEITIntervention.categoryData.length > 0) {
+            sIcheckListItems.clear();
             for (CategoryTextAndID data in GlobalCall.SEITIntervention.categoryData[0].categoryTextAndID){
-              CategoryTextAndID temp;
+              bool hasvalue = false;
               if (sessionNotesExtras.length > 0) {
                 sessionNotesExtras.forEach((element) {
                   if (element.sNECategoryID == GlobalCall.SEITIntervention.categoryData[0].mainCategoryID) {
                     if (element.sNECategoryDetailID == data.categoryTextID) {
-                      temp = data;
+                      hasvalue = true;
                     }
                   }
                 });
               }
-              if (temp != null) {
-                selectedSIIndex = state.sIcheckListItems.indexOf(temp) ?? -1;
-              }
+              sIcheckListItems.add(CheckList(id: data.categoryTextID, title: data.categoryTextDetail, checkVal: hasvalue));
             }
           }
 
@@ -433,6 +443,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         yield state.copyWith(
           isLoading: false,
           sessionNotes: completeSessionNotes,
+          sPcheckListItems: sPcheckListItems,
+          sIcheckListItems: sIcheckListItems,
           selectedLtGoalId: selectedLtGoalId,
           activitiesListItems: activitiesListItems,
           noteText: noteText,
@@ -490,18 +502,34 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     goals.add(goal);
     List<SessionNoteExtrasList> sessionNoteExtrasList = [];
 
-    if (state.selectedSPIndex > -1) {
-      sessionNoteExtrasList.add(
-          SessionNoteExtrasList(sNECategoryID: GlobalCall.socialPragmatics.categoryData[0].mainCategoryID,
-              sNECategoryDetailID: state.sPcheckListItems[state.selectedSPIndex].categoryTextID,
-              sNESubDetailID: 0));
-    }
-    if (state.selectedSIIndex > -1) {
-      sessionNoteExtrasList.add(
-          SessionNoteExtrasList(sNECategoryID: GlobalCall.SEITIntervention.categoryData[0].mainCategoryID,
-              sNECategoryDetailID: state.sIcheckListItems[state.selectedSIIndex].categoryTextID,
-              sNESubDetailID: 0));
-    }
+    state.sPcheckListItems.forEach((element) {
+      if (element.checkVal) {
+        sessionNoteExtrasList.add(
+            SessionNoteExtrasList(sNECategoryID: GlobalCall.socialPragmatics.categoryData[0].mainCategoryID,
+                sNECategoryDetailID: element.id,
+                sNESubDetailID: 0));
+      }
+    });
+    state.sIcheckListItems.forEach((element) {
+      if (element.checkVal) {
+        sessionNoteExtrasList.add(
+            SessionNoteExtrasList(sNECategoryID: GlobalCall.socialPragmatics.categoryData[0].mainCategoryID,
+                sNECategoryDetailID: element.id,
+                sNESubDetailID: 0));
+      }
+    });
+    // if (state.selectedSPIndex > -1) {
+    //   sessionNoteExtrasList.add(
+    //       SessionNoteExtrasList(sNECategoryID: GlobalCall.socialPragmatics.categoryData[0].mainCategoryID,
+    //           sNECategoryDetailID: state.sPcheckListItems[state.selectedSPIndex].categoryTextID,
+    //           sNESubDetailID: 0));
+    // }
+    // if (state.selectedSIIndex > -1) {
+    //   sessionNoteExtrasList.add(
+    //       SessionNoteExtrasList(sNECategoryID: GlobalCall.SEITIntervention.categoryData[0].mainCategoryID,
+    //           sNECategoryDetailID: state.sIcheckListItems[state.selectedSIIndex].categoryTextID,
+    //           sNESubDetailID: 0));
+    // }
 
     if (state.selectedOutComesIndex > -1) {
       sessionNoteExtrasList.add(
