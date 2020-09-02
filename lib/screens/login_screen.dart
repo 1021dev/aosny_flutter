@@ -309,21 +309,26 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setString('password', passwordString);
 
       print(response);
+      GlobalCall.email = email;
+      GlobalCall.name = response.userName;
 
       Fluttertoast.showToast(msg: 'Logged In Successfully',);
       setState(() {
         _isLoading = false;
       });
 
-//      Navigator.pushReplacement(
-//        context,
-//        MaterialPageRoute(builder: (context) => SignatureScreen()),
-//      );
+      if ((response.signatureFilename ?? '') == '') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SignatureScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MenuScreen()),
+        );
+      }
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MenuScreen()),
-      );
     } else {
       setState(() {
         _isLoading = false;

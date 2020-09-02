@@ -71,7 +71,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                     ),
                   ),
                   accountEmail: Text(
-                      GlobalCall.singUpEmil != '' ? GlobalCall.singUpEmil: GlobalCall.email,
+                      GlobalCall.singUpEmil != '' ? GlobalCall.singUpEmil: GlobalCall.email ?? '',
                       style: TextStyle(fontSize: 13,color: Colors.white)
                     // Theme.of(context).textTheme.subhead Tex
                   ),
