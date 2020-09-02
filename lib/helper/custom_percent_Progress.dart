@@ -37,8 +37,6 @@ class CircleProgress extends CustomPainter{
   }
 }
 
-
-
 class CreateProgressBarTime extends StatefulWidget {
   @override
   _CreateProgressBarTimeState createState() => _CreateProgressBarTimeState();

@@ -47,7 +47,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       String token = prefs.getString('token');
       var jwt = token.split(".");
       var payload = json.decode(ascii.decode(base64.decode(base64.normalize(jwt[1]))));
-      GlobalCall.email =  payload['Email'];
+      GlobalCall.email =  payload['email'];
 
       if(DateTime.fromMillisecondsSinceEpoch(payload["exp"]*1000).isAfter(DateTime.now())) {
         List<StudentsDetailsModel> studentList = new List();

@@ -5,16 +5,16 @@
     "kind": "Directory"
   },
   "applicationId": "com.premierdatagroup.aosny",
-  "variantName": "release",
+  "variantName": "profile",
   "elements": [
     {
       "type": "SINGLE",
       "filters": [],
       "properties": [],
-      "versionCode": 9,
-      "versionName": "1.0.7",
+      "versionCode": 1,
+      "versionName": "1.0.2",
       "enabled": true,
-      "outputFile": "app-release.apk"
+      "outputFile": "app-profile.apk"
     }
   ]
 }
