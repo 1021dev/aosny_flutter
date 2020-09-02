@@ -1,4 +1,4 @@
-package com.premierdatagroup.aosny_flutter
+package com.premierdatagroup.aosny
 
 import io.flutter.embedding.android.FlutterActivity
 

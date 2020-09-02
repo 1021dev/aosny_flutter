@@ -66,7 +66,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                   accountName: Container(
                     height: 20,
                     child: Text(
-                      GlobalCall.name != '' ? GlobalCall.name : 'Test User',
+                      GlobalCall.name != '' ? GlobalCall.name ?? '' : 'Test User',
                       style: TextStyle(fontSize: 16,color: Colors.white,fontWeight: FontWeight.normal),
                     ),
                   ),
