@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
     SharedPreferences.getInstance().then((value) {
       preferences = value;
       setState(() {
-        emailString = preferences.getString('email');
+        emailString = preferences.getString('userName');
         passwordString = preferences.getString('password');
         _emailController.text = emailString;
         _passwordController.text = passwordString;
@@ -95,12 +95,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                             textInputAction: TextInputAction.next,
-                            keyboardType: TextInputType.emailAddress,
+                            keyboardType: TextInputType.text,
                             onFieldSubmitted: (text) {
                               FocusScope.of(context).requestFocus(passwordFocus);
                             },
                             decoration: InputDecoration(
-                              hintText: 'Email',
+                              hintText: 'Username',
                               contentPadding:
                               EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
                               suffixIcon: IconButton(
@@ -304,6 +304,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       prefs.setInt('user_id', response.userId);
       prefs.setString('email', response.email);
+      prefs.setString('userName', response.userName);
       prefs.setString('providerid', response.providerid);
       prefs.setString('token', response.token);
       prefs.setString('password', passwordString);
