@@ -9,6 +9,7 @@ import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 class HistoryScreen extends StatefulWidget {
   final StreamController<bool> loadStudents;
@@ -122,326 +123,376 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
         child: BlocBuilder<MainScreenBloc, MainScreenState>(
             cubit: widget.mainScreenBloc,
             builder: (BuildContext context, MainScreenState state) {
-              return Scaffold(
-                backgroundColor: Colors.grey[100],
-                body: Container(
-                  padding: const EdgeInsets.only(left: 15, right: 15, top: 8),
-                  child: Column(
-                    mainAxisAlignment:  MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                        child: Column(
-                          children: <Widget>[
-                            GlobalCall.filterDates ? Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Flexible(
-                                  flex: 1,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Flexible(
-                                        child: Text('Start Date', style: TextStyle(fontSize: 12),),
-                                      ),
-                                      FlatButton(
-                                        color: Colors.blue,
-                                        onPressed: () async {
-                                          showDateTimePicker('Start Date', GlobalCall.startDate);
-                                        },
-                                        child:
-                                        Text(
-                                          startDate == '' ? 'Start Date' : startDate,
-                                          style: TextStyle(color:Colors.white),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(left: 8),
-                                ),
-                                Flexible(
-                                  flex: 1,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Flexible(
-                                        child: Text('End Date', style: TextStyle(fontSize: 12),),
-                                      ),
-                                      FlatButton(
-                                        color: Colors.blue,
-                                        onPressed: () {
-                                          showDateTimePicker('End Date', GlobalCall.endDate);
-                                        },
-                                        //child:  Text( "Select End Date",
-                                        //  style: TextStyle(color:Colors.white),
-                                        child: Text(
-                                          endDate == '' ? 'End Date': endDate,
-                                          style: TextStyle(color:Colors.white),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ): Container(),
-                            GlobalCall.filterStudents ? Container(
-                              alignment: Alignment.center,
-                              height: 40,
-                              padding: const EdgeInsets.all(5),
-                              color: Colors.white,
-                              child: DropdownButton(
-                                underline: Container(),
-                                hint: dropDownValue == null
-                                    ? Text("Students")
-                                    : Text(
-                                  dropDownValue,
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                                isExpanded: true,
-                                elevation: 5,
-                                icon: Icon(Icons.keyboard_arrow_down),
-                                iconSize: 30.0,
-                                style: TextStyle(color: Colors.black),
-                                items: GlobalCall.globaleStudentList.map(
-                                      (val) {
-                                    return DropdownMenuItem<StudentsDetailsModel>(
-                                      value: val,
-                                      child: Text(
-                                          val.firstName + " " + val.lastName),
-                                    );
-                                  },
-                                ).toList(),
-                                onChanged: (val) {
-                                  setState(
-                                        () {
-                                      dropDownValue =
-                                          val.firstName + " " + val.lastName;
-                                      GlobalCall.student = dropDownValue;
-                                      studentID = val.id.toString();
-                                      print(studentID);
-                                    },
-                                  );
-                                  widget.mainScreenBloc.add(UpdateSortFilterEvent());
-                                },
-                              ),
-                            ) : Container(),
-                            Padding(
-                              padding: EdgeInsets.only(top: 4),
-                            ),
-                            GlobalCall.filterSessionTypes ? Container(
-                              alignment: Alignment.center,
-                              height: 40,
-                              padding: const EdgeInsets.all(5),
-                              color: Colors.white,
-                              child: DropdownButton(
-                                underline: Container(),
-                                hint: GlobalCall.sessionType == ''
-                                    ? Text('Session Type')
-                                    : Text(
-                                  GlobalCall.sessionType,
-                                  style: TextStyle(color: Colors.black,
-                                  ),
-                                ),
-                                isExpanded: true,
-                                elevation: 5,
-                                icon: Icon(Icons.keyboard_arrow_down),
-                                iconSize: 30.0,
-                                style: TextStyle(color: Colors.black),
-                                items: sessionTypeStrings.map(
-                                      (val) {
-                                    return DropdownMenuItem<String>(
-                                      value: val,
-                                      child: Text(val),
-                                    );
-                                  },
-                                ).toList(),
-                                onChanged: (val) {
-                                  setState(() {
-                                      GlobalCall.sessionType = val;
-                                    },
-                                  );
-                                  widget.mainScreenBloc.add(UpdateSortFilterEvent());
-                                },
-                              ),
-                            ) : Container(),
-                            Padding(
-                              padding: EdgeInsets.only(top: 8),
-                              child: Divider(height: 0, thickness: 0.5,),
-                            )
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          child: state.isLoading ? Container(
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          ) : RefreshIndicator(
-                            key: refreshKey,
-                            onRefresh: refreshList,
-                            child: Container(
-                              alignment: Alignment.center,
-                              height: MediaQuery.of(context).size.height,
-                              width: MediaQuery.of(context).size.width,
-                              child: state.filterHistory.length == 0 ? Center(
-                                child: Text('No history data, please try to change the start/end Date.'),
-                              ): ListView.builder(
-                                  itemCount: state.filterHistory.length,
-                                  padding: EdgeInsets.fromLTRB(0, 0, 0, 60),
-                                  itemBuilder: (context, index) {
-                                    return Column(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: <Widget>[
-                                        SizedBox(height: 10),
-                                        Text(
-                                          DateFormat('EEEE, MMMM d').format(
-                                              DateTime.parse(
-                                                  '${state.filterHistory[index].sdate.split('/')[2]}-${state.filterHistory[index].sdate.split('/')[0]}-${state.filterHistory[index].sdate.split('/')[1]}')),
-                                          style: TextStyle(
-                                            color: Colors.grey,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4),
 
-                                        state.filterHistory[index].fname ==
-                                            'School Closed'
-                                            ? Container(
-                                          padding: const EdgeInsets.only(left: 5),
-                                          decoration: BoxDecoration(
-                                            color: Colors.orange,
-                                            borderRadius: BorderRadius.circular(5),
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: <Widget>[
-                                              Text(
-                                                "School Closed",
-                                                style: TextStyle(
-                                                  fontWeight:
-                                                  FontWeight.bold,
-                                                  fontSize: 20,
-                                                ),
-                                              ),
-                                              IconButton(
-                                                icon: Icon(Icons.cancel),
-                                                color: Colors.red,
-                                                onPressed: () {},
-                                              )
-                                            ],
-                                          ),
-                                        )
-                                            : GestureDetector(
-                                          onTap: () {
-                                            GlobalCall.sessionID = state.filterHistory[index].iD.toString();
-                                            String studentId = state.filterHistory[index].osis.toString().replaceAll('-', '');
-                                            int id = int.parse(studentId);
-                                            StudentsDetailsModel studentsDetailsModel = getStudent(id);
-                                            if (studentsDetailsModel == null) {
-                                              return ;
-                                            }
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (context) => AddEditSessionNote(
-                                                  eventType: "Edit",
-                                                  student: studentsDetailsModel,
-                                                  sessionId: state.filterHistory[index].iD.toString(),
-                                                  selectedStudentName: state.filterHistory[index].fname + ' ' + state.filterHistory[index].lname,
-                                                  noteText: state.filterHistory[index].notes,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                          child: Container(
-                                            padding: const EdgeInsets.all(5),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.circular(8),
-                                              border:Border.all(width:0.5),
-                                            ),
-                                            child: Column(
-                                              children: <Widget>[
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: <Widget>[
-                                                    Text(
-                                                      '${state.filterHistory[index].stime} - ${state.filterHistory[index].etime}',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                      ),
-                                                    ),
-                                                    InkWell(
-                                                      child: Icon(
-                                                        Icons.check_circle,
-                                                        color: state.filterHistory[index].xid > 0 ? Colors.green: Colors.transparent,
-                                                      ),
-                                                      onTap: () {},
-                                                    )
-                                                  ],
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: <Widget>[
-                                                    Flexible(
-                                                      flex: 3,
-                                                      child: Text(
-                                                        '${state.filterHistory[index].fname} ${state.filterHistory[index].lname}',
-                                                        style: TextStyle(
-                                                          fontWeight: FontWeight.bold,
-                                                          fontSize: 16,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Flexible(
-                                                      flex: 2,
-                                                      child: Text(
-                                                        state.filterHistory[index].sessionType,
-                                                        style: TextStyle(
-                                                          color: getSessionColor(state.filterHistory[index].grp,
-                                                            sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
-                                                          ),
-                                                          fontSize: 12,
-                                                        ),
-                                                        textAlign: TextAlign.right,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: <Widget>[
-                                                    Column(
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                    ),
-//                                                editButton(context,
-//                                                    snapshot.data[index]),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  }),
-                              // margin: EdgeInsets.fromLTRB(0, 0, 0,20),
-                            )
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              List<StudentsDetailsModel> students = [];
+              GlobalCall.globaleStudentList.forEach((element) {
+                bool isContain = false;
+                students.forEach((student) {
+                  if (student.firstName == element.firstName && student.lastName == element.lastName) {
+                    isContain = true;
+                  }
+                });
+                if (!isContain) {
+                  students.add(element);
+                }
+              });
+              return ModalProgressHUD(
+                inAsyncCall: state.isLoading,
+                child: Scaffold(
+                  backgroundColor: Colors.grey[100],
+                  body: _body(state, students),
+                  // ),
                 ),
-                // ),
               );
             }
         )
+    );
+  }
+
+  Widget _body(MainScreenState state, List<StudentsDetailsModel> students) {
+    return Container(
+      padding: const EdgeInsets.only(left: 15, right: 15, top: 8),
+      child: Column(
+        mainAxisAlignment:  MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            child: Column(
+              children: <Widget>[
+                GlobalCall.filterDates ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Flexible(
+                      flex: 1,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Flexible(
+                            child: Text('Start Date', style: TextStyle(fontSize: 12),),
+                          ),
+                          FlatButton(
+                            color: Colors.blue,
+                            onPressed: () async {
+                              showDateTimePicker('Start Date', GlobalCall.startDate);
+                            },
+                            child:
+                            Text(
+                              startDate == '' ? 'Start Date' : startDate,
+                              style: TextStyle(color:Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 8),
+                    ),
+                    Flexible(
+                      flex: 1,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Flexible(
+                            child: Text('End Date', style: TextStyle(fontSize: 12),),
+                          ),
+                          FlatButton(
+                            color: Colors.blue,
+                            onPressed: () {
+                              showDateTimePicker('End Date', GlobalCall.endDate);
+                            },
+                            //child:  Text( "Select End Date",
+                            //  style: TextStyle(color:Colors.white),
+                            child: Text(
+                              endDate == '' ? 'End Date': endDate,
+                              style: TextStyle(color:Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ): Container(),
+                GlobalCall.filterStudents ? Container(
+                  alignment: Alignment.center,
+                  height: 40,
+                  padding: const EdgeInsets.all(5),
+                  color: Colors.white,
+                  child: DropdownButton(
+                    underline: Container(),
+                    hint: dropDownValue == null
+                        ? Text("Students")
+                        : Text(
+                      dropDownValue,
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    isExpanded: true,
+                    elevation: 5,
+                    icon: Icon(Icons.keyboard_arrow_down),
+                    iconSize: 30.0,
+                    style: TextStyle(color: Colors.black),
+                    items: students.map(
+                          (val) {
+                        return DropdownMenuItem<StudentsDetailsModel>(
+                          value: val,
+                          child: Text(
+                            val.firstName + " " + val.lastName,
+                          ),
+                        );
+                      },
+                    ).toList(),
+                    onChanged: (val) {
+                      setState(
+                            () {
+                          dropDownValue =
+                              val.firstName + " " + val.lastName;
+                          GlobalCall.student = dropDownValue;
+                          studentID = val.id.toString();
+                          print(studentID);
+                        },
+                      );
+                      widget.mainScreenBloc.add(UpdateSortFilterEvent());
+                    },
+                  ),
+                ) : Container(),
+                Padding(
+                  padding: EdgeInsets.only(top: 4),
+                ),
+                GlobalCall.filterSessionTypes ? Container(
+                  alignment: Alignment.center,
+                  height: 40,
+                  padding: const EdgeInsets.all(5),
+                  color: Colors.white,
+                  child: DropdownButton(
+                    underline: Container(),
+                    hint: GlobalCall.sessionType == ''
+                        ? Text('Session Type')
+                        : Text(
+                      GlobalCall.sessionType,
+                      style: TextStyle(color: Colors.black,
+                      ),
+                    ),
+                    isExpanded: true,
+                    elevation: 5,
+                    icon: Icon(Icons.keyboard_arrow_down),
+                    iconSize: 30.0,
+                    style: TextStyle(color: Colors.black),
+                    items: sessionTypeStrings.map(
+                          (val) {
+                        return DropdownMenuItem<String>(
+                          value: val,
+                          child: Text(val),
+                        );
+                      },
+                    ).toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        GlobalCall.sessionType = val;
+                      },
+                      );
+                      widget.mainScreenBloc.add(UpdateSortFilterEvent());
+                    },
+                  ),
+                ) : Container(),
+                Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Divider(height: 0, thickness: 0.5,),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+            child: Container(
+              child: RefreshIndicator(
+                  key: refreshKey,
+                  onRefresh: refreshList,
+                  child: Container(
+                    alignment: Alignment.center,
+                    height: MediaQuery.of(context).size.height,
+                    width: MediaQuery.of(context).size.width,
+                    child: state.filterHistory.length == 0 ? Center(
+                      child: Text('No history data, please try to change the start/end Date.'),
+                    ): ListView.builder(
+                        itemCount: state.filterHistory.length,
+                        padding: EdgeInsets.fromLTRB(0, 0, 0, 60),
+                        itemBuilder: (context, index) {
+                          HistoryModel model = state.filterHistory[index];
+                          String stime = model.stime;
+                          String etime = model.etime;
+                          String smin = stime.split(':').toList()[1];
+                          String emin = etime.split(':').toList()[1];
+                          int duration = smin == emin ? 60: 30;
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              SizedBox(height: 10),
+                              Text(
+                                DateFormat('EEEE, MMMM d').format(
+                                    DateTime.parse(
+                                        '${model.sdate.split('/')[2]}-${model.sdate.split('/')[0]}-${model.sdate.split('/')[1]}')),
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              model.fname ==
+                                  'School Closed'
+                                  ? Container(
+                                padding: const EdgeInsets.only(left: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange,
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Text(
+                                      "School Closed",
+                                      style: TextStyle(
+                                        fontWeight:
+                                        FontWeight.bold,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.cancel),
+                                      color: Colors.red,
+                                      onPressed: () {},
+                                    )
+                                  ],
+                                ),
+                              )
+                                  : GestureDetector(
+                                onTap: () async {
+                                  GlobalCall.sessionID = state.filterHistory[index].iD.toString();
+                                  String studentId = state.filterHistory[index].osis.toString().replaceAll('-', '');
+                                  int id = int.parse(studentId);
+                                  StudentsDetailsModel studentsDetailsModel = getStudent(id);
+                                  if (studentsDetailsModel == null) {
+                                    return ;
+                                  }
+                                  final result = await Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => AddEditSessionNote(
+                                        eventType: "Edit",
+                                        student: studentsDetailsModel,
+                                        sessionId: state.filterHistory[index].iD,
+                                        selectedStudentName: state.filterHistory[index].fname + ' ' + state.filterHistory[index].lname,
+                                        noteText: state.filterHistory[index].notes,
+                                        isEditable: state.filterHistory[index].confirmed == 0,
+                                      ),
+                                    ),
+                                  );
+
+                                  if (result != null) {
+                                    await updatedSessionNote();
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border:Border.all(width:0.5),
+                                  ),
+                                  child: Column(
+                                    children: <Widget>[
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Row(
+                                            children: [
+                                              Text(
+                                                '${model.stime} - ${model.etime}',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              SizedBox(width: 8,),
+                                              Container(
+                                                width: 20,
+                                                height: 20,
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(10,),
+                                                  color: duration == 60 ? Colors.orange: Colors.blue,
+                                                ),
+                                                child: Center(
+                                                  child: Text(
+                                                    '$duration',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          InkWell(
+                                            child: Icon(
+                                              Icons.check_circle,
+                                              color: state.filterHistory[index].confirmed == 1 ? Colors.green: Colors.transparent,
+                                              size: 24,
+                                            ),
+                                            onTap: () {},
+                                          )
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Flexible(
+                                            flex: 3,
+                                            child: Text(
+                                              '${state.filterHistory[index].fname} ${state.filterHistory[index].lname}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                          ),
+                                          Flexible(
+                                            flex: 2,
+                                            child: Text(
+                                              state.filterHistory[index].sessionType,
+                                              style: TextStyle(
+                                                color: getSessionColor(state.filterHistory[index].grp,
+                                                  sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
+                                                ),
+                                                fontSize: 12,
+                                              ),
+                                              textAlign: TextAlign.right,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                          ),
+//                                                editButton(context,
+//                                                    snapshot.data[index]),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }),
+                    // margin: EdgeInsets.fromLTRB(0, 0, 0,20),
+                  )
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -460,9 +511,10 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
               builder: (context) => AddEditSessionNote(
                 eventType: "Edit",
                 student: studentsDetailsModel,
-                sessionId: data.iD.toString(),
+                sessionId: data.iD,
                 selectedStudentName: data.fname + ' ' + data.lname,
                 noteText: data.notes,
+                isEditable: data.confirmed == 0,
               ),
             ),
           );
@@ -528,11 +580,15 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
     );
   }
 
-
-
   Future<Null> refreshList() async {
     refreshKey.currentState?.show(atTop: false);
     widget.mainScreenBloc.add(RefreshHistoryEvent(startDate: startDate, endDate: endDate));
+    await Future.delayed(Duration(seconds: 4));
+    return null;
+  }
+
+  Future<Null> updatedSessionNote() async {
+    widget.mainScreenBloc.add(UpdatedSessionNoteEvent(startDate: startDate, endDate: endDate));
     await Future.delayed(Duration(seconds: 4));
     return null;
   }

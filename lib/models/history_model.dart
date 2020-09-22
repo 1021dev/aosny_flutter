@@ -28,6 +28,7 @@ class HistoryModel {
   String progtext;
   String notes;
   String sessionType;
+  int confirmed;
 
   HistoryModel(
       this.iD,
@@ -58,7 +59,9 @@ class HistoryModel {
       this.tstatus,
       this.progtext,
       this.sessionType,
-      this.notes);
+      this.notes,
+      this.confirmed,
+      );
 
   HistoryModel.fromJson(Map<String, dynamic> json) {
     iD = json['ID'];
@@ -90,6 +93,7 @@ class HistoryModel {
     progtext = json['progtext'];
     notes = json['notes'];
     sessionType = json['sessionType'];
+    confirmed = json['confirmed'];
   }
 
   Map<String, dynamic> toJson() {
@@ -122,6 +126,7 @@ class HistoryModel {
     data['tstatus'] = this.tstatus;
     data['progtext'] = this.progtext;
     data['notes'] = this.notes;
+    data['confirmed'] = this.confirmed;
     data['sessionType'] = this.sessionType;
     return data;
   }

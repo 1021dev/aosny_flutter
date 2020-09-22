@@ -37,6 +37,9 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       yield* getProgress(event.startDate, event.endDate);
     } else if (event is UpdateSortFilterEvent) {
       yield* filterHistory();
+    } else if (event is UpdatedSessionNoteEvent) {
+      yield state.copyWith(isLoading: true);
+      yield* refreshHistory(event.startDate, event.endDate);
     }
   }
 
@@ -45,10 +48,10 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       yield state.copyWith(isLoading: true);
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String token = prefs.getString('token');
+      GlobalCall.name =  prefs.getString('userName');
       var jwt = token.split(".");
       var payload = json.decode(ascii.decode(base64.decode(base64.normalize(jwt[1]))));
       GlobalCall.email =  payload['email'];
-      GlobalCall.name =  payload['userName'];
 
       if(DateTime.fromMillisecondsSinceEpoch(payload["exp"]*1000).isAfter(DateTime.now())) {
         List<StudentsDetailsModel> studentList = new List();

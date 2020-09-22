@@ -60,119 +60,66 @@ class _EnterSessionState extends State<EnterSession>
         backgroundColor: Colors.lightBlue[200],
         title: Text("Enter sessions",style: TextStyle(fontSize: 18,fontWeight: FontWeight.normal),),
       ),
-      drawer: DrawerWidget(
-        openEnterSession: () {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder:
-                  (context)=> EnterSession(
-                loadCategories: widget.loadCategories,
-                loadStudents: widget.loadStudents,
-              )
-              )
-          );
-        },
-        openNotification: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context)=> NotificationScreen(
-                loadCategories: widget.loadCategories,
-                loadStudents: widget.loadStudents,
-              ),
-            ),
-          );
-        },
-        openHelp: () {
-
-        },
-        openHistory: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder:
-                (context)=> MenuScreen(
-              selectedIndex: 0,
-            ),
-            ),
-          );
-        },
-        openProgress: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder:
-                (context)=> MenuScreen(
-              selectedIndex: 1,
-            ),
-            ),
-          );
-        },
-        openSettings: () {
-
-        },
-        signOut: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) =>
-                LoginScreen()),
-          );
-        },
-      ),
+      drawer: DrawerWidget(),
       body: Container(
-          padding: const EdgeInsets.all(10),
-          child:  FutureBuilder(
-              future: studentApi.getAllStudentsList(),
-              builder: (BuildContext context ,
-                  AsyncSnapshot<List<StudentsDetailsModel>> snapshot) {
-
-
-
-                if (!snapshot.hasData) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (snapshot.hasError) {
-                  return Text("${snapshot.error}");
-                }
-                return ListView.builder(
-                    itemCount: snapshot.data.length,
-                    itemBuilder: (context, index) {
-                      return Column(
-                        children: <Widget>[
-                          ListTile(
-                            leading: Container(
-                              height: 40,
-                              width: 40,
-                              alignment: Alignment.center,
-                              child: Text(snapshot.data[index].firstName[0],
-                                style: TextStyle(color:Colors.white),),
-                              decoration: BoxDecoration(
-                                  color: Colors.lightBlue[200],
-                                  borderRadius: BorderRadius.circular(80)
-                              ),
-                            ),
-                            title:  Text( '${snapshot.data[index].firstName} ${snapshot.data[index].lastName}',
-                              style: TextStyle(
-                              ),
-                            ),
-                            subtitle: Text(snapshot.data[index].schoolName,
-                              style: TextStyle(
-                              ),
-                            ) ,
-                            onTap:(){
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => AddEditSessionNote(
-                                    student: snapshot.data[index],
-                                    selectedStudentName: snapshot.data[index].firstName,
-                                    eventType: "Enter",
-                                  ),
-                                ),
-                              );
-                            } ,
-                          ),
-                          //Divider()
-                        ],
-                      );
-                    }
+        padding: const EdgeInsets.all(10),
+        child:  FutureBuilder(
+            future: studentApi.getAllStudentsList(),
+            builder: (BuildContext context ,
+                AsyncSnapshot<List<StudentsDetailsModel>> snapshot) {
+              if (!snapshot.hasData) {
+                return Center(
+                  child: CircularProgressIndicator(),
                 );
+              } else if (snapshot.hasError) {
+                return Text("${snapshot.error}");
               }
-          )
+              return ListView.builder(
+                  itemCount: snapshot.data.length,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: <Widget>[
+                        ListTile(
+                          leading: Container(
+                            height: 40,
+                            width: 40,
+                            alignment: Alignment.center,
+                            child: Text(snapshot.data[index].firstName[0],
+                              style: TextStyle(color:Colors.white),),
+                            decoration: BoxDecoration(
+                                color: Colors.lightBlue[200],
+                                borderRadius: BorderRadius.circular(80)
+                            ),
+                          ),
+                          title:  Text( '${snapshot.data[index].firstName} ${snapshot.data[index].lastName}',
+                            style: TextStyle(
+                            ),
+                          ),
+                          subtitle: Text(snapshot.data[index].schoolName,
+                            style: TextStyle(
+                            ),
+                          ) ,
+                          onTap:(){
+                            String firstName = snapshot.data[index].firstName;
+                            String lastName = snapshot.data[index].lastName;
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => AddEditSessionNote(
+                                  student: snapshot.data[index],
+                                  selectedStudentName: '$firstName $lastName',
+                                  eventType: "Enter",
+                                  isEditable: true,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  }
+              );
+            }
+        ),
       ),
     );
   }

@@ -23,7 +23,7 @@ class SessionNoteScreenInitEvent extends SessionNoteScreenEvent {
   final String eventType ;
   final String noteText;
   final CompleteSessionNotes sessionNotes;
-  final String sessionId;
+  final int sessionId;
 
   SessionNoteScreenInitEvent({
     this.studentId,
@@ -77,10 +77,9 @@ class SelectLongTermID extends SessionNoteScreenEvent {
 }
 
 class SaveSessionNoteEvent extends SessionNoteScreenEvent {
-  final String url;
-  final CompleteSessionNotes completeSessionNotes;
+  final String noteText;
 
-  SaveSessionNoteEvent({this.url, this.completeSessionNotes});
+  SaveSessionNoteEvent({this.noteText});
 }
 
 class UpdateSelectedDate extends SessionNoteScreenEvent {
@@ -98,9 +97,14 @@ class UpdateFinalNumber extends SessionNoteScreenEvent {
   UpdateFinalNumber({this.finalNumber});
 }
 
-class UpdateHomeBuilding extends SessionNoteScreenEvent {
-  final bool isHome;
-  UpdateHomeBuilding({this.isHome});
+class UpdateLocation extends SessionNoteScreenEvent {
+  final String location;
+  UpdateLocation({this.location});
+}
+
+class UpdateLocation1 extends SessionNoteScreenEvent {
+  final String location1;
+  UpdateLocation1({this.location1});
 }
 
 class UpdateSchoolGroup extends SessionNoteScreenEvent {
@@ -154,26 +158,41 @@ class SelectGoalSection extends SessionNoteScreenEvent {
 }
 
 class SelectActivitySection extends SessionNoteScreenEvent {
-  final isSelect;
+  final bool isSelect;
   SelectActivitySection({this.isSelect});
 }
 
 class SelectSISection extends SessionNoteScreenEvent {
-  final isSelect;
+  final bool isSelect;
   SelectSISection({this.isSelect});
 }
 
 class SelectSPSection extends SessionNoteScreenEvent {
-  final isSelect;
+  final bool isSelect;
   SelectSPSection({this.isSelect});
 }
 
 class SelectCASection extends SessionNoteScreenEvent {
-  final isSelect;
+  final bool isSelect;
   SelectCASection({this.isSelect});
 }
 
 class SelectJASection extends SessionNoteScreenEvent {
-  final isSelect;
+  final bool isSelect;
   SelectJASection({this.isSelect});
+}
+
+class UpdateSessionNoteEvent extends SessionNoteScreenEvent {
+  final String note;
+  UpdateSessionNoteEvent({this.note});
+}
+
+class UpdateProgText extends SessionNoteScreenEvent {
+  final String progText;
+  UpdateProgText({this.progText});
+}
+
+class UpdateCptText extends SessionNoteScreenEvent {
+  final String cptText;
+  UpdateCptText({this.cptText});
 }

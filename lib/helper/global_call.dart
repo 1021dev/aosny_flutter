@@ -32,5 +32,47 @@ class GlobalCall extends ChangeNotifier{
  static String student = '';
  static String sessionType = '';
  static bool filterSessionTypes = false;
+ static int providerID = 0;
 
 }
+
+List<String> nonDirectActivities = [
+ 'Coordination / Collaboration',
+ 'Attending IEP meetings',
+ 'Preparation for session',
+];
+List<String> methodOfContact = [
+ 'Phone',
+ 'In Person',
+ 'Meeting',
+ 'Email',
+ 'Notebook',
+];
+List<String> partyContacted = [
+ 'Parent',
+ 'Teacher',
+ 'Director / Principal',
+ 'Supervisor',
+ 'Therapist',
+];
+
+List<String> prepTypes = [
+ 'Secured an appropriate environment for sessions.',
+ 'Researched strategies, techniques and materials to target IEP goals',
+ 'Created lesson plan and prepared materials to be used during session to target IEP goals',
+ 'Documented progress toward attaining IEP Goals',
+ 'Assessed current skill level and strategies to target IEP goals',
+ 'Prepared paperwork and documentation for Annual CPSE review',
+ 'Prepared paperwork and documentation for child\'s `Turning 5` CSE meeting',
+];
+
+List<String> locationText = [
+ 'School',
+ 'Home',
+ 'Day Care',
+ 'Teletherapy',
+];
+List<String> location1Text = [
+ 'Class',
+ 'Ind',
+];

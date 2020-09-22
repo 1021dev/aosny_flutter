@@ -30,14 +30,15 @@ class SessionNoteScreenState extends Equatable {
   final String eventType ;
   final String noteText;
   final CompleteSessionNotes sessionNotes;
-  final String sessionId;
+  final int sessionId;
 
   final int settingsGroupOrNot;
-  final String sessionDateTime, sessionTime, duration, sessionEndTime, locationHomeOrSchool, sessionType, sessionIDValue, confirmedVal;
+  final String sessionDateTime, sessionTime, duration, sessionEndTime, location1, sessionType, sessionIDValue;
+  final String location;
+  final int confirmedVal;
 
   final bool settingPersonSelectedbutton;
   final bool settingGroupSelectedButton;
-  final bool isHome;
   final String dropDownValue;
   final bool checkedValue;
   final int groupType;
@@ -65,6 +66,9 @@ class SessionNoteScreenState extends Equatable {
 
   final TimeOfDay selectedTime;
   final int finalNumber;
+
+  final String selectedProgText;
+  final String cptText;
 
   SessionNoteScreenState({
     this.isLoading = false,
@@ -94,14 +98,14 @@ class SessionNoteScreenState extends Equatable {
     this.sessionTime,
     this.duration,
     this.sessionEndTime,
-    this.locationHomeOrSchool,
+    this.location = 'School',
+    this.location1,
     this.sessionType,
     this.sessionIDValue,
     this.confirmedVal,
 
     this.settingPersonSelectedbutton = true,
     this.settingGroupSelectedButton = false,
-    this.isHome = true,
     this.dropDownValue,
     this.checkedValue = false,
     this.groupType = 1,
@@ -130,6 +134,9 @@ class SessionNoteScreenState extends Equatable {
 
     this.selectedTime,
     this.finalNumber= 30,
+
+    this.selectedProgText,
+    this.cptText,
 
   });
 
@@ -161,14 +168,14 @@ class SessionNoteScreenState extends Equatable {
     sessionTime,
     duration,
     sessionEndTime,
-    locationHomeOrSchool,
+    location,
+    location1,
     sessionType,
     sessionIDValue,
     confirmedVal,
 
     settingPersonSelectedbutton,
     settingGroupSelectedButton,
-    isHome,
     dropDownValue,
     checkedValue,
     groupType,
@@ -197,6 +204,9 @@ class SessionNoteScreenState extends Equatable {
 
     selectedTime ,
     finalNumber,
+
+    selectedProgText,
+    cptText,
   ];
 
   SessionNoteScreenState copyWith({
@@ -219,13 +229,12 @@ class SessionNoteScreenState extends Equatable {
     String eventType,
     String noteText,
     CompleteSessionNotes sessionNotes,
-    String sessionId,
+    int sessionId,
     int settingsGroupOrNot,
-    String sessionDateTime, sessionTime, duration, sessionEndTime, locationHomeOrSchool, sessionType, sessionIDValue, confirmedVal,
-
+    String sessionDateTime, sessionTime, duration, sessionEndTime, location, location1, sessionType, sessionIDValue,
+    int confirmedVal,
     bool settingPersonSelectedbutton,
     bool settingGroupSelectedButton,
-    bool isHome,
     String dropDownValue,
     bool checkedValue,
     int groupType,
@@ -253,6 +262,8 @@ class SessionNoteScreenState extends Equatable {
 
     TimeOfDay selectedTime,
     int finalNumber,
+    String selectedProgText,
+    String cptText,
   }) {
     return SessionNoteScreenState(
       isLoading: isLoading ?? this.isLoading,
@@ -291,8 +302,8 @@ class SessionNoteScreenState extends Equatable {
       isActivities: isActivities ?? this.isActivities,
       isSelectecDate: isSelectecDate ?? this.isSelectecDate,
       jointAttentionEyeContact: jointAttentionEyeContact ?? this.jointAttentionEyeContact,
-      locationHomeOrSchool: locationHomeOrSchool ?? this.locationHomeOrSchool,
-      isHome: isHome ?? this.isHome,
+      location: location ?? this.location,
+      location1: location1 ?? this.location1,
       seitIntervention: seitIntervention ?? this.seitIntervention,
       selectedCAIconIndex: selectedCAIconIndex ?? this.selectedCAIconIndex,
       selectedDate: selectedDate ?? this.selectedDate,
@@ -313,6 +324,8 @@ class SessionNoteScreenState extends Equatable {
       showDate: showDate ?? this.showDate,
       socialPragmaics: socialPragmaics ?? this.socialPragmaics,
       toPassDate: toPassDate ?? this.toPassDate,
+      selectedProgText: selectedProgText ?? this.selectedProgText,
+      cptText: cptText ?? this.cptText,
     );
   }
 }
@@ -321,8 +334,25 @@ class SessionNoteScreenStateSuccess extends SessionNoteScreenState {}
 
 class SessionNoteScreenStateFailure extends SessionNoteScreenState {
   final String error;
-
-  SessionNoteScreenStateFailure({@required this.error}) : super();
+  final StudentsDetailsModel student;
+  final String selectedStudentName;
+  final String eventType;
+  final String noteText;
+  final CompleteSessionNotes sessionNotes;
+  final int sessionId;
+  final DateTime selectedDate;
+  final TimeOfDay selectedTime;
+  SessionNoteScreenStateFailure({
+    @required this.error,
+    this.student,
+    this.selectedStudentName,
+    this.eventType,
+    this.noteText,
+    this.sessionId,
+    this.sessionNotes,
+    this.selectedDate,
+    this.selectedTime,
+  }) : super();
 
   @override
   String toString() => 'SessionNoteScreenStateFailure { error: $error }';

@@ -2,10 +2,13 @@
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
+import 'package:aosny_services/screens/widgets/drawer/enter_session.dart';
+import 'package:aosny_services/screens/widgets/drawer/notification_screen.dart';
 import 'package:aosny_services/screens/widgets/splash_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:splashscreen/splashscreen.dart';
+
+import '../../menu_screen.dart';
 
 class DrawerWidget extends StatefulWidget {
   final Function openHistory;
@@ -48,10 +51,11 @@ class _DrawerWidgetState extends State<DrawerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    String name = '';
     if (preferences != null) {
-      name = preferences.getString('name') ?? 'Test User';
-      GlobalCall.name = name;
+      String userName = preferences.getString('userName') ?? '';
+      String email = preferences.getString('email') ?? '';
+      GlobalCall.name = userName;
+      GlobalCall.email = email;
     }
     return Drawer(
       child: Column(
@@ -66,7 +70,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                   accountName: Container(
                     height: 20,
                     child: Text(
-                      GlobalCall.name != '' ? GlobalCall.name ?? '' : 'Test User',
+                      GlobalCall.name != '' ? GlobalCall.name ?? '' : '',
                       style: TextStyle(fontSize: 16,color: Colors.white,fontWeight: FontWeight.normal),
                     ),
                   ),
@@ -86,28 +90,48 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                     title: Text('My Sessions'),
                     onTap: () {
                       Navigator.pop(context);
-                      widget.openHistory();
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder:
+                            (context)=> MenuScreen(
+                          selectedIndex: 0,
+                        ),
+                        ),
+                      );
                     }
                 ),
                 new ListTile(
                   title: Text('My Progress'),
                   onTap: () {
                     Navigator.pop(context);
-                    widget.openProgress();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder:
+                          (context)=> MenuScreen(
+                        selectedIndex: 1,
+                      ),
+                      ),
+                    );
                   },
                 ),
                 new ListTile(
                   title: Text('Enter Session Notes'),
                   onTap: () {
                     Navigator.pop(context);
-                    widget.openEnterSession();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context)=> EnterSession(),
+                      ),
+                    );
                   },
                 ),
                 new ListTile(
                   title: new Text('Notifications'),
                   onTap: () {
                     Navigator.pop(context);
-                    widget.openNotification();
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context)=> NotificationScreen(),
+                      ),
+                    );
                   },
                 ),
                 new ListTile(
