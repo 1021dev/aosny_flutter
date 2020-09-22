@@ -218,6 +218,10 @@ class CompleteSessionNotes {
   List<Activities> activities;
   int confirmed;
   int manDateType;
+  int cptCode;
+  int progId;
+  String cptText;
+  String progText;
   List<SessionNoteExtrasList> sessionNoteExtrasList;
 
   CompleteSessionNotes({
@@ -234,6 +238,10 @@ class CompleteSessionNotes {
     this.confirmed,
     this.sessionNoteExtrasList,
     this.manDateType,
+    this.progId = 0,
+    this.cptCode = 0,
+    this.cptText,
+    this.progText,
   });
 
   CompleteSessionNotes.fromJson(Map<String, dynamic> json) {
@@ -245,6 +253,10 @@ class CompleteSessionNotes {
     location = json['Location'];
     sessionType = json['SessionType'];
     notes = json['Notes'];
+    cptCode = json['CptCode'];
+    cptText = json['CptText'];
+    progId = json['ProgId'];
+    progText = json['ProgText'];
     manDateType = json['MandateType'];
     if (json['Goals'] != null) {
       goals = new List<Goals>();
@@ -277,6 +289,11 @@ class CompleteSessionNotes {
     data['Location'] = this.location;
     data['SessionType'] = this.sessionType;
     data['Notes'] = this.notes;
+    data['ProgId'] = this.progId;
+    data['ProgText'] = this.progText;
+    data['CptCode'] = this.cptCode;
+    data['CptText'] = this.cptText;
+    data['ManDateType'] = this.manDateType;
     if (this.goals != null) {
       data['Goals'] = this.goals.map((v) => v.toJson()).toList();
     }

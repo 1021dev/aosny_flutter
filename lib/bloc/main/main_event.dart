@@ -36,6 +36,13 @@ class RefreshHistoryEvent extends MainScreenEvent {
   RefreshHistoryEvent({this.startDate, this.endDate});
 
 }
+class UpdatedSessionNoteEvent extends MainScreenEvent {
+  final String startDate;
+  final String endDate;
+
+  UpdatedSessionNoteEvent({this.startDate, this.endDate});
+
+}
 class RefreshProgressEvent extends MainScreenEvent {
   final String startDate;
   final String endDate;

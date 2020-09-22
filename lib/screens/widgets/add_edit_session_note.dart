@@ -1,4 +1,5 @@
 import 'package:aosny_services/bloc/session_note/session_note.dart';
+import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
 import 'package:aosny_services/models/selected_longTerm_model.dart';
@@ -9,6 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+
+import 'drawer/drawer_widget.dart';
+import 'drawer/enter_session.dart';
 
 
 List<String> sessionTypeStrings = [
@@ -49,7 +53,8 @@ class AddEditSessionNote extends StatefulWidget {
   final String eventType ;
   final String noteText;
   final CompleteSessionNotes sessionNotes;
-  final String sessionId;
+  final int sessionId;
+  final bool isEditable;
 
   AddEditSessionNote({
     this.student,
@@ -57,13 +62,14 @@ class AddEditSessionNote extends StatefulWidget {
     this.eventType,
     this.noteText,
     this.sessionId,
-    this.sessionNotes
+    this.sessionNotes,
+    this.isEditable = true,
   });
   @override
-  _AddEditSessionNotetate createState() => _AddEditSessionNotetate();
+  _AddEditSessionNoteState createState() => _AddEditSessionNoteState();
 }
 
-class _AddEditSessionNotetate extends State<AddEditSessionNote> {
+class _AddEditSessionNoteState extends State<AddEditSessionNote> {
 
   SessionNoteScreenBloc screenBloc;
 
@@ -126,7 +132,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
   Future<Null> _selectTime(BuildContext context, SessionNoteScreenState state) async {
     final TimeOfDay response = await showTimePicker(
       context: context,
-      initialTime: state.selectedTime ?? TimeOfDay.now(),
+      initialTime: TimeOfDay.fromDateTime(state.selectedDate) ?? TimeOfDay.now(),
     );
     if (response != null && response != state.selectedTime ?? TimeOfDay.now()) {
       screenBloc.add(UpdateSelectedTime(selectedTime: response));
@@ -151,7 +157,72 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
       cubit: screenBloc,
       listener: (BuildContext context, SessionNoteScreenState state) async {
         if (state is SessionNoteScreenStateSuccess) {
-          Navigator.pop(context);
+          if (widget.eventType != 'Enter') {
+            Navigator.pop(context, 'success');
+          } else {
+            showDialog(context: context, builder: (context) {
+              return CupertinoAlertDialog(
+                title: Text(
+                  'Success',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                content: Text(
+                  'Do you want to add another?',
+                  style: TextStyle(
+                    fontSize: 14,
+                  ),
+                ),
+                actions: [
+                  CupertinoActionSheetAction(
+                    child: Text(
+                      'No',
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  CupertinoActionSheetAction(
+                    child: Text(
+                      'Yes',
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      screenBloc.add(
+                          SessionNoteScreenInitEvent(
+                            studentId: widget.student.studentID.toInt(),
+                            eventType: widget.eventType,
+                            noteText: widget.noteText,
+                            selectedStudentName: widget.selectedStudentName,
+                            sessionId: widget.sessionId,
+                            sessionNotes: widget.sessionNotes,
+                            student: widget.student,
+                          )
+                      );
+                      // Navigator.of(context).pushReplacement(
+                      //     MaterialPageRoute(
+                      //         builder: (context)=> EnterSession()
+                      //     )
+                      // );
+                    },
+                  ),
+                ],
+              );
+            });
+          }
+        } else if (state is SessionNoteScreenStateFailure) {
+          screenBloc.add(SessionNoteScreenInitEvent(
+            studentId: widget.student.studentID.toInt(),
+            eventType: widget.eventType,
+            noteText: widget.noteText,
+            selectedStudentName: widget.selectedStudentName,
+            sessionId: widget.sessionId,
+            sessionNotes: widget.sessionNotes,
+            student: widget.student,
+          ));
         }
         setState(() {
           noteTextController.text = state.noteText;
@@ -162,6 +233,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
         builder: (BuildContext context, SessionNoteScreenState state) {
           return Scaffold(
             backgroundColor: Colors.white,
+            // drawer: DrawerWidget(),
             appBar: AppBar(
               automaticallyImplyLeading: true,
               backgroundColor: Colors.lightBlue[200],
@@ -212,25 +284,28 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          //${widget.eventType}
-                          Text('Session Note',
-                            style: TextStyle(color:Colors.black,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height:2),
-                          Text(
-                            widget.selectedStudentName,
-                            style: TextStyle(
-                              color:Colors.black,
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text('Student',
+                              style: TextStyle(color:Colors.black,
+                                  fontWeight: FontWeight.bold),
                             ),
-                          ),
-                        ],
+                            SizedBox(height:2),
+                            Flexible(
+                              child: Text(
+                                widget.selectedStudentName,
+                                style: TextStyle(
+                                  color:Colors.black,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -347,7 +422,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                                           border: Border.all(color:Colors.grey,width: 0.5),
                                           color: state.finalNumber == 30 ? Colors.blue: Colors.white,
                                         ),
-                                        child:  Text(
+                                        child: Text(
                                           '30',
                                           style: TextStyle(
                                             color: state.finalNumber == 30 ? Colors.white: Colors.black,
@@ -419,681 +494,181 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                           ),
                         ],
                       ) ,
-                      SizedBox(height: 30,),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          Container(
-                            width: MediaQuery.of(context).size.width/2.5,
-                            child:Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text('Location',
-                                  style: TextStyle(fontWeight:FontWeight.bold,fontSize:15),
-                                ),
-                                Row(
-                                  children: <Widget>[
-                                    Column(
-                                      children: <Widget>[
-                                        InkWell(
-                                          child: Container(
-                                            height: 44,
-                                            alignment: Alignment.center,
-                                            width: MediaQuery.of(context).size.width/6.5,
-                                            decoration: BoxDecoration(
-                                                color: state.isHome ?
-                                                  Color(0xff4A4A4A) : Colors.white,
-                                                border: Border.all(color:Colors.grey,width: 0.5)
-                                            ),
-                                            child: Icon(
-                                              Icons.home,
-                                              color: state.isHome
-                                                  ? Colors.white:Color(0xff4A4A4A),
-                                            ),
-                                          ),
-                                          onTap: (){
-                                            screenBloc.add(UpdateHomeBuilding(isHome: true));
-                                          },
-                                        ),
-                                        Text(
-                                          'Home',
-                                          style: TextStyle(fontSize: 11),
-                                        ),
-                                      ],
-                                    ),
-                                    Container(width: 2,),
-                                    Column(
-                                      children: <Widget>[
-                                        InkWell(
-                                          child: Container(
-                                            height: 44,
-                                            alignment: Alignment.center,
-                                            width: MediaQuery.of(context).size.width/6.5,
-                                            decoration: BoxDecoration(
-                                                color: !state.isHome
-                                                    ? Color(0xff4A4A4A): Colors.white,
-                                                border: Border.all(color:Colors.grey,width: 0.5)
-                                            ),
-                                            child: Icon(Icons.school,
-                                              color: !state.isHome
-                                                  ? Colors.white: Color(0xff4A4A4A),
-                                            ),
-                                          ),
-                                          onTap: (){
-                                            screenBloc.add(UpdateHomeBuilding(isHome: false));
-                                          },
-                                        ),
-                                        Text(
-                                          'School',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                )
-                              ],
+                      SizedBox(height: 16,),
+                      Container(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text('Location',
+                              style: TextStyle(fontWeight:FontWeight.bold,fontSize:15),
                             ),
-                          ),
-                          Container(
-                            width:  MediaQuery.of(context).size.width/2.5,
-                            child:Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            Row(
                               children: <Widget>[
-                                Text('Setting',
-                                  style: TextStyle(fontWeight:FontWeight.bold, fontSize:15),
+                                Flexible(
+                                  flex: 1,
+                                  child: Container(
+                                    padding: EdgeInsets.only(left: 8),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: Colors.grey,
+                                        width: 1,
+                                      ),
+                                      color: Colors.white,
+                                    ),
+                                    child: DropdownButton(
+                                      underline: Container(),
+                                      hint: state.location == null
+                                          ? Text('Select')
+                                          : Text(
+                                        state.location,
+                                        style: TextStyle(color: Colors.black),
+                                      ),
+                                      isExpanded: true,
+                                      elevation: 5,
+                                      icon: Icon(Icons.keyboard_arrow_down),
+                                      iconSize: 30.0,
+                                      style: TextStyle(color: Colors.black),
+                                      items: locationText.map(
+                                            (val) {
+                                          return DropdownMenuItem<String>(
+                                            value: val,
+                                            child: Text(
+                                              val,
+                                            ),
+                                          );
+                                        },
+                                      ).toList(),
+                                      onChanged: (val) {
+                                        screenBloc.add(UpdateLocation(location: val));
+                                      },
+                                    ),
+                                  ),
                                 ),
-                                Row(
-                                  children: <Widget>[
-                                    Column(
-                                        children:<Widget>[
-                                          InkWell(
-                                            child: Container(
-                                              height: 44,
-                                              alignment: Alignment.center,
-                                              width: MediaQuery.of(context).size.width/6.5,
-                                              decoration: BoxDecoration(
-                                                  color: state.groupType == 1
-                                                      ? Color(0xff4A4A4A): Colors.white,
-                                                  border: Border.all(color:Colors.grey,width: 0.5)
-                                              ),
-                                              child: Icon(Icons.person,
-                                                color: state.groupType == 1
-                                                    ? Colors.white: Color(0xff4A4A4A),
-                                              ),
-                                            ),
-                                            onTap: (){
-                                              screenBloc.add(UpdateSchoolGroup(groupType: 1));
-                                            },
-                                          ),
-                                          Text('Individual',style: TextStyle(fontSize: 11),),
-                                        ],
+                                Container(width: 16,),
+                                Flexible(
+                                  flex: 1,
+                                  child: Container(
+                                    padding: EdgeInsets.only(left: 8),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: Colors.grey,
+                                        width: 1,
+                                      ),
+                                      color: Colors.white,
                                     ),
-                                    Column(
-                                      children:<Widget>[
-                                        InkWell(
-                                          child: Container(
-                                            height: 44,
-                                            alignment: Alignment.center,
-                                            width: MediaQuery.of(context).size.width/6.5,
-                                            decoration: BoxDecoration(
-                                                color: state.groupType == 2
-                                                    ?Color(0xff4A4A4A):Colors.white,
-                                                border: Border.all(color:Colors.grey,width: 0.5)
+                                    child: DropdownButton(
+                                      underline: Container(),
+                                      hint: state.location1 == null
+                                          ? Text('Select')
+                                          : Text(
+                                        state.location1,
+                                        style: TextStyle(color: Colors.black),
+                                      ),
+                                      isExpanded: true,
+                                      elevation: 5,
+                                      icon: Icon(Icons.keyboard_arrow_down),
+                                      iconSize: 30.0,
+                                      style: TextStyle(color: Colors.black),
+                                      items: location1Text.map(
+                                            (val) {
+                                          return DropdownMenuItem<String>(
+                                            value: val,
+                                            child: Text(
+                                              val,
                                             ),
-                                            child: Icon(Icons.group,
-                                              color: state.groupType == 2
-                                                  ?Colors.white:Color(0xff4A4A4A),
-                                            ),
-                                          ),
-                                          onTap: (){
-                                            screenBloc.add(UpdateSchoolGroup(groupType: 2));
-                                          },
-
-                                        ),
-
-                                        Text('Group',style: TextStyle(fontSize: 11),),
-
-                                      ],
+                                          );
+                                        },
+                                      ).toList(),
+                                      onChanged: (val) {
+                                        screenBloc.add(UpdateLocation1(location1: val));
+                                      },
                                     ),
-                                  ],
-                                )
+                                  ),
+                                ),
                               ],
-                            ),
-                          ),
-                        ],
+                            )
+                          ],
+                        ),
                       ),
-                      SizedBox(height: 15,),
-                      _sessionTypeWidget(state),
+                      SizedBox(height: 16,),
+                      Container(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text('Setting',
+                              style: TextStyle(fontWeight:FontWeight.bold, fontSize:15),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Column(
+                                  children:<Widget>[
+                                    InkWell(
+                                      child: Container(
+                                        height: 44,
+                                        alignment: Alignment.center,
+                                        width: MediaQuery.of(context).size.width/6.5,
+                                        decoration: BoxDecoration(
+                                            color: state.groupType == 1
+                                                ? Color(0xff4A4A4A): Colors.white,
+                                            border: Border.all(color:Colors.grey,width: 0.5)
+                                        ),
+                                        child: Icon(Icons.person,
+                                          color: state.groupType == 1
+                                              ? Colors.white: Color(0xff4A4A4A),
+                                        ),
+                                      ),
+                                      onTap: (){
+                                        screenBloc.add(UpdateSchoolGroup(groupType: 1));
+                                      },
+                                    ),
+                                    Text('Individual',style: TextStyle(fontSize: 11),),
+                                  ],
+                                ),
+                                Column(
+                                  children:<Widget>[
+                                    InkWell(
+                                      child: Container(
+                                        height: 44,
+                                        alignment: Alignment.center,
+                                        width: MediaQuery.of(context).size.width/6.5,
+                                        decoration: BoxDecoration(
+                                            color: state.groupType == 2
+                                                ?Color(0xff4A4A4A):Colors.white,
+                                            border: Border.all(color:Colors.grey,width: 0.5)
+                                        ),
+                                        child: Icon(Icons.group,
+                                          color: state.groupType == 2
+                                              ?Colors.white:Color(0xff4A4A4A),
+                                        ),
+                                      ),
+                                      onTap: (){
+                                        screenBloc.add(UpdateSchoolGroup(groupType: 2));
+                                      },
+
+                                    ),
+
+                                    Text('Group',style: TextStyle(fontSize: 11),),
+
+                                  ],
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 )
               ],
             ),
-
           ),
-          //Container(height: 10,),
-          GestureDetector(
-            onTap: (){
-              bool isSelect = state.goalsAndProgress;
-              print(state.longTermGpDropDownList.length);
-              screenBloc.add(SelectGoalSection(isSelect: !isSelect));
-            },
-            child: Container(
-              height: 44,
-              width: MediaQuery.of(context).size.width,
-              color: Color(0xff4A4A4A),
-              child: Stack(
-                alignment: Alignment.center,
-                children: <Widget>[
-                  Container(
-                      alignment: Alignment.center,
-                      child: Text('Goals & Progress',
-                          style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
-                      ),
-                      padding: const EdgeInsets.all(0)),
-                  Container(
-                    alignment: Alignment.centerRight,
-                    child: state.goalsAndProgress ? Icon(Icons.arrow_drop_down,
-                      color:Colors.white,
-                      size: 35,
-                    ) : Icon(Icons.arrow_right,
-                      color:Colors.white,
-                      size: 35,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          state.goalsAndProgress ? Container(
-            margin: const EdgeInsets.all(5),
-            padding:  const EdgeInsets.all(5.0),
-            height: 50,
-            decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey)
-            ),
-            child: DropdownButton(
-              underline: Container(),
-              hint: state.dropDownValue == null
-                  ? Text(
-                state.longTermGpDropDownList.length > 0  ? state.longTermGpDropDownList[0].longGoalText : '' ,
-                maxLines: 1,
-              )
-                  : Text(
-                state.dropDownValue,
-                maxLines: 1,
-                style: TextStyle(color: Colors.blue),
-              ),
-              isExpanded: true,
-              // elevation: 10,
-              iconSize: 30.0,
-              style: TextStyle(color: Colors.black),
-              items: state.longTermGpDropDownList.map(
-                    (val) {
-                  return DropdownMenuItem<LongTermGpDropDownModel>(
-                    value: val,
-                    child: Column(
-                      children: <Widget>[
-                        Text(val.longGoalText),
-                        Container(height: 5,),
-                        Divider(height: 10,color: Colors.black,),
-                        Container(height: 5,),
-                      ],
-                    ),
-                  );
-                },
-              ).toList(),
-              onChanged: (val) {
-                List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
-                int selectedLtGoalId = val.longGoalID;
-
-                for(int i = 0; i< state.shortTermGpList.length; i++){
-                  if(state.shortTermGpList[i].longGoalID == val.longGoalID){
-                    selectedShortTermResultListModel.add(
-                        SelectedShortTermResultListModel(
-                          id: state.shortTermGpList[i].shortgoalid,
-                          selectedId: state.shortTermGpList[i].longGoalID,
-                          selectedShortgoaltext: state.shortTermGpList[i].shortgoaltext,
-                          checkVal: false,
-                        )
-                    );
-                  }
-                }
-                screenBloc.add(SelectLongTermID(id: selectedLtGoalId));
-                screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
-                screenBloc.add(UpdateDropdownValue(longGoalText: val.longGoalText));
-              },
-            ),
-          ) : Container(),
-          state.goalsAndProgress ? Container(
-            margin: const EdgeInsets.only(left:5,right:5),
-            width: MediaQuery.of(context).size.width,
-            child: Wrap(
-              children: state.selectedShortTermResultListModel.map( (item) {
-                return CheckboxListTile(
-                  title: Text(
-                    item.selectedShortgoaltext,
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  value: item.checkVal,
-                  onChanged: (newValue) {
-                    List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
-
-                    for(int i = 0; i < state.selectedShortTermResultListModel.length; i++){
-                      if (item.id == state.selectedShortTermResultListModel[i].id){
-                        selectedShortTermResultListModel.add(
-                            SelectedShortTermResultListModel(
-                              id: state.selectedShortTermResultListModel[i].id,
-                              selectedId: state.selectedShortTermResultListModel[i].selectedId,
-                              selectedShortgoaltext: state.selectedShortTermResultListModel[i].selectedShortgoaltext,
-                              checkVal: newValue,
-                            )
-                        );
-                      } else {
-                        selectedShortTermResultListModel.add(
-                            state.selectedShortTermResultListModel[i]
-                        );
-                      }
-                    }
-                    screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                );
-              },
-            ).toList(),
-          ),
-          ): Container(),
-          state.goalsAndProgress ? goalprogressReview(state) : Container(),
-          state.goalsAndProgress ? Container(
-              margin: const EdgeInsets.all(5),
-              child: CheckboxListTile(
-                title: Text('Regression Noted?',
-                  style: TextStyle(fontSize:18),
-                ),
-                value: state.checkedValue,
-                onChanged: (newValue) {
-                  screenBloc.add(UpdateCheckedValue(checkedValue: newValue));
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-              )
-          ):Container(),
-
-          SizedBox(height:20),
-          GestureDetector(
-            onTap: (){
-              print(state.activitiesListItems);
-              bool isSelect = state.isActivities;
-              screenBloc.add(SelectActivitySection(isSelect: !isSelect));
-            },
-            child:Container(
-              alignment: Alignment.center,
-              height: 44,
-              width: MediaQuery.of(context).size.width,
-              color: Color(0xff4A4A4A),
-              child: Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    Container(
-                      alignment: Alignment.center,
-                      child: Text('Activities',
-                          style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
-                      ),
-                    ),
-                    Container(
-                      alignment: Alignment.centerRight,
-
-                      child: state.isActivities ? Icon(Icons.arrow_drop_down,
-                        color:Colors.white,
-                        size: 35,
-                      ) :Icon(Icons.arrow_right,
-                        color:Colors.white,
-                        size: 35,
-                      ),
-                    ),
-                  ]
-              ), ///Text('Activities',
-            ),
-          ),
-          SizedBox(height:16),
-          state.isActivities ? activitiesDropdownWidget(state) : Container(),
-          state.selectedSessionTypeIndex != 5 ? GestureDetector(
-            onTap: (){
-              bool isSelect = state.socialPragmaics;
-              screenBloc.add(SelectSPSection(isSelect: !isSelect));
-            },
-            child: Container(
-              alignment: Alignment.center,
-              height: 44,
-              width: MediaQuery.of(context).size.width,
-              color: Color(0xff4A4A4A),
-              child: Stack(
-                alignment: Alignment.center,
-                children: <Widget>[
-                  Container(
-                    alignment: Alignment.center,
-                    child: Text('Social Pragmatics',
-                        style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
-                    ),
-                  ),
-                  Container(
-                    alignment: Alignment.centerRight,
-                    child: state.socialPragmaics?Icon(Icons.arrow_drop_down,
-                      color:Colors.white,
-                      size: 35,
-                    ) :Icon(Icons.arrow_right,
-                      color:Colors.white,
-                      size: 35,
-                    ),
-                  ),
-                ] ,
-              ),
-            ),
-          ): Container(),
-
-          state.socialPragmaics ? Container(
-            margin: const EdgeInsets.only(left:5,right:5),
-            width: MediaQuery.of(context).size.width,
-            child: Wrap(
-              children: List.generate(state.sPcheckListItems.length, (index) {
-                return CheckboxListTile(
-                  title: Text(
-                    state.sPcheckListItems[index].title,
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  dense: true,
-                  value: state.sPcheckListItems[index].checkVal,
-                  onChanged: (newValue) {
-                    List<CheckList> checklist = [];
-                    for (int i = 0; i < state.sPcheckListItems.length; i++) {
-                      if (i == index) {
-                        CheckList check = state.sPcheckListItems[i];
-                        check.checkVal = newValue;
-                        checklist.add(check);
-                      } else {
-                        checklist.add(state.sPcheckListItems[i]);
-                      }
-                    }
-                    screenBloc.add(UpdateSpCheckValue(list: checklist));
-                    setState(() {
-
-                    });
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                );
-              },
-              ).toList(),
-            ),
-          ): Container(),
-
-          // state.socialPragmaics ? Container(
-          //   margin: EdgeInsets.only(left:5,right:5, top: 12),
-          //   decoration: BoxDecoration(
-          //     shape: BoxShape.rectangle,
-          //     border: Border.all(
-          //       color: Colors.black,
-          //       width: 1,
-          //     ),
-          //   ),
-          //   child: ListTile(
-          //     onTap: () {
-          //       showModalBottomSheet<void>(
-          //         context: context,
-          //         builder: (BuildContext context) {
-          //           var height = state.sPcheckListItems.length * 50.0 + MediaQuery.of(context).viewPadding.bottom;
-          //           if (height > MediaQuery.of(context).size.height / 2.0) {
-          //             height = MediaQuery.of(context).size.height / 2.0;
-          //           }
-          //           return Container(
-          //             height: height,
-          //             child: SafeArea(
-          //               child: ListView.separated(
-          //                 itemCount: state.sPcheckListItems.length,
-          //                 separatorBuilder: (context, index) {
-          //                   return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
-          //                 },
-          //                 itemBuilder: (context, index){
-          //                   return CheckboxListTile(
-          //                     dense: true,
-          //                     title: Text(
-          //                       state.sPcheckListItems[index].categoryTextDetail,
-          //                       style: TextStyle(fontSize: 14),
-          //                     ),
-          //                     value: state.selectedSPIndex == index,
-          //                     onChanged: (newValue) {
-          //                       screenBloc.add(UpdateSPIndex(selectedSPIndex: index));
-          //                       Navigator.pop(context);
-          //                     },
-          //                     controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-          //                   );
-          //                 },
-          //               ),
-          //             ),
-          //           );
-          //         },
-          //       );
-          //     },
-          //     dense: true,
-          //     title: Text(
-          //       state.selectedSPIndex > -1 ? state.sPcheckListItems[state.selectedSPIndex].categoryTextDetail: 'Select Your Choice',
-          //       style: TextStyle(
-          //         color: Colors.blue,
-          //       ),
-          //     ),
-          //     trailing: Icon(Icons.keyboard_arrow_down),
-          //   ),
-          // ) : Container(),
-
-          SizedBox(height:20),
-          GestureDetector(
-            onTap: (){
-              bool isSelect = state.seitIntervention;
-              screenBloc.add(SelectSISection(isSelect: !isSelect));
-            },
-            child: Container(
-              alignment: Alignment.center,
-              height: 44,
-              width: MediaQuery.of(context).size.width,
-              color: Color(0xff4A4A4A),
-              child: Stack(
-                alignment: Alignment.center,
-                children: <Widget>[
-                  Container(
-                    alignment: Alignment.center,
-                    child: Text(
-                      'SEIT Intervention',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    alignment: Alignment.centerRight,
-                    child: state.seitIntervention ? Icon(Icons.arrow_drop_down,
-                      color:Colors.white,
-                      size: 35,
-                    ) :Icon(Icons.arrow_right,
-                      color:Colors.white,
-                      size: 35,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          state.seitIntervention ? Container(
-            margin: EdgeInsets.only(left:5,right:5),
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              children: List.generate(state.sIcheckListItems.length, (index) {
-                CheckList check = state.sIcheckListItems[index];
-                return CheckboxListTile(
-                  title: Text(
-                    check.title,
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  dense: true,
-                  value: check.checkVal,
-                  onChanged: (newValue) async {
-                    List<CheckList> checklist = [];
-                    for (int i = 0; i < state.sIcheckListItems.length; i++) {
-                      if (i == index) {
-                        CheckList check = state.sIcheckListItems[i];
-                        check.checkVal = newValue;
-                        checklist.add(check);
-                      } else {
-                        checklist.add(state.sIcheckListItems[i]);
-                      }
-                    }
-                    screenBloc.add(UpdateSiCheckValue(list: checklist));
-                    setState(() {
-
-                    });
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                );
-              },
-              ).toList(),
-            ),
-          ): Container(),
-          // state.seitIntervention ? Container(
-          //   margin: EdgeInsets.only(left:5,right:5, top: 12),
-          //   decoration: BoxDecoration(
-          //     shape: BoxShape.rectangle,
-          //     border: Border.all(
-          //       color: Colors.black,
-          //       width: 1,
-          //     ),
-          //   ),
-          //   child: ListTile(
-          //     onTap: () {
-          //       showModalBottomSheet<void>(
-          //         context: context,
-          //         builder: (BuildContext context) {
-          //           return SafeArea(
-          //             child: ListView.separated(
-          //               itemCount: state.sIcheckListItems.length,
-          //               separatorBuilder: (context, index) {
-          //                 return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
-          //               },
-          //               itemBuilder: (context, index){
-          //                 return CheckboxListTile(
-          //                   dense: true,
-          //                   title: Text(
-          //                     state.sIcheckListItems[index].categoryTextDetail,
-          //                     style: TextStyle(fontSize: 14),
-          //                   ),
-          //                   value: state.selectedSIIndex == index,
-          //                   onChanged: (newValue) {
-          //                     screenBloc.add(UpdateSIIndex(selectedSIIndex: index));
-          //                     Navigator.pop(context);
-          //                   },
-          //                   controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-          //                 );
-          //               },
-          //             ),
-          //           );
-          //         },
-          //       );
-          //     },
-          //     dense: true,
-          //     title: Text(
-          //       state.selectedSIIndex > -1 ? state.sIcheckListItems[state.selectedSIIndex].categoryTextDetail: 'Select Your Choice',
-          //       style: TextStyle(
-          //         color: Colors.blue,
-          //       ),
-          //     ),
-          //     trailing: Icon(Icons.keyboard_arrow_down),
-          //   ),
-          // ) : Container(),
-
-          SizedBox(height:20),
-
-          GestureDetector(
-            onTap: (){
-              bool isSelect = state.competedActivites;
-              screenBloc.add(SelectCASection(isSelect: !isSelect));
-            },
-            child: Container(
-              alignment: Alignment.center,
-              height: 44,
-              width: MediaQuery.of(context).size.width,
-              color: Color(0xff4A4A4A),
-              child: Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-
-                    Container(
-
-                      alignment: Alignment.center,
-                      child: Text('Completed activity',
-                        style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal),
-
-                      ),
-                    ),
-
-
-                    Container(
-                      alignment: Alignment.centerRight,
-
-                      child: state.competedActivites?Icon(Icons.arrow_drop_down,
-                        color:Colors.white,
-                        size: 35,
-                      ) :Icon(Icons.arrow_right,
-                        color:Colors.white,
-                        size: 35,
-                      ),),
-                  ]
-              ), ///Text('Activities',
-
-
-            ),),
-          state.competedActivites ? completedActivityReview(state) : Container(),
-          SizedBox(height:20),
-          GestureDetector(
-            onTap: (){
-              bool isSelect = state.jointAttentionEyeContact;
-              screenBloc.add(SelectJASection(isSelect: !isSelect));
-            },
-            child: Container(
-              alignment: Alignment.center,
-              height: 44,
-              width: MediaQuery.of(context).size.width,
-              color: Color(0xff4A4A4A),
-              child: Stack(
-                  alignment: Alignment.center,
-                  children: <Widget>[
-                    Container(
-                      alignment: Alignment.center,
-                      child: Text('Joint Attention / Eye Contact',
-                          style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
-                      ),
-                    ),
-                    Container(
-                      alignment: Alignment.centerRight,
-
-                      child: state.jointAttentionEyeContact ? Icon(
-                        Icons.arrow_drop_down,
-                        color:Colors.white,
-                        size: 35,
-                      ) :
-                      Icon(
-                        Icons.arrow_right,
-                        color:Colors.white,
-                        size: 35,
-                      ),
-                    ),
-                  ],
-              ), ///Text('Activities',
-            ),
-          ),
-          state.jointAttentionEyeContact? jointAttentionOrEyeContactReview(state): Container(),
-
-          Padding(padding: EdgeInsets.only(top: 16),),
-          Container(
+          SizedBox(height: 15,),
+          _sessionTypeWidget(state),
+          state.selectedSessionTypeIndex != 5 ? _dropdowns(state): _nonDirectCare(state),
+          state.selectedProgText == nonDirectActivities[2] ? Container() : Container(
             alignment: Alignment.bottomLeft,
             width: MediaQuery.of(context).size.width,
             margin: const EdgeInsets.only(left:20,right:20,top:5),
@@ -1105,8 +680,9 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
               ),
             ),
           ),
-
-          state.isLoading ? Container() : Container(
+          state.isLoading ? Container() : (state.selectedProgText == nonDirectActivities[2]
+              ? Container() :
+          Container(
             alignment: Alignment.topLeft,
             margin: const EdgeInsets.only(left:20,right:20,top:2),
             decoration: BoxDecoration(
@@ -1119,7 +695,8 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
             child: TextField(
               focusNode: noteFocus,
               onChanged: (val) {
-
+                setState(() {
+                });
               },
               controller: noteTextController,
               keyboardType: TextInputType.multiline,
@@ -1136,16 +713,16 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                 border: InputBorder.none,
               ),
             ),
-          ),
+          )),
           SizedBox(height:30),
-          Container(
+          widget.isEditable ? Container(
             width:  MediaQuery.of(context).size.width/2,
             height: 44,
             decoration: BoxDecoration(
             ),
             child: InkWell(
               onTap: (){
-                screenBloc.add(SaveSessionNoteEvent());
+                screenBloc.add(SaveSessionNoteEvent(noteText: noteTextController.text));
               },
               child: Container(
                   color: Colors.blue,
@@ -1153,9 +730,672 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
                   child: Text('Save',style: TextStyle(color:Colors.white),)
               ),
             ),
-          ),
-          // SizedBox(height:10),
+          ): Container(),
         ],
+      ),
+    );
+  }
+
+  Widget _dropdowns(SessionNoteScreenState state) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: (){
+            bool isSelect = state.goalsAndProgress;
+            print(state.longTermGpDropDownList.length);
+            screenBloc.add(SelectGoalSection(isSelect: !isSelect));
+          },
+          child: Container(
+            height: 44,
+            width: MediaQuery.of(context).size.width,
+            color: Color(0xff4A4A4A),
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Container(
+                    alignment: Alignment.center,
+                    child: Text('Goals & Progress',
+                        style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
+                    ),
+                    padding: const EdgeInsets.all(0)),
+                Container(
+                  alignment: Alignment.centerRight,
+                  child: state.goalsAndProgress ? Icon(Icons.arrow_drop_down,
+                    color:Colors.white,
+                    size: 35,
+                  ) : Icon(Icons.arrow_right,
+                    color:Colors.white,
+                    size: 35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        state.goalsAndProgress ? Container(
+          margin: const EdgeInsets.all(5),
+          padding:  const EdgeInsets.all(5.0),
+          height: 50,
+          decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey)
+          ),
+          child: DropdownButton(
+            underline: Container(),
+            hint: state.dropDownValue == null
+                ? Text(
+              state.longTermGpDropDownList.length > 0  ? state.longTermGpDropDownList[0].longGoalText : '' ,
+              maxLines: 1,
+            )
+                : Text(
+              state.dropDownValue,
+              maxLines: 1,
+              style: TextStyle(color: Colors.blue),
+            ),
+            isExpanded: true,
+            // elevation: 10,
+            iconSize: 30.0,
+            style: TextStyle(color: Colors.black),
+            items: state.longTermGpDropDownList.map(
+                  (val) {
+                return DropdownMenuItem<LongTermGpDropDownModel>(
+                  value: val,
+                  child: Column(
+                    children: <Widget>[
+                      Text(val.longGoalText),
+                      Container(height: 5,),
+                      Divider(height: 10,color: Colors.black,),
+                      Container(height: 5,),
+                    ],
+                  ),
+                );
+              },
+            ).toList(),
+            onChanged: (val) {
+              List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
+              int selectedLtGoalId = val.longGoalID;
+
+              for(int i = 0; i< state.shortTermGpList.length; i++){
+                if(state.shortTermGpList[i].longGoalID == val.longGoalID){
+                  selectedShortTermResultListModel.add(
+                      SelectedShortTermResultListModel(
+                        id: state.shortTermGpList[i].shortgoalid,
+                        selectedId: state.shortTermGpList[i].longGoalID,
+                        selectedShortgoaltext: state.shortTermGpList[i].shortgoaltext,
+                        checkVal: false,
+                      )
+                  );
+                }
+              }
+              screenBloc.add(SelectLongTermID(id: selectedLtGoalId));
+              screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
+              screenBloc.add(UpdateDropdownValue(longGoalText: val.longGoalText));
+            },
+          ),
+        ) : Container(),
+        state.goalsAndProgress ? Container(
+          margin: const EdgeInsets.only(left:5,right:5),
+          width: MediaQuery.of(context).size.width,
+          child: Wrap(
+            children: state.selectedShortTermResultListModel.map( (item) {
+              return CheckboxListTile(
+                title: Text(
+                  item.selectedShortgoaltext,
+                  style: TextStyle(fontSize: 15),
+                ),
+                value: item.checkVal,
+                onChanged: (newValue) {
+                  List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
+
+                  for(int i = 0; i < state.selectedShortTermResultListModel.length; i++){
+                    if (item.id == state.selectedShortTermResultListModel[i].id){
+                      selectedShortTermResultListModel.add(
+                          SelectedShortTermResultListModel(
+                            id: state.selectedShortTermResultListModel[i].id,
+                            selectedId: state.selectedShortTermResultListModel[i].selectedId,
+                            selectedShortgoaltext: state.selectedShortTermResultListModel[i].selectedShortgoaltext,
+                            checkVal: newValue,
+                          )
+                      );
+                    } else {
+                      selectedShortTermResultListModel.add(
+                          state.selectedShortTermResultListModel[i]
+                      );
+                    }
+                  }
+                  screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+              );
+            },
+            ).toList(),
+          ),
+        ): Container(),
+        state.goalsAndProgress ? goalprogressReview(state) : Container(),
+        SizedBox(height:16),
+        GestureDetector(
+          onTap: (){
+            print(state.activitiesListItems);
+            bool isSelect = state.isActivities;
+            screenBloc.add(SelectActivitySection(isSelect: !isSelect));
+          },
+          child:Container(
+            alignment: Alignment.center,
+            height: 44,
+            width: MediaQuery.of(context).size.width,
+            color: Color(0xff4A4A4A),
+            child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  Container(
+                    alignment: Alignment.center,
+                    child: Text('Activities',
+                        style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.centerRight,
+
+                    child: state.isActivities ? Icon(Icons.arrow_drop_down,
+                      color:Colors.white,
+                      size: 35,
+                    ) :Icon(Icons.arrow_right,
+                      color:Colors.white,
+                      size: 35,
+                    ),
+                  ),
+                ]
+            ), ///Text('Activities',
+          ),
+        ),
+        SizedBox(height:16),
+        state.isActivities ? activitiesDropdownWidget(state) : Container(),
+        GestureDetector(
+          onTap: (){
+            bool isSelect = state.socialPragmaics;
+            screenBloc.add(SelectSPSection(isSelect: !isSelect));
+          },
+          child: Container(
+            alignment: Alignment.center,
+            height: 44,
+            width: MediaQuery.of(context).size.width,
+            color: Color(0xff4A4A4A),
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Container(
+                  alignment: Alignment.center,
+                  child: Text('Social Pragmatics',
+                      style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
+                  ),
+                ),
+                Container(
+                  alignment: Alignment.centerRight,
+                  child: state.socialPragmaics?Icon(Icons.arrow_drop_down,
+                    color:Colors.white,
+                    size: 35,
+                  ) :Icon(Icons.arrow_right,
+                    color:Colors.white,
+                    size: 35,
+                  ),
+                ),
+              ] ,
+            ),
+          ),
+        ),
+        state.socialPragmaics ? Container(
+          margin: const EdgeInsets.only(left:5,right:5),
+          width: MediaQuery.of(context).size.width,
+          child: Wrap(
+            children: List.generate(state.sPcheckListItems.length, (index) {
+              return CheckboxListTile(
+                title: Text(
+                  state.sPcheckListItems[index].title,
+                  style: TextStyle(fontSize: 15),
+                ),
+                dense: true,
+                value: state.sPcheckListItems[index].checkVal,
+                onChanged: (newValue) {
+                  List<CheckList> checklist = [];
+                  for (int i = 0; i < state.sPcheckListItems.length; i++) {
+                    if (i == index) {
+                      CheckList check = state.sPcheckListItems[i];
+                      check.checkVal = newValue;
+                      checklist.add(check);
+                    } else {
+                      checklist.add(state.sPcheckListItems[i]);
+                    }
+                  }
+                  screenBloc.add(UpdateSpCheckValue(list: checklist));
+                  setState(() {
+
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+              );
+            },
+            ).toList(),
+          ),
+        ): Container(),
+        SizedBox(height:16),
+        GestureDetector(
+          onTap: (){
+            bool isSelect = state.seitIntervention;
+            screenBloc.add(SelectSISection(isSelect: !isSelect));
+          },
+          child: Container(
+            alignment: Alignment.center,
+            height: 44,
+            width: MediaQuery.of(context).size.width,
+            color: Color(0xff4A4A4A),
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Container(
+                  alignment: Alignment.center,
+                  child: Text(
+                    'SEIT Intervention',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ),
+                Container(
+                  alignment: Alignment.centerRight,
+                  child: state.seitIntervention ? Icon(Icons.arrow_drop_down,
+                    color:Colors.white,
+                    size: 35,
+                  ) :Icon(Icons.arrow_right,
+                    color:Colors.white,
+                    size: 35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        state.seitIntervention ? Container(
+          margin: EdgeInsets.only(left:5,right:5),
+          width: MediaQuery.of(context).size.width,
+          child: Column(
+            children: List.generate(state.sIcheckListItems.length, (index) {
+              CheckList check = state.sIcheckListItems[index];
+              return CheckboxListTile(
+                title: Text(
+                  check.title,
+                  style: TextStyle(fontSize: 15),
+                ),
+                dense: true,
+                value: check.checkVal,
+                onChanged: (newValue) async {
+                  List<CheckList> checklist = [];
+                  for (int i = 0; i < state.sIcheckListItems.length; i++) {
+                    if (i == index) {
+                      CheckList check = state.sIcheckListItems[i];
+                      check.checkVal = newValue;
+                      checklist.add(check);
+                    } else {
+                      checklist.add(state.sIcheckListItems[i]);
+                    }
+                  }
+                  screenBloc.add(UpdateSiCheckValue(list: checklist));
+                  setState(() {
+
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+              );
+            },
+            ).toList(),
+          ),
+        ): Container(),
+        SizedBox(height:16),
+        GestureDetector(
+          onTap: (){
+            bool isSelect = state.competedActivites;
+            screenBloc.add(SelectCASection(isSelect: !isSelect));
+          },
+          child: Container(
+            alignment: Alignment.center,
+            height: 44,
+            width: MediaQuery.of(context).size.width,
+            color: Color(0xff4A4A4A),
+            child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+
+                  Container(
+
+                    alignment: Alignment.center,
+                    child: Text('Completed activity',
+                      style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal),
+
+                    ),
+                  ),
+
+
+                  Container(
+                    alignment: Alignment.centerRight,
+
+                    child: state.competedActivites?Icon(Icons.arrow_drop_down,
+                      color:Colors.white,
+                      size: 35,
+                    ) :Icon(Icons.arrow_right,
+                      color:Colors.white,
+                      size: 35,
+                    ),),
+                ]
+            ), ///Text('Activities',
+
+
+          ),),
+        state.competedActivites ? completedActivityReview(state) : Container(),
+        SizedBox(height:16),
+        GestureDetector(
+          onTap: (){
+            bool isSelect = state.jointAttentionEyeContact;
+            screenBloc.add(SelectJASection(isSelect: !isSelect));
+          },
+          child: Container(
+            alignment: Alignment.center,
+            height: 44,
+            width: MediaQuery.of(context).size.width,
+            color: Color(0xff4A4A4A),
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Container(
+                  alignment: Alignment.center,
+                  child: Text('Joint Attention / Eye Contact',
+                      style:TextStyle(color: Colors.white,fontWeight: FontWeight.normal)
+                  ),
+                ),
+                Container(
+                  alignment: Alignment.centerRight,
+
+                  child: state.jointAttentionEyeContact ? Icon(
+                    Icons.arrow_drop_down,
+                    color:Colors.white,
+                    size: 35,
+                  ) :
+                  Icon(
+                    Icons.arrow_right,
+                    color:Colors.white,
+                    size: 35,
+                  ),
+                ),
+              ],
+            ), ///Text('Activities',
+          ),
+        ),
+        state.jointAttentionEyeContact? jointAttentionOrEyeContactReview(state): Container(),
+        Padding(padding: EdgeInsets.only(top: 16),),
+      ],
+    );
+  }
+
+  Widget _nonDirectCare(SessionNoteScreenState state) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 8, top: 8, bottom: 4),
+          child: Text(
+            'Activity:',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+            ),
+          ),
+        ),
+        _nonActivity(state),
+        state.selectedProgText == nonDirectActivities[0] ? Padding(
+          padding: EdgeInsets.only(left: 8, top: 8, bottom: 4),
+          child: Text(
+            'Method of Contact:',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+            ),
+          ),
+        ): Container(),
+        state.selectedProgText == nonDirectActivities[0] ? Divider(height: 0, thickness: 0.5,): Container(),
+        state.selectedProgText == nonDirectActivities[0] ? _coordinationMethods(state): Container(),
+        state.selectedProgText == nonDirectActivities[0] ? Divider(height: 0, thickness: 0.5,): Container(),
+        state.selectedProgText == nonDirectActivities[0] ? Padding(
+          padding: EdgeInsets.only(left: 8, top: 8, bottom: 4),
+          child: Text(
+            'Party Contacted:',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+            ),
+          ),
+        ): Container(),
+        state.selectedProgText == nonDirectActivities[0] ? Divider(height: 0, thickness: 0.5,): Container(),
+        state.selectedProgText == nonDirectActivities[0] ? _coordinationParty(state): Container(),
+        state.selectedProgText == nonDirectActivities[0] ? Divider(height: 0, thickness: 0.5,): Container(),
+        state.selectedProgText == nonDirectActivities[1] ? Container(): Container(),
+        state.selectedProgText == nonDirectActivities[2] ? Padding(
+          padding: EdgeInsets.only(left: 8, top: 8, bottom: 4),
+          child: Text(
+            'Prep type:',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+            ),
+          ),
+        ): Container(),
+        state.selectedProgText == nonDirectActivities[2] ? _nonPrepType(state): Container(),
+        Padding(padding: EdgeInsets.only(top: 16),),
+      ],
+    );
+  }
+
+  Widget _coordinationMethods(SessionNoteScreenState state) {
+    return Container(
+      margin: EdgeInsets.only(left:5,right:5),
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        children: List.generate(methodOfContact.length, (index) {
+          return CheckboxListTile(
+            title: Text(
+              methodOfContact[index],
+              style: TextStyle(fontSize: 15),
+            ),
+            dense: true,
+            value: methodOfContact[index] == state.cptText,
+            onChanged: (newValue) async {
+              if (methodOfContact[index] == state.cptText) {
+                screenBloc.add(UpdateCptText(cptText: ''));
+              } else {
+                screenBloc.add(UpdateCptText(cptText: methodOfContact[index]));
+              }
+              setState(() {
+
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          );
+        },
+        ).toList(),
+      ),
+    );
+  }
+
+  Widget _coordinationParty(SessionNoteScreenState state) {
+    return Container(
+      margin: EdgeInsets.only(left:5,right:5),
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        children: List.generate(partyContacted.length, (index) {
+          return CheckboxListTile(
+            title: Text(
+              methodOfContact[index],
+              style: TextStyle(fontSize: 15),
+            ),
+            dense: true,
+            value: partyContacted[index] == state.cptText,
+            onChanged: (newValue) async {
+              if (partyContacted[index] == state.cptText) {
+                screenBloc.add(UpdateCptText(cptText: ''));
+              } else {
+                screenBloc.add(UpdateCptText(cptText: partyContacted[index]));
+              }
+              setState(() {
+
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          );
+        },
+        ).toList(),
+      ),
+    );
+  }
+
+  Widget _nonActivity(SessionNoteScreenState state) {
+    return Container(
+      margin: EdgeInsets.only(left: 5, right: 5, top: 12),
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        border: Border.all(
+          color: Colors.black,
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        onTap: () {
+          showModalBottomSheet<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return Container(
+                height: 200,
+                child: SafeArea(
+                  child: ListView.separated(
+                    itemCount: nonDirectActivities.length,
+                    separatorBuilder: (context, index) {
+                      return Divider(color: Colors.black38,
+                        height: 0,
+                        thickness: 0.5,);
+                    },
+                    itemBuilder: (context, index) {
+                      return CheckboxListTile(
+                        dense: true,
+                        title: Row(
+                          children: <Widget>[
+                            Flexible(
+                              child: Text(
+                                nonDirectActivities[index],
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                        value: nonDirectActivities[index] == state.selectedProgText,
+                        selected: nonDirectActivities[index] == state.selectedProgText,
+                        onChanged: (newValue) {
+                          screenBloc.add(UpdateProgText(progText: nonDirectActivities[index]));
+                          Navigator.pop(context);
+                        },
+                        controlAffinity: ListTileControlAffinity
+                            .leading, //  <-- leading Checkbox
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          );
+        },
+        dense: true,
+        title: Row(
+          children: <Widget>[
+            Flexible(
+              child: Text(
+                (state.selectedProgText != null && state.selectedProgText != '') ? state.selectedProgText :
+                'Select Your Choice',
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          ],
+        ),
+        trailing: Icon(Icons.keyboard_arrow_down),
+      ),
+    );
+  }
+
+  Widget _nonPrepType(SessionNoteScreenState state) {
+    return Container(
+      margin: EdgeInsets.only(left: 5, right: 5, top: 12),
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        border: Border.all(
+          color: Colors.black,
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        onTap: () {
+          showModalBottomSheet<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return Container(
+                height: 350,
+                child: SafeArea(
+                  child: ListView.separated(
+                    itemCount: prepTypes.length,
+                    separatorBuilder: (context, index) {
+                      return Divider(color: Colors.black38,
+                        height: 0,
+                        thickness: 0.5,);
+                    },
+                    itemBuilder: (context, index) {
+                      return CheckboxListTile(
+                        dense: true,
+                        title: Row(
+                          children: <Widget>[
+                            Flexible(
+                              child: Text(
+                                prepTypes[index],
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                        value: prepTypes[index] == state.noteText,
+                        selected: prepTypes[index] == state.noteText,
+                        onChanged: (newValue) {
+                          screenBloc.add(UpdateSessionNoteEvent(note: prepTypes[index]));
+                          Navigator.pop(context);
+                        },
+                        controlAffinity: ListTileControlAffinity
+                            .leading, //  <-- leading Checkbox
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          );
+        },
+        dense: true,
+        title: Row(
+          children: <Widget>[
+            Flexible(
+              child: Text(
+                state.noteText != null && state.noteText != '' ? state.noteText :
+                'Select Your Choice',
+                style: TextStyle(
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          ],
+        ),
+        trailing: Icon(Icons.keyboard_arrow_down),
       ),
     );
   }
@@ -1331,7 +1571,7 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
           ),
         ),
         Container(
-          margin: EdgeInsets.only(left:5,right:5, top: 12),
+          margin: EdgeInsets.only(top: 12),
           decoration: BoxDecoration(
             shape: BoxShape.rectangle,
             color: getSessionColor(state.groupType, state.selectedSessionTypeIndex),
@@ -1795,10 +2035,6 @@ class _AddEditSessionNotetate extends State<AddEditSessionNote> {
         ),
       ],
     );
-  }
-
-  void addSaveNotesApiCall()  {
-      screenBloc.add(SaveSessionNoteEvent());
   }
 
 }

@@ -15,6 +15,7 @@ import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScreenState> {
   AddSessionApi addSessionNoteApi = new AddSessionApi();
@@ -53,7 +54,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     } else if (event is SelectLongTermID) {
       yield state.copyWith(selectedLtGoalId: event.id);
     } else if (event is SaveSessionNoteEvent) {
-      yield* saveSessionNote(event.url, event.completeSessionNotes);
+      yield* saveSessionNote(event.noteText);
     } else if (event is SelectGoalSection) {
       yield state.copyWith(goalsAndProgress: event.isSelect);
     } else if (event is SelectActivitySection) {
@@ -87,8 +88,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day, timeOfDay.hour, timeOfDay.minute);
       DateTime endDate = dateTime.add(Duration(minutes: finalnumber));
       yield state.copyWith(selectedTime: timeOfDay, finalNumber: event.finalNumber, endDateTime: endDate);
-    } else if (event is UpdateHomeBuilding) {
-      yield state.copyWith(isHome: event.isHome);
+    } else if (event is UpdateLocation) {
+      yield state.copyWith(location: event.location);
+    } else if (event is UpdateLocation1) {
+      yield state.copyWith(location1: event.location1);
     } else if (event is UpdateSchoolGroup) {
       yield state.copyWith(groupType: event.groupType);
     } else if (event is UpdateDropdownValue) {
@@ -107,11 +110,18 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield state.copyWith(selectedCAIconIndex: event.selectedCAIconIndex);
     } else if (event is UpdateJAIndex) {
       yield state.copyWith(selectedJAIconIndex: event.selectedJAIconIndex);
+    } else if (event is UpdateSessionNoteEvent) {
+      yield state.copyWith(noteText: event.note, cptText: '',);
+    } else if (event is UpdateProgText) {
+      yield state.copyWith(selectedProgText: event.progText, noteText: '', cptText: '');
+    } else if (event is UpdateCptText) {
+      yield state.copyWith(cptText: event.cptText, noteText: '',);
     }
 
   }
 
   Stream<SessionNoteScreenState> loadInitialData(int studentId) async* {
+    yield state.copyWith(isLoading: true);
     try {
       List<LongTermGpDropDownModel> longTermGpDropDownList = await _sessionApi.getLongTermGpDropDownList(studentId);
       List<ShortTermGpModel> shortTermGpList = await _sessionApi.getShortTermGpList(studentId);
@@ -142,7 +152,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
               title: element.categoryTextDetail,
               checkVal: false,
             ));
-            siListItems.add(element);
+            spListItems.add(element);
           });
         }
 
@@ -234,6 +244,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         selectedShortTermResultListModel: selectedShortTermResultListModel,
       );
 
+      selectedShortTermResultListModel.clear();
+
       if (state.sessionId != null) {
         String url = baseURL + 'SessionNote/${state.sessionId}/CompleteSessionNote';
         CompleteSessionNotes completeSessionNotes = await completeSessionApi.getSessionDetails(url);
@@ -296,7 +308,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         }
 
         int settingsGroupOrNot;
-        String sessionDateTime, sessionTime, duration, sessionEndTime, locationHomeOrSchool, sessionType, sessionIDValue, confirmedVal;
+        String sessionDateTime, sessionTime, duration, sessionEndTime, location, location1, sessionType, sessionIDValue;
+        int confirmedVal;
 
         bool isHome;
         String dropDownValue;
@@ -314,10 +327,14 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         TimeOfDay selectedTime;
         int finalNumber;
 
+        checkedValue = completeSessionNotes.confirmed == 1;
 
         String noteText =  completeSessionNotes.notes ?? '';
 
-        locationHomeOrSchool = completeSessionNotes.location ?? '';
+        String locationHomeOrSchool = completeSessionNotes.location ?? '';
+        List<String> locations = locationHomeOrSchool.split('|').toList();
+        location = locations.first;
+        location1 = locations[1];
         sessionType =  completeSessionNotes.sessionType ?? 1;
         int index = sessionTypeStrings.indexOf(sessionType);
         if (index != null) {
@@ -325,19 +342,14 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         }
 
 
-        if(locationHomeOrSchool != null && locationHomeOrSchool.contains('School')){
-          isHome = false;
-        } else {
-          isHome = true;
-        }
-        settingsGroupOrNot = completeSessionNotes.group;
+        settingsGroupOrNot = completeSessionNotes.manDateType;
 
         groupType = settingsGroupOrNot ?? 1;
 
         duration =  completeSessionNotes.duration.toString();
         finalNumber = completeSessionNotes.duration;
         sessionDateTime = '${completeSessionNotes.sessionDate} ${completeSessionNotes.sessionTime}';
-        toPassDate = new DateFormat('MM/dd/yy hh:mm:ss').parse(sessionDateTime);
+        toPassDate = new DateFormat('MM/dd/yy HH:mm:ss').parse(sessionDateTime);
         sessionTime = DateFormat.jm().format(toPassDate);
         selectedDate = toPassDate;
 
@@ -448,10 +460,11 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           selectedLtGoalId: selectedLtGoalId,
           activitiesListItems: activitiesListItems,
           noteText: noteText,
-          locationHomeOrSchool:locationHomeOrSchool,
+          location: location,
+          location1: location1,
           sessionType: sessionType,
           selectedSessionTypeIndex: selectedSessionTypeIndex,
-          isHome: isHome,
+          checkedValue: checkedValue,
           settingsGroupOrNot: settingsGroupOrNot,
           groupType: groupType,
           duration: duration,
@@ -468,25 +481,30 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           selectedCAIconIndex: selectedCAIconIndex,
           selectedJAIconIndex: selectedJAIconIndex,
           selectedOutComesIndex: selectedOutComesIndex,
+          selectedProgText: completeSessionNotes.progText,
+          confirmedVal: completeSessionNotes.confirmed,
+          cptText: completeSessionNotes.cptText,
         );
       }
 
     } catch (error) {
+      print(error);
       yield SessionNoteScreenStateFailure(error: error.toString());
     }
   }
 
 
-  Stream<SessionNoteScreenState> saveSessionNote(String url, CompleteSessionNotes completeSessionNotes) async* {
+  Stream<SessionNoteScreenState> saveSessionNote(String noteText) async* {
     yield state.copyWith(isLoading: true);
-    var selectedDate1 = new DateFormat('MM/dd/yy hh:mm:ss');
+    var selectedDate1 = new DateFormat('MM/dd/yy');
+    var selectedDate2 = new DateFormat('hh:mm a');
 
     String dateFinal =  selectedDate1.format(state.selectedDate);
 
-    String sessionTime = DateFormat.jm().format(state.selectedDate);
+    String sessionTime = selectedDate2.format(state.selectedDate);
     String sessionDateTime = dateFinal;
 
-    String locationHomeOrSchool = state.isHome ? 'Home|Class': 'School|Class';
+    String locationHomeOrSchool = '${state.location}|${state.location1}';
 
 
     String url =  state.sessionId != null ? baseURL + 'SessionNote/${state.sessionId}/CompleteSessionNote': baseURL + 'SessionNote/0/CompleteSessionNote';
@@ -518,19 +536,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
                 sNESubDetailID: 0));
       }
     });
-    // if (state.selectedSPIndex > -1) {
-    //   sessionNoteExtrasList.add(
-    //       SessionNoteExtrasList(sNECategoryID: GlobalCall.socialPragmatics.categoryData[0].mainCategoryID,
-    //           sNECategoryDetailID: state.sPcheckListItems[state.selectedSPIndex].categoryTextID,
-    //           sNESubDetailID: 0));
-    // }
-    // if (state.selectedSIIndex > -1) {
-    //   sessionNoteExtrasList.add(
-    //       SessionNoteExtrasList(sNECategoryID: GlobalCall.SEITIntervention.categoryData[0].mainCategoryID,
-    //           sNECategoryDetailID: state.sIcheckListItems[state.selectedSIIndex].categoryTextID,
-    //           sNESubDetailID: 0));
-    // }
-
     if (state.selectedOutComesIndex > -1) {
       sessionNoteExtrasList.add(
           SessionNoteExtrasList(sNECategoryID: GlobalCall.outcomes.categoryData[0].mainCategoryID,
@@ -560,22 +565,56 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         }
       }
     });
-    CompleteSessionNotes newPost = new CompleteSessionNotes(
+    String progText = '';
+    String cptText = '';
+    if (state.selectedSessionTypeIndex == 5) {
+      progText = state.selectedProgText;
+      cptText = state.cptText;
+    }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String providerid = prefs.getString('providerid');
+    AddSessionResponse newPost = new AddSessionResponse(
+      providerId: providerid,
+      studentID: state.student.studentID.toInt(),
       sessionDate: sessionDateTime,
       sessionTime: sessionTime,
       duration: state.finalNumber,
       group: state.groupType,
+      manDateType: state.groupType,
       location: locationHomeOrSchool,
-      sessionType: state.sessionType,
-      notes: state.noteText,
-      confirmed: int.parse(state.confirmedVal ?? '0'),
+      sessionType: sessionTypeStrings[state.selectedSessionTypeIndex],
+      notes: noteText,
+      confirmed: 0,
       goals: goals,
       activities: activities,
-      sessionID: 0,
+      sessionID: state.sessionId ?? 0,
+      progText: progText,
+      cptText: cptText,
       sessionNoteExtrasList: sessionNoteExtrasList,
+      xid: state.student.xid,
     );
-    AddSessionResponse responseAddSession = await addSessionNoteApi.addSessionDetails(url, body: newPost.toJson());
-    yield state.copyWith(isLoading: false);
-    yield SessionNoteScreenStateSuccess();
+    try {
+      AddSessionResponse responseAddSession = await addSessionNoteApi.addSessionDetails(url, body: newPost.toJson());
+      yield state.copyWith(isLoading: false);
+      yield SessionNoteScreenStateSuccess();
+    } catch (error) {
+      print(error.toString());
+      yield state.copyWith(isLoading: false);
+      // String showDate = DateFormat('EEEE, MMMM d').format(DateTime.now()).toString();
+      // TimeOfDay selectedTime = new TimeOfDay.now();
+      // DateTime selectedDate = DateTime.now();
+
+      // yield SessionNoteScreenStateFailure(
+      //   error: error.toString(),
+      //   student: state.student,
+      //   selectedStudentName: state.selectedStudentName,
+      //   eventType: state.eventType,
+      //   noteText: state.noteText,
+      //   sessionNotes: state.sessionNotes,
+      //   sessionId: state.sessionId,
+      //   selectedDate: selectedDate,
+      //   selectedTime: selectedTime,
+      // );
+    }
   }
 }
