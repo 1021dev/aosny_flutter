@@ -54,3 +54,4 @@ class SetStartDateEvent extends MainScreenEvent {}
 class SetEndDateEvent extends MainScreenEvent {}
 
 class UpdateSortFilterEvent extends MainScreenEvent {}
+class UpdateFilterProgressEvent extends MainScreenEvent {}

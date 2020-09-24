@@ -117,6 +117,7 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
             GlobalCall.filterDates = !GlobalCall.filterDates;
           });
           widget.mainScreenBloc.add(UpdateSortFilterEvent());
+          widget.mainScreenBloc.add(UpdateFilterProgressEvent());
         },
       ),
       OverflowMenuItem(
@@ -128,6 +129,7 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
             print(GlobalCall.student);
           });
           widget.mainScreenBloc.add(UpdateSortFilterEvent());
+          widget.mainScreenBloc.add(UpdateFilterProgressEvent());
         },
       ),
       OverflowMenuItem(
@@ -138,6 +140,7 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
             GlobalCall.sessionType = GlobalCall.filterSessionTypes ? sessionTypeStrings[0]: '';
           });
           widget.mainScreenBloc.add(UpdateSortFilterEvent());
+          widget.mainScreenBloc.add(UpdateFilterProgressEvent());
         },
       ),
     ];
