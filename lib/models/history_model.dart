@@ -29,6 +29,7 @@ class HistoryModel {
   String notes;
   String sessionType;
   int confirmed;
+  int status;
 
   HistoryModel(
       this.iD,
@@ -61,6 +62,7 @@ class HistoryModel {
       this.sessionType,
       this.notes,
       this.confirmed,
+      this.status,
       );
 
   HistoryModel.fromJson(Map<String, dynamic> json) {
@@ -94,6 +96,7 @@ class HistoryModel {
     notes = json['notes'];
     sessionType = json['sessionType'];
     confirmed = json['confirmed'];
+    status = json['Status'];
   }
 
   Map<String, dynamic> toJson() {
@@ -128,6 +131,7 @@ class HistoryModel {
     data['notes'] = this.notes;
     data['confirmed'] = this.confirmed;
     data['sessionType'] = this.sessionType;
+    data['Status'] = this.status;
     return data;
   }
 }

@@ -1,6 +1,7 @@
 import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class GlobalCall extends ChangeNotifier{
 
@@ -76,3 +77,22 @@ List<String> location1Text = [
  'Class',
  'Ind',
 ];
+
+Color colorFromStatus(int status) {
+ switch (status) {
+  case 0:
+   return Colors.white;
+  case 1:
+   return Colors.yellow;
+  case 2:
+   return Colors.red;
+  case 3:
+   return Colors.deepPurple;
+  case 4:
+   return Colors.blue;
+  case 5:
+   return Colors.green;
+  default:
+   return Colors.white;
+ }
+}

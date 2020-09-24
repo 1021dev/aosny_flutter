@@ -219,10 +219,10 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                   color: Colors.white,
                   child: DropdownButton(
                     underline: Container(),
-                    hint: dropDownValue == null
+                    hint: GlobalCall.student == null
                         ? Text("Students")
                         : Text(
-                      dropDownValue,
+                      GlobalCall.student,
                       style: TextStyle(color: Colors.black),
                     ),
                     isExpanded: true,
@@ -251,6 +251,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                         },
                       );
                       widget.mainScreenBloc.add(UpdateSortFilterEvent());
+                      widget.mainScreenBloc.add(UpdateFilterProgressEvent());
                     },
                   ),
                 ) : Container(),
@@ -290,6 +291,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                       },
                       );
                       widget.mainScreenBloc.add(UpdateSortFilterEvent());
+                      widget.mainScreenBloc.add(UpdateFilterProgressEvent());
                     },
                   ),
                 ) : Container(),
@@ -321,169 +323,184 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                           String smin = stime.split(':').toList()[1];
                           String emin = etime.split(':').toList()[1];
                           int duration = smin == emin ? 60: 30;
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              SizedBox(height: 10),
-                              Text(
-                                DateFormat('EEEE, MMMM d').format(
-                                    DateTime.parse(
-                                        '${model.sdate.split('/')[2]}-${model.sdate.split('/')[0]}-${model.sdate.split('/')[1]}')),
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              model.fname ==
-                                  'School Closed'
-                                  ? Container(
-                                padding: const EdgeInsets.only(left: 5),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    Text(
-                                      "School Closed",
-                                      style: TextStyle(
-                                        fontWeight:
-                                        FontWeight.bold,
-                                        fontSize: 20,
-                                      ),
+                          print(state.filterHistory[index].status);
+                          return Card(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                SizedBox(height: 10),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 8, right: 8),
+                                  child: Text(
+                                    DateFormat('EEEE, MMMM d').format(
+                                        DateTime.parse(
+                                            '${model.sdate.split('/')[2]}-${model.sdate.split('/')[0]}-${model.sdate.split('/')[1]}')),
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
                                     ),
-                                    IconButton(
-                                      icon: Icon(Icons.cancel),
-                                      color: Colors.red,
-                                      onPressed: () {},
-                                    )
-                                  ],
-                                ),
-                              )
-                                  : GestureDetector(
-                                onTap: () async {
-                                  GlobalCall.sessionID = state.filterHistory[index].iD.toString();
-                                  String studentId = state.filterHistory[index].osis.toString().replaceAll('-', '');
-                                  int id = int.parse(studentId);
-                                  StudentsDetailsModel studentsDetailsModel = getStudent(id);
-                                  if (studentsDetailsModel == null) {
-                                    return ;
-                                  }
-                                  final result = await Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => AddEditSessionNote(
-                                        eventType: "Edit",
-                                        student: studentsDetailsModel,
-                                        sessionId: state.filterHistory[index].iD,
-                                        selectedStudentName: state.filterHistory[index].fname + ' ' + state.filterHistory[index].lname,
-                                        noteText: state.filterHistory[index].notes,
-                                        isEditable: state.filterHistory[index].confirmed == 0,
-                                      ),
-                                    ),
-                                  );
-
-                                  if (result != null) {
-                                    await updatedSessionNote();
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border:Border.all(width:0.5),
                                   ),
-                                  child: Column(
+                                ),
+                                SizedBox(height: 4),
+                                model.fname ==
+                                    'School Closed'
+                                    ? Container(
+                                  padding: const EdgeInsets.only(left: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange,
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: <Widget>[
-                                          Row(
-                                            children: [
-                                              Text(
-                                                '${model.stime} - ${model.etime}',
-                                                style: TextStyle(
-                                                  fontSize: 12,
+                                      Text(
+                                        "School Closed",
+                                        style: TextStyle(
+                                          fontWeight:
+                                          FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.cancel),
+                                        color: Colors.red,
+                                        onPressed: () {},
+                                      )
+                                    ],
+                                  ),
+                                )
+                                    : GestureDetector(
+                                  onTap: () async {
+                                    GlobalCall.sessionID = state.filterHistory[index].iD.toString();
+                                    String studentId = state.filterHistory[index].osis.toString().replaceAll('-', '');
+                                    int id = int.parse(studentId);
+                                    StudentsDetailsModel studentsDetailsModel = getStudent(id);
+                                    if (studentsDetailsModel == null) {
+                                      return ;
+                                    }
+                                    final result = await Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => AddEditSessionNote(
+                                          eventType: "Edit",
+                                          student: studentsDetailsModel,
+                                          sessionId: state.filterHistory[index].iD,
+                                          selectedStudentName: state.filterHistory[index].fname + ' ' + state.filterHistory[index].lname,
+                                          noteText: state.filterHistory[index].notes,
+                                          isEditable: state.filterHistory[index].confirmed == 0,
+                                        ),
+                                      ),
+                                    );
+
+                                    if (result != null) {
+                                      await updatedSessionNote();
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  '${model.stime} - ${model.etime}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                  ),
                                                 ),
-                                              ),
-                                              SizedBox(width: 8,),
-                                              Container(
-                                                width: 20,
-                                                height: 20,
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(10,),
-                                                  color: duration == 60 ? Colors.orange: Colors.blue,
-                                                ),
-                                                child: Center(
-                                                  child: Text(
-                                                    '$duration',
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 12,
+                                                SizedBox(width: 8,),
+                                                Container(
+                                                  width: 20,
+                                                  height: 20,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(10,),
+                                                    color: duration == 60 ? Colors.orange: Colors.blue,
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      '$duration',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                          InkWell(
-                                            child: Icon(
-                                              Icons.check_circle,
-                                              color: state.filterHistory[index].confirmed == 1 ? Colors.green: Colors.transparent,
-                                              size: 24,
+                                              ],
                                             ),
-                                            onTap: () {},
-                                          )
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: <Widget>[
-                                          Flexible(
-                                            flex: 3,
-                                            child: Text(
-                                              '${state.filterHistory[index].fname} ${state.filterHistory[index].lname}',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                          Flexible(
-                                            flex: 2,
-                                            child: Text(
-                                              state.filterHistory[index].sessionType,
-                                              style: TextStyle(
-                                                color: getSessionColor(state.filterHistory[index].grp,
-                                                  sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.check_circle,
+                                                  color: state.filterHistory[index].confirmed == 1 ? Colors.green: Colors.transparent,
+                                                  size: 24,
                                                 ),
-                                                fontSize: 12,
+                                                SizedBox(width: 4,),
+                                                Container(
+                                                  width: 20,
+                                                  height: 20,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(12),
+                                                    color: colorFromStatus(state.filterHistory[index].status),
+                                                  ),
+                                                )
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Flexible(
+                                              flex: 3,
+                                              child: Text(
+                                                '${state.filterHistory[index].fname} ${state.filterHistory[index].lname}',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
                                               ),
-                                              textAlign: TextAlign.right,
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: <Widget>[
-                                          Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                          ),
+                                            Flexible(
+                                              flex: 2,
+                                              child: Text(
+                                                state.filterHistory[index].sessionType,
+                                                style: TextStyle(
+                                                  color: getSessionColor(state.filterHistory[index].grp,
+                                                    sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
+                                                  ),
+                                                  fontSize: 12,
+                                                ),
+                                                textAlign: TextAlign.right,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Column(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                            ),
 //                                                editButton(context,
 //                                                    snapshot.data[index]),
-                                        ],
-                                      ),
-                                    ],
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           );
                         }),
                     // margin: EdgeInsets.fromLTRB(0, 0, 0,20),

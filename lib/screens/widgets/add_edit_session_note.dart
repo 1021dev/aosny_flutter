@@ -11,10 +11,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 
-import 'drawer/drawer_widget.dart';
-import 'drawer/enter_session.dart';
-
-
 List<String> sessionTypeStrings = [
   'Service Provided',
   'Service provided - Make-up',
@@ -22,7 +18,6 @@ List<String> sessionTypeStrings = [
   'Provider Absent',
   'Student Unavailable',
   'Non-Direct Care',
-  'Cancelled'
 ];
 
 List<Color> sessionColors = [
@@ -359,7 +354,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.only(left:11,right:11),
+                  margin: const EdgeInsets.only(left: 8 ,right: 8),
                   child: Column(
                     children: <Widget>[
                       Row(
@@ -494,7 +489,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                           ),
                         ],
                       ) ,
-                      SizedBox(height: 16,),
+                      SizedBox(height: 8,),
                       Container(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,7 +587,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 16,),
+                      SizedBox(height: 8,),
                       Container(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -605,53 +600,43 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                               children: <Widget>[
                                 Column(
                                   children:<Widget>[
-                                    InkWell(
-                                      child: Container(
-                                        height: 44,
-                                        alignment: Alignment.center,
-                                        width: MediaQuery.of(context).size.width/6.5,
-                                        decoration: BoxDecoration(
-                                            color: state.groupType == 1
-                                                ? Color(0xff4A4A4A): Colors.white,
-                                            border: Border.all(color:Colors.grey,width: 0.5)
-                                        ),
-                                        child: Icon(Icons.person,
+                                    Container(
+                                      height: 44,
+                                      alignment: Alignment.center,
+                                      width: MediaQuery.of(context).size.width/6.5,
+                                      decoration: BoxDecoration(
                                           color: state.groupType == 1
-                                              ? Colors.white: Color(0xff4A4A4A),
-                                        ),
+                                              ? Color(0xff4A4A4A): Colors.white,
+                                          border: Border.all(color:Colors.grey,width: 0.5)
                                       ),
-                                      onTap: (){
-                                        screenBloc.add(UpdateSchoolGroup(groupType: 1));
-                                      },
+                                      child: Icon(Icons.person,
+                                        color: state.groupType == 1
+                                            ? Colors.white: Color(0xff4A4A4A),
+                                      ),
                                     ),
                                     Text('Individual',style: TextStyle(fontSize: 11),),
                                   ],
                                 ),
                                 Column(
                                   children:<Widget>[
-                                    InkWell(
-                                      child: Container(
-                                        height: 44,
-                                        alignment: Alignment.center,
-                                        width: MediaQuery.of(context).size.width/6.5,
-                                        decoration: BoxDecoration(
-                                            color: state.groupType == 2
-                                                ?Color(0xff4A4A4A):Colors.white,
-                                            border: Border.all(color:Colors.grey,width: 0.5)
-                                        ),
-                                        child: Icon(Icons.group,
+                                    Container(
+                                      height: 44,
+                                      alignment: Alignment.center,
+                                      width: MediaQuery.of(context).size.width/6.5,
+                                      decoration: BoxDecoration(
                                           color: state.groupType == 2
-                                              ?Colors.white:Color(0xff4A4A4A),
-                                        ),
+                                              ?Color(0xff4A4A4A):Colors.white,
+                                          border: Border.all(color:Colors.grey,width: 0.5)
                                       ),
-                                      onTap: (){
-                                        screenBloc.add(UpdateSchoolGroup(groupType: 2));
-                                      },
-
+                                      child: Icon(Icons.group,
+                                        color: state.groupType == 2
+                                            ?Colors.white:Color(0xff4A4A4A),
+                                      ),
                                     ),
-
-                                    Text('Group',style: TextStyle(fontSize: 11),),
-
+                                    Text(
+                                      'Group',
+                                      style: TextStyle(fontSize: 11),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -665,7 +650,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               ],
             ),
           ),
-          SizedBox(height: 15,),
           _sessionTypeWidget(state),
           state.selectedSessionTypeIndex != 5 ? _dropdowns(state): _nonDirectCare(state),
           state.selectedProgText == nonDirectActivities[2] ? Container() : Container(
@@ -684,7 +668,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               ? Container() :
           Container(
             alignment: Alignment.topLeft,
-            margin: const EdgeInsets.only(left:20,right:20,top:2),
+            margin: const EdgeInsets.only(left: 16,right: 16,top:2),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(5),
               border: Border.all(
@@ -714,23 +698,46 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               ),
             ),
           )),
-          SizedBox(height:30),
-          widget.isEditable ? Container(
-            width:  MediaQuery.of(context).size.width/2,
-            height: 44,
-            decoration: BoxDecoration(
-            ),
-            child: InkWell(
-              onTap: (){
-                screenBloc.add(SaveSessionNoteEvent(noteText: noteTextController.text));
-              },
-              child: Container(
-                  color: Colors.blue,
-                  alignment: Alignment.center,
-                  child: Text('Save',style: TextStyle(color:Colors.white),)
+          SizedBox(height:16),
+          widget.isEditable ? Row(
+            children: [
+              Flexible(
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                  ),
+                  child: InkWell(
+                    onTap: (){
+                      screenBloc.add(SaveSessionNoteEvent(noteText: noteTextController.text));
+                    },
+                    child: Container(
+                        color: Colors.blue,
+                        alignment: Alignment.center,
+                        child: Text('Save',style: TextStyle(color:Colors.white),)
+                    ),
+                  ),
+                ),
               ),
-            ),
+              SizedBox(width: 8,),
+              Flexible(
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                  ),
+                  child: InkWell(
+                    onTap: (){
+                    },
+                    child: Container(
+                        color: Colors.redAccent,
+                        alignment: Alignment.center,
+                        child: Text('Delete',style: TextStyle(color:Colors.white),)
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ): Container(),
+          SizedBox(height:16),
         ],
       ),
     );
@@ -772,106 +779,277 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
           ),
         ),
-        state.goalsAndProgress ? Container(
-          margin: const EdgeInsets.all(5),
-          padding:  const EdgeInsets.all(5.0),
-          height: 50,
-          decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey)
-          ),
-          child: DropdownButton(
-            underline: Container(),
-            hint: state.dropDownValue == null
-                ? Text(
-              state.longTermGpDropDownList.length > 0  ? state.longTermGpDropDownList[0].longGoalText : '' ,
-              maxLines: 1,
-            )
-                : Text(
-              state.dropDownValue,
-              maxLines: 1,
-              style: TextStyle(color: Colors.blue),
-            ),
-            isExpanded: true,
-            // elevation: 10,
-            iconSize: 30.0,
-            style: TextStyle(color: Colors.black),
-            items: state.longTermGpDropDownList.map(
-                  (val) {
-                return DropdownMenuItem<LongTermGpDropDownModel>(
-                  value: val,
-                  child: Column(
-                    children: <Widget>[
-                      Text(val.longGoalText),
-                      Container(height: 5,),
-                      Divider(height: 10,color: Colors.black,),
-                      Container(height: 5,),
-                    ],
-                  ),
-                );
-              },
-            ).toList(),
-            onChanged: (val) {
-              List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
-              int selectedLtGoalId = val.longGoalID;
-
-              for(int i = 0; i< state.shortTermGpList.length; i++){
-                if(state.shortTermGpList[i].longGoalID == val.longGoalID){
-                  selectedShortTermResultListModel.add(
-                      SelectedShortTermResultListModel(
-                        id: state.shortTermGpList[i].shortgoalid,
-                        selectedId: state.shortTermGpList[i].longGoalID,
-                        selectedShortgoaltext: state.shortTermGpList[i].shortgoaltext,
-                        checkVal: false,
-                      )
-                  );
-                }
-              }
-              screenBloc.add(SelectLongTermID(id: selectedLtGoalId));
-              screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
-              screenBloc.add(UpdateDropdownValue(longGoalText: val.longGoalText));
-            },
-          ),
-        ) : Container(),
-        state.goalsAndProgress ? Container(
-          margin: const EdgeInsets.only(left:5,right:5),
-          width: MediaQuery.of(context).size.width,
-          child: Wrap(
-            children: state.selectedShortTermResultListModel.map( (item) {
-              return CheckboxListTile(
-                title: Text(
-                  item.selectedShortgoaltext,
-                  style: TextStyle(fontSize: 15),
+        state.goalsAndProgress ? Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 8, top: 8),
+              child: Text(
+                'Goal Group1',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
                 ),
-                value: item.checkVal,
-                onChanged: (newValue) {
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: 8, top: 8),
+              child: Text(
+                'Long Term Goals: ',
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.all(5),
+              padding:  const EdgeInsets.all(5.0),
+              height: 50,
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey)
+              ),
+              child: DropdownButton(
+                underline: Container(),
+                hint: state.dropDownValue == null ? Text(
+                  'Select your choice' ,
+                  maxLines: 1,
+                )
+                    : Text(
+                  state.dropDownValue,
+                  maxLines: 1,
+                  style: TextStyle(color: Colors.blue),
+                ),
+                isExpanded: true,
+                // elevation: 10,
+                iconSize: 30.0,
+                style: TextStyle(color: Colors.black),
+                items: state.longTermGpDropDownList.map(
+                      (val) {
+                    return DropdownMenuItem<LongTermGpDropDownModel>(
+                      value: val,
+                      child: Column(
+                        children: <Widget>[
+                          Text(val.longGoalText),
+                          Container(height: 5,),
+                          Divider(height: 10,color: Colors.black,),
+                          Container(height: 5,),
+                        ],
+                      ),
+                    );
+                  },
+                ).toList(),
+                onChanged: (val) {
                   List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
+                  int selectedLtGoalId = val.longGoalID;
 
-                  for(int i = 0; i < state.selectedShortTermResultListModel.length; i++){
-                    if (item.id == state.selectedShortTermResultListModel[i].id){
+                  for(int i = 0; i< state.shortTermGpList.length; i++){
+                    if(state.shortTermGpList[i].longGoalID == val.longGoalID){
                       selectedShortTermResultListModel.add(
                           SelectedShortTermResultListModel(
-                            id: state.selectedShortTermResultListModel[i].id,
-                            selectedId: state.selectedShortTermResultListModel[i].selectedId,
-                            selectedShortgoaltext: state.selectedShortTermResultListModel[i].selectedShortgoaltext,
-                            checkVal: newValue,
+                            id: state.shortTermGpList[i].shortgoalid,
+                            selectedId: state.shortTermGpList[i].longGoalID,
+                            selectedShortgoaltext: state.shortTermGpList[i].shortgoaltext,
+                            checkVal: false,
                           )
-                      );
-                    } else {
-                      selectedShortTermResultListModel.add(
-                          state.selectedShortTermResultListModel[i]
                       );
                     }
                   }
+                  screenBloc.add(SelectLongTermID(id: selectedLtGoalId));
                   screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
+                  screenBloc.add(UpdateDropdownValue(longGoalText: val.longGoalText));
                 },
-                controlAffinity: ListTileControlAffinity.leading,
-              );
-            },
-            ).toList(),
-          ),
+              ),
+            ),
+          ],
+        ) : Container(),
+        state.goalsAndProgress ? Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 8, top: 8),
+              child: Text(
+                'Short Term Goals: ',
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(left:5,right:5),
+              width: MediaQuery.of(context).size.width,
+              child: Wrap(
+                children: state.selectedShortTermResultListModel.map( (item) {
+                  return CheckboxListTile(
+                    title: Text(
+                      item.selectedShortgoaltext,
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    value: item.checkVal,
+                    onChanged: (newValue) {
+                      List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
+
+                      for(int i = 0; i < state.selectedShortTermResultListModel.length; i++){
+                        if (item.id == state.selectedShortTermResultListModel[i].id){
+                          selectedShortTermResultListModel.add(
+                              SelectedShortTermResultListModel(
+                                id: state.selectedShortTermResultListModel[i].id,
+                                selectedId: state.selectedShortTermResultListModel[i].selectedId,
+                                selectedShortgoaltext: state.selectedShortTermResultListModel[i].selectedShortgoaltext,
+                                checkVal: newValue,
+                              )
+                          );
+                        } else {
+                          selectedShortTermResultListModel.add(
+                              state.selectedShortTermResultListModel[i]
+                          );
+                        }
+                      }
+                      screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                  );
+                },
+                ).toList(),
+              ),
+            ),
+          ],
         ): Container(),
         state.goalsAndProgress ? goalprogressReview(state) : Container(),
-        SizedBox(height:16),
+        state.goalsAndProgress ? Divider(height: 8, thickness: 1,) : Container(),
+        state.goalsAndProgress ? Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 8, top: 8),
+              child:  Text.rich(
+                TextSpan(
+                  text: 'Goal Group2',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: '(Optional)',
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.normal
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(left: 8, top: 8),
+              child: Text(
+                'Long Term Goals: ',
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.all(5),
+              padding:  const EdgeInsets.all(5.0),
+              height: 50,
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey)
+              ),
+              child: DropdownButton(
+                underline: Container(),
+                hint:  state.dropDownValue2 == null ? Text(
+                  'Select your choice' ,
+                  maxLines: 1,
+                )
+                    : Text(
+                  state.dropDownValue2,
+                  maxLines: 1,
+                  style: TextStyle(color: Colors.blue),
+                ),
+                isExpanded: true,
+                // elevation: 10,
+                iconSize: 30.0,
+                style: TextStyle(color: Colors.black),
+                items: state.longTermGpDropDownList.map(
+                      (val) {
+                    return DropdownMenuItem<LongTermGpDropDownModel>(
+                      value: val,
+                      child: Column(
+                        children: <Widget>[
+                          Text(val.longGoalText),
+                          Container(height: 5,),
+                          Divider(height: 10,color: Colors.black,),
+                          Container(height: 5,),
+                        ],
+                      ),
+                    );
+                  },
+                ).toList(),
+                onChanged: (val) {
+                  List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
+                  int selectedLtGoalId = val.longGoalID;
+
+                  for(int i = 0; i< state.shortTermGpList.length; i++){
+                    if(state.shortTermGpList[i].longGoalID == val.longGoalID){
+                      selectedShortTermResultListModel.add(
+                          SelectedShortTermResultListModel(
+                            id: state.shortTermGpList[i].shortgoalid,
+                            selectedId: state.shortTermGpList[i].longGoalID,
+                            selectedShortgoaltext: state.shortTermGpList[i].shortgoaltext,
+                            checkVal: false,
+                          )
+                      );
+                    }
+                  }
+                  screenBloc.add(SelectLongTermID2(id: selectedLtGoalId));
+                  screenBloc.add(UpdateSelectedShortTerms2(selectedShortTermResultListModel: selectedShortTermResultListModel));
+                  screenBloc.add(UpdateDropdownValue2(longGoalText: val.longGoalText));
+                },
+              ),
+            ),
+          ],
+        ) : Container(),
+        state.goalsAndProgress ? Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(left: 8, top: 8),
+              child: Text(
+                'Short Term Goals: ',
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(left:5,right:5),
+              width: MediaQuery.of(context).size.width,
+              child: Wrap(
+                children: state.selectedShortTermResultListModel2.map( (item) {
+                  return CheckboxListTile(
+                    title: Text(
+                      item.selectedShortgoaltext,
+                      style: TextStyle(fontSize: 15),
+                    ),
+                    value: item.checkVal,
+                    onChanged: (newValue) {
+                      List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
+
+                      for(int i = 0; i < state.selectedShortTermResultListModel2.length; i++){
+                        if (item.id == state.selectedShortTermResultListModel2[i].id){
+                          selectedShortTermResultListModel.add(
+                              SelectedShortTermResultListModel(
+                                id: state.selectedShortTermResultListModel2[i].id,
+                                selectedId: state.selectedShortTermResultListModel2[i].selectedId,
+                                selectedShortgoaltext: state.selectedShortTermResultListModel2[i].selectedShortgoaltext,
+                                checkVal: newValue,
+                              )
+                          );
+                        } else {
+                          selectedShortTermResultListModel.add(
+                              state.selectedShortTermResultListModel2[i]
+                          );
+                        }
+                      }
+                      screenBloc.add(UpdateSelectedShortTerms2(selectedShortTermResultListModel: selectedShortTermResultListModel));
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                  );
+                },
+                ).toList(),
+              ),
+            ),
+          ],
+        ): Container(),
+        state.goalsAndProgress ? goalprogressReview2(state) : Container(),
+        SizedBox(height:2),
         GestureDetector(
           onTap: (){
             print(state.activitiesListItems);
@@ -907,7 +1085,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ), ///Text('Activities',
           ),
         ),
-        SizedBox(height:16),
+        SizedBox(height:2),
         state.isActivities ? activitiesDropdownWidget(state) : Container(),
         GestureDetector(
           onTap: (){
@@ -976,7 +1154,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ).toList(),
           ),
         ): Container(),
-        SizedBox(height:16),
+        SizedBox(height:2),
         GestureDetector(
           onTap: (){
             bool isSelect = state.seitIntervention;
@@ -1049,7 +1227,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ).toList(),
           ),
         ): Container(),
-        SizedBox(height:16),
+        SizedBox(height:2),
         GestureDetector(
           onTap: (){
             bool isSelect = state.competedActivites;
@@ -1090,7 +1268,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
 
           ),),
         state.competedActivites ? completedActivityReview(state) : Container(),
-        SizedBox(height:16),
+        SizedBox(height:2),
         GestureDetector(
           onTap: (){
             bool isSelect = state.jointAttentionEyeContact;
@@ -1129,7 +1307,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           ),
         ),
         state.jointAttentionEyeContact? jointAttentionOrEyeContactReview(state): Container(),
-        Padding(padding: EdgeInsets.only(top: 16),),
+        SizedBox(height:2),
       ],
     );
   }
@@ -1490,13 +1668,13 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Padding(
-          padding: EdgeInsets.only(left: 16, top: 8, bottom: 4),
+          padding: EdgeInsets.only(left: 8, top: 8),
           child: Text(
             'Outcomes: ',
           ),
         ),
         Container(
-          margin: EdgeInsets.only(left:5,right:5, top: 12),
+          margin: EdgeInsets.all(5),
           decoration: BoxDecoration(
             shape: BoxShape.rectangle,
             border: Border.all(
@@ -1544,6 +1722,77 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             dense: true,
             title: Text(
               state.selectedOutComesIndex > -1 ? state.outComesListItems[state.selectedOutComesIndex].categoryTextDetail: 'Select Your Choice',
+              style: TextStyle(
+                color: Colors.blue,
+              ),
+            ),
+            trailing: Icon(Icons.keyboard_arrow_down),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget goalprogressReview2(SessionNoteScreenState state){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.only(left: 8, top: 8),
+          child: Text(
+            'Outcomes: ',
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            shape: BoxShape.rectangle,
+            border: Border.all(
+              color: Colors.black,
+              width: 1,
+            ),
+          ),
+          child: ListTile(
+            onTap: () {
+              showModalBottomSheet<void>(
+                context: context,
+                builder: (BuildContext context) {
+                  return SafeArea(
+                    maintainBottomViewPadding: true,
+                    child: ListView.separated(
+                      padding: EdgeInsets.only(top: 16),
+                      itemCount: state.outComesListItems.length,
+                      separatorBuilder: (context, index) {
+                        return Divider(
+                          color: Colors.black38,
+                          height: 0,
+                          thickness: 0.5,
+                        );
+                      },
+                      itemBuilder: (context, index){
+                        return CheckboxListTile(
+                          dense: true,
+                          title: Text(
+                            state.outComesListItems[index].categoryTextDetail,
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          value: state.selectedOutComesIndex2 == index,
+                          onChanged: (newValue) {
+                            screenBloc.add(UpdateOutComeIndex2(selectedOutComesIndex: index));
+                            Navigator.pop(context);
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+                        );
+                      },
+                    ),
+                  );
+                },
+              );
+            },
+            dense: true,
+            title: Text(
+              state.selectedOutComesIndex2 > -1 ? state.outComesListItems[state.selectedOutComesIndex].categoryTextDetail: 'Select Your Choice',
               style: TextStyle(
                 color: Colors.blue,
               ),

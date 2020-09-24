@@ -37,6 +37,8 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       yield* getProgress(event.startDate, event.endDate);
     } else if (event is UpdateSortFilterEvent) {
       yield* filterHistory();
+    } else if (event is UpdateFilterProgressEvent) {
+      yield* filterProgress();
     } else if (event is UpdatedSessionNoteEvent) {
       yield state.copyWith(isLoading: true);
       yield* refreshHistory(event.startDate, event.endDate);
@@ -140,6 +142,7 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
       yield state.copyWith(isLoading: true);
       List<ProgressAmountModel> progress = await progressApi.getProgressAmountList(startDate, endDate);
       yield state.copyWith(progress: progress, isLoading: false);
+      add(UpdateFilterProgressEvent());
     } catch (error) {
       yield state.copyWith( isLoading: false);
       yield MainScreenEmptyData(error: error.toString());
@@ -150,9 +153,42 @@ class MainScreenBloc extends Bloc<MainScreenEvent, MainScreenState> {
     try {
       List<ProgressAmountModel> progress = await progressApi.getProgressAmountList(startDate, endDate);
       yield state.copyWith(progress: progress, isLoading: false);
+      add(UpdateFilterProgressEvent());
     } catch (error) {
       yield state.copyWith( isLoading: false);
       yield MainScreenEmptyData(error: error.toString());
     }
   }
+
+  Stream<MainScreenState> filterProgress() async* {
+    try {
+      List<ProgressAmountModel> progress = [];
+      List<ProgressAmountModel> filter = [];
+      progress.addAll(state.progress);
+      if (progress.length > 0) {
+
+        if (GlobalCall.filterStudents && GlobalCall.student != '') {
+          filter = progress.where((element) {
+            String name = element.student;
+            List list = name.split(', ');
+            if (GlobalCall.student.contains(list.first) && GlobalCall.student.contains(list.last)) {
+              return true;
+            } else {
+              return false;
+            }
+          }).toList();
+        } else {
+          filter = progress;
+        }
+        // if (GlobalCall.filterSessionTypes && GlobalCall.sessionType != '') {
+        //   filter = filter.where((element) => element.sessionType == GlobalCall.sessionType).toList();
+        // }
+      }
+      yield state.copyWith(filterProgress: filter, isLoading: false);
+    } catch (error) {
+      yield state.copyWith( isLoading: false);
+      yield MainScreenEmptyData(error: error.toString());
+    }
+  }
+
 }

@@ -8,6 +8,7 @@ class MainScreenState extends Equatable {
   final bool isLoading;
   final List<HistoryModel> history;
   final List<HistoryModel> filterHistory;
+  final List<ProgressAmountModel> filterProgress;
   final List<ProgressAmountModel> progress;
   final String startDate;
   final String endDate;
@@ -18,6 +19,7 @@ class MainScreenState extends Equatable {
     this.isLoading = false,
     this.history = const [],
     this.filterHistory = const [],
+    this.filterProgress = const [],
     this.progress = const [],
     this.startDate,
     this.endDate,
@@ -30,6 +32,7 @@ class MainScreenState extends Equatable {
     isLoading,
     history,
     filterHistory,
+    filterProgress,
     progress,
     startDate,
     endDate,
@@ -41,6 +44,7 @@ class MainScreenState extends Equatable {
     bool isLoading,
     List<HistoryModel> history,
     List<HistoryModel> filterHistory,
+    List<ProgressAmountModel> filterProgress,
     List<ProgressAmountModel> progress,
     String startDate,
     String endDate,
@@ -51,6 +55,7 @@ class MainScreenState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       history: history ?? this.history,
       filterHistory: filterHistory ?? this.filterHistory,
+      filterProgress: filterProgress ?? this.filterProgress,
       progress: progress ?? this.progress,
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,

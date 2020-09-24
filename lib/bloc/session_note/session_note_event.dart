@@ -41,6 +41,11 @@ class UpdateSelectedShortTerms extends SessionNoteScreenEvent {
   UpdateSelectedShortTerms({this.selectedShortTermResultListModel});
 }
 
+class UpdateSelectedShortTerms2 extends SessionNoteScreenEvent {
+  final List<SelectedShortTermResultListModel> selectedShortTermResultListModel;
+  UpdateSelectedShortTerms2({this.selectedShortTermResultListModel});
+}
+
 class UpdateActivityListItem extends SessionNoteScreenEvent {
   final Map<int, List<CheckList>> activitiesListItems;
 
@@ -74,6 +79,12 @@ class SelectLongTermID extends SessionNoteScreenEvent {
   final int id;
 
   SelectLongTermID({this.id});
+}
+
+class SelectLongTermID2 extends SessionNoteScreenEvent {
+  final int id;
+
+  SelectLongTermID2({this.id});
 }
 
 class SaveSessionNoteEvent extends SessionNoteScreenEvent {
@@ -117,6 +128,11 @@ class UpdateDropdownValue extends SessionNoteScreenEvent {
   UpdateDropdownValue({this.longGoalText});
 }
 
+class UpdateDropdownValue2 extends SessionNoteScreenEvent {
+  final String longGoalText;
+  UpdateDropdownValue2({this.longGoalText});
+}
+
 class UpdateCheckedValue extends SessionNoteScreenEvent {
   final bool checkedValue;
   UpdateCheckedValue({this.checkedValue});
@@ -135,6 +151,11 @@ class UpdateSiCheckValue extends SessionNoteScreenEvent {
 class UpdateOutComeIndex extends SessionNoteScreenEvent {
   final int selectedOutComesIndex;
   UpdateOutComeIndex({this.selectedOutComesIndex});
+}
+
+class UpdateOutComeIndex2 extends SessionNoteScreenEvent {
+  final int selectedOutComesIndex;
+  UpdateOutComeIndex2({this.selectedOutComesIndex});
 }
 
 class UpdateSessionType extends SessionNoteScreenEvent {

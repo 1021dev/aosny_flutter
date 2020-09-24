@@ -24,6 +24,8 @@ class SessionNoteScreenState extends Equatable {
   final List<CategoryTextAndID> cAcheckListItems;
   final List<SelectedShortTermResultListModel> selectedShortTermResultListModel;
   final int selectedLtGoalId;
+  final List<SelectedShortTermResultListModel> selectedShortTermResultListModel2;
+  final int selectedLtGoalId2;
 
   final StudentsDetailsModel student;
   final String selectedStudentName;
@@ -40,6 +42,7 @@ class SessionNoteScreenState extends Equatable {
   final bool settingPersonSelectedbutton;
   final bool settingGroupSelectedButton;
   final String dropDownValue;
+  final String dropDownValue2;
   final bool checkedValue;
   final int groupType;
   final DateTime selectedDate;
@@ -60,6 +63,7 @@ class SessionNoteScreenState extends Equatable {
   final int selectedSPIndex;
   final int selectedSIIndex;
   final int selectedOutComesIndex;
+  final int selectedOutComesIndex2;
   final int selectedCAIconIndex;
   final int selectedJAIconIndex;
   final int selectedSessionTypeIndex;
@@ -70,7 +74,7 @@ class SessionNoteScreenState extends Equatable {
   final String selectedProgText;
   final String cptText;
 
-  SessionNoteScreenState({
+  SessionNoteScreenState( {
     this.isLoading = false,
     this.longTermGpDropDownList = const [],
     this.shortTermGpList = const [],
@@ -85,7 +89,9 @@ class SessionNoteScreenState extends Equatable {
     this.cAcheckListItems = const [],
     this.selectedShortTermResultListModel = const [],
     this.selectedLtGoalId = 0,
-
+    this.selectedShortTermResultListModel2 = const [],
+    this.selectedLtGoalId2 = -1,
+    this.selectedOutComesIndex2 = -1,
     this.student,
     this.selectedStudentName,
     this.eventType,
@@ -107,6 +113,7 @@ class SessionNoteScreenState extends Equatable {
     this.settingPersonSelectedbutton = true,
     this.settingGroupSelectedButton = false,
     this.dropDownValue,
+    this.dropDownValue2,
     this.checkedValue = false,
     this.groupType = 1,
     this.selectedDate,
@@ -116,7 +123,7 @@ class SessionNoteScreenState extends Equatable {
     this.isSelectecDate = false,
     this.colorGPMadeProgress = true,
     this.colorGPpartialProgress = false,
-    this. colorGPNoProgress = false,
+    this.colorGPNoProgress = false,
 
     this. goalsAndProgress = false,
     this. isActivities = false,
@@ -156,6 +163,9 @@ class SessionNoteScreenState extends Equatable {
     spListItems,
     selectedShortTermResultListModel,
     selectedLtGoalId,
+    selectedShortTermResultListModel2,
+    selectedLtGoalId2,
+    selectedOutComesIndex2,
     student,
     selectedStudentName,
     eventType,
@@ -177,6 +187,7 @@ class SessionNoteScreenState extends Equatable {
     settingPersonSelectedbutton,
     settingGroupSelectedButton,
     dropDownValue,
+    dropDownValue2,
     checkedValue,
     groupType,
     selectedDate,
@@ -224,6 +235,8 @@ class SessionNoteScreenState extends Equatable {
     List<CategoryTextAndID> cAcheckListItems,
     List<SelectedShortTermResultListModel> selectedShortTermResultListModel,
     int selectedLtGoalId,
+    List<SelectedShortTermResultListModel> selectedShortTermResultListModel2,
+    int selectedLtGoalId2,
     StudentsDetailsModel student,
     String selectedStudentName,
     String eventType,
@@ -236,6 +249,7 @@ class SessionNoteScreenState extends Equatable {
     bool settingPersonSelectedbutton,
     bool settingGroupSelectedButton,
     String dropDownValue,
+    String dropDownValue2,
     bool checkedValue,
     int groupType,
     DateTime selectedDate,
@@ -256,6 +270,7 @@ class SessionNoteScreenState extends Equatable {
     int selectedSPIndex,
     int selectedSIIndex,
     int selectedOutComesIndex,
+    int selectedOutComesIndex2,
     int selectedCAIconIndex,
     int selectedJAIconIndex,
     int selectedSessionTypeIndex,
@@ -280,6 +295,8 @@ class SessionNoteScreenState extends Equatable {
       cAcheckListItems: cAcheckListItems ?? this.cAcheckListItems,
       selectedShortTermResultListModel: selectedShortTermResultListModel ?? this.selectedShortTermResultListModel,
       selectedLtGoalId: selectedLtGoalId ?? this.selectedLtGoalId,
+      selectedShortTermResultListModel2: selectedShortTermResultListModel2 ?? this.selectedShortTermResultListModel2,
+      selectedLtGoalId2: selectedLtGoalId2 ?? this.selectedLtGoalId2,
       student: student ?? this.student,
       selectedStudentName: selectedStudentName ?? this.selectedStudentName,
       eventType: eventType ?? this.eventType,
@@ -294,6 +311,7 @@ class SessionNoteScreenState extends Equatable {
       competedActivites: competedActivites ?? this.competedActivites,
       confirmedVal: confirmedVal ?? this.confirmedVal,
       dropDownValue: dropDownValue ?? this.dropDownValue,
+      dropDownValue2: dropDownValue2 ?? this.dropDownValue2,
       duration: duration ?? this.duration,
       endDateTime: endDateTime ?? this.endDateTime,
       finalNumber: finalNumber ?? this.finalNumber,
@@ -309,6 +327,7 @@ class SessionNoteScreenState extends Equatable {
       selectedDate: selectedDate ?? this.selectedDate,
       selectedJAIconIndex: selectedJAIconIndex ?? this.selectedJAIconIndex,
       selectedOutComesIndex: selectedOutComesIndex ?? this.selectedOutComesIndex,
+      selectedOutComesIndex2: selectedOutComesIndex2 ?? this.selectedOutComesIndex2,
       selectedSessionTypeIndex: selectedSessionTypeIndex ?? this.selectedSessionTypeIndex,
       selectedSIIndex: selectedSIIndex ?? this.selectedSIIndex,
       selectedSPIndex: selectedSPIndex ?? this.selectedSPIndex,

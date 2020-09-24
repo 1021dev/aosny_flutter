@@ -49,6 +49,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield* loadInitialData(event.studentId);
     } else if (event is UpdateSelectedShortTerms) {
       yield state.copyWith(selectedShortTermResultListModel: event.selectedShortTermResultListModel);
+    } else if (event is UpdateSelectedShortTerms2) {
+      yield state.copyWith(selectedShortTermResultListModel2: event.selectedShortTermResultListModel);
     } else if (event is UpdateActivityListItem) {
       yield state.copyWith(activitiesListItems: event.activitiesListItems);
     } else if (event is SelectLongTermID) {
@@ -96,6 +98,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield state.copyWith(groupType: event.groupType);
     } else if (event is UpdateDropdownValue) {
       yield state.copyWith(dropDownValue: event.longGoalText);
+    } else if (event is UpdateDropdownValue2) {
+      yield state.copyWith(dropDownValue2: event.longGoalText);
     } else if (event is UpdateCheckedValue) {
       yield state.copyWith(checkedValue: event.checkedValue);
     } else if (event is UpdateSpCheckValue) {
@@ -104,6 +108,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield state.copyWith(sIcheckListItems: event.list);
     } else if (event is UpdateOutComeIndex) {
       yield state.copyWith(selectedOutComesIndex: event.selectedOutComesIndex);
+    } else if (event is UpdateOutComeIndex2) {
+      yield state.copyWith(selectedOutComesIndex2: event.selectedOutComesIndex);
     } else if (event is UpdateSessionType) {
       yield state.copyWith(selectedSessionTypeIndex: event.selectedSessionTypeIndex);
     } else if (event is UpdateCAIndex) {
@@ -136,7 +142,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       List<CategoryTextAndID> outComesListItems = [];
       Map<int, List<CheckList>> activitiesListItems = {};
       List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
-      int selectedLtGoalId = 0;
+      List<SelectedShortTermResultListModel> selectedShortTermResultListModel2 = [];
+      int selectedLtGoalId = -1;
+      int selectedLtGoalId2 = -1;
 
       shortTermGpList.map((ShortTermGpModel model) {
         gPcheckListItems.add(
@@ -242,9 +250,11 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         outComesListItems: outComesListItems,
         activitiesListItems: activitiesListItems,
         selectedShortTermResultListModel: selectedShortTermResultListModel,
+        selectedShortTermResultListModel2: selectedShortTermResultListModel2,
       );
 
       selectedShortTermResultListModel.clear();
+      selectedShortTermResultListModel2.clear();
 
       if (state.sessionId != null) {
         String url = baseURL + 'SessionNote/${state.sessionId}/CompleteSessionNote';
@@ -252,8 +262,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         List<Goals> goals = completeSessionNotes.goals;
         if (goals.length > 0) {
           selectedLtGoalId = goals[0].longGoalID;
+          if (goals.length > 1) {
+            selectedLtGoalId2 = goals[1].longGoalID;
+          }
         } else {
-          selectedLtGoalId = longTermGpDropDownList[0].longGoalID;
         }
         List<Activities> activities = completeSessionNotes.activities;
         for(int i = 0; i < shortTermGpList.length; i++){
@@ -269,6 +281,26 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
               });
             }
             selectedShortTermResultListModel.add(
+              SelectedShortTermResultListModel(
+                id: shortTermGpList[i].shortgoalid,
+                selectedId: shortTermGpList[i].longGoalID,
+                selectedShortgoaltext: shortTermGpList[i].shortgoaltext,
+                checkVal: isSelect,
+              ),
+            );
+          }
+          if(shortTermGpList[i].longGoalID == selectedLtGoalId2){
+            bool isSelect = false;
+            if (goals.length > 0) {
+              goals.forEach((element) {
+                element.shortGoalIDs.forEach((element) {
+                  if (element.shortGoalID == shortTermGpList[i].shortgoalid) {
+                    isSelect = true;
+                  }
+                });
+              });
+            }
+            selectedShortTermResultListModel2.add(
               SelectedShortTermResultListModel(
                 id: shortTermGpList[i].shortgoalid,
                 selectedId: shortTermGpList[i].longGoalID,
@@ -313,13 +345,15 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
 
         bool isHome;
         String dropDownValue;
+        String dropDownValue2;
         bool checkedValue;
         int groupType;
         DateTime selectedDate;
         DateTime toPassDate,endDateTime;
         int selectedSPIndex;
         int selectedSIIndex;
-        int selectedOutComesIndex;
+        int selectedOutComesIndex = -1;
+        int selectedOutComesIndex2 = -1;
         int selectedCAIconIndex;
         int selectedJAIconIndex;
         int selectedSessionTypeIndex;
@@ -356,9 +390,11 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         endDateTime =  toPassDate.add(Duration(days: 0, hours: 0, minutes: int.parse(duration)));
 
         sessionEndTime = DateFormat.jm().format(endDateTime);
-        LongTermGpDropDownModel model = state.longTermGpDropDownList.firstWhere((element) => element.longGoalID == state.selectedLtGoalId);
-        if (model != null) {
-          dropDownValue = model.longGoalText;
+        List<LongTermGpDropDownModel> models = state.longTermGpDropDownList.where((element) => element.longGoalID == state.selectedLtGoalId).toList();
+        if (models.length > 1) {
+          dropDownValue2 = models[1].longGoalText;
+        } else if (models.length > 0) {
+          dropDownValue = models.first.longGoalText;
         }
         List<SessionNoteExtrasList> sessionNotesExtras = completeSessionNotes.sessionNoteExtrasList;
 
@@ -446,7 +482,11 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
                 });
               }
               if (temp != null) {
-                selectedOutComesIndex = state.outComesListItems.indexOf(temp) ?? -1;
+                if (selectedOutComesIndex > -1) {
+                  selectedOutComesIndex2 = state.outComesListItems.indexOf(temp) ?? -1;
+                } else {
+                  selectedOutComesIndex = state.outComesListItems.indexOf(temp) ?? -1;
+                }
               }
             }
           }
@@ -458,7 +498,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           sPcheckListItems: sPcheckListItems,
           sIcheckListItems: sIcheckListItems,
           selectedLtGoalId: selectedLtGoalId,
+          selectedLtGoalId2: selectedLtGoalId2,
           activitiesListItems: activitiesListItems,
+          selectedShortTermResultListModel: selectedShortTermResultListModel,
+          selectedShortTermResultListModel2: selectedShortTermResultListModel2,
           noteText: noteText,
           location: location,
           location1: location1,
@@ -476,11 +519,13 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           endDateTime: endDateTime,
           sessionEndTime: sessionEndTime,
           dropDownValue: dropDownValue,
+          dropDownValue2: dropDownValue2,
           selectedSPIndex: selectedSPIndex,
           selectedSIIndex: selectedSIIndex,
           selectedCAIconIndex: selectedCAIconIndex,
           selectedJAIconIndex: selectedJAIconIndex,
           selectedOutComesIndex: selectedOutComesIndex,
+          selectedOutComesIndex2: selectedOutComesIndex2,
           selectedProgText: completeSessionNotes.progText,
           confirmedVal: completeSessionNotes.confirmed,
           cptText: completeSessionNotes.cptText,
