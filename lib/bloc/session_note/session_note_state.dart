@@ -3,6 +3,7 @@ import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
+import 'package:aosny_services/models/missed_session_model.dart';
 import 'package:aosny_services/models/selected_longTerm_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
@@ -74,6 +75,8 @@ class SessionNoteScreenState extends Equatable {
   final String selectedProgText;
   final String cptText;
 
+  final List<MissedSessionModel> missedSession;
+
   SessionNoteScreenState( {
     this.isLoading = false,
     this.longTermGpDropDownList = const [],
@@ -144,7 +147,7 @@ class SessionNoteScreenState extends Equatable {
 
     this.selectedProgText,
     this.cptText,
-
+    this.missedSession,
   });
 
   @override
@@ -218,6 +221,7 @@ class SessionNoteScreenState extends Equatable {
 
     selectedProgText,
     cptText,
+    missedSession,
   ];
 
   SessionNoteScreenState copyWith({
@@ -279,6 +283,7 @@ class SessionNoteScreenState extends Equatable {
     int finalNumber,
     String selectedProgText,
     String cptText,
+    List<MissedSessionModel> missedSessions,
   }) {
     return SessionNoteScreenState(
       isLoading: isLoading ?? this.isLoading,
@@ -345,6 +350,7 @@ class SessionNoteScreenState extends Equatable {
       toPassDate: toPassDate ?? this.toPassDate,
       selectedProgText: selectedProgText ?? this.selectedProgText,
       cptText: cptText ?? this.cptText,
+      missedSession: missedSessions ?? this.missedSession,
     );
   }
 }

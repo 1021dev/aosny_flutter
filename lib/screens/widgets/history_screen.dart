@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HistoryScreen extends StatefulWidget {
   final StreamController<bool> loadStudents;
@@ -323,7 +324,6 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                           String smin = stime.split(':').toList()[1];
                           String emin = etime.split(':').toList()[1];
                           int duration = smin == emin ? 60: 30;
-                          print(state.filterHistory[index].status);
                           return Card(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
@@ -337,9 +337,8 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                         DateTime.parse(
                                             '${model.sdate.split('/')[2]}-${model.sdate.split('/')[0]}-${model.sdate.split('/')[1]}')),
                                     style: TextStyle(
-                                      color: Colors.grey,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 14,
+                                      fontSize: 28.sp,
                                     ),
                                   ),
                                 ),
@@ -360,7 +359,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                         style: TextStyle(
                                           fontWeight:
                                           FontWeight.bold,
-                                          fontSize: 20,
+                                          fontSize: 40.sp,
                                         ),
                                       ),
                                       IconButton(
@@ -413,7 +412,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                 Text(
                                                   '${model.stime} - ${model.etime}',
                                                   style: TextStyle(
-                                                    fontSize: 12,
+                                                    fontSize: 24.sp,
                                                   ),
                                                 ),
                                                 SizedBox(width: 8,),
@@ -429,31 +428,38 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                       '$duration',
                                                       style: TextStyle(
                                                         color: Colors.white,
-                                                        fontSize: 12,
+                                                        fontSize: 24.sp,
                                                       ),
                                                     ),
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.check_circle,
-                                                  color: state.filterHistory[index].confirmed == 1 ? Colors.green: Colors.transparent,
-                                                  size: 24,
-                                                ),
-                                                SizedBox(width: 4,),
-                                                Container(
-                                                  width: 20,
-                                                  height: 20,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(12),
-                                                    color: colorFromStatus(state.filterHistory[index].status),
-                                                  ),
-                                                )
-                                              ],
-                                            )
+                                            Text(
+                                              stringFroStatus(state.filterHistory[index].status),
+                                              style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            // Row(
+                                            //   children: [
+                                            //     Icon(
+                                            //       Icons.check_circle,
+                                            //       color: state.filterHistory[index].confirmed == 1 ? Colors.green: Colors.transparent,
+                                            //       size: 24,
+                                            //     ),
+                                            //     SizedBox(width: 4,),
+                                            //     Container(
+                                            //       width: 20,
+                                            //       height: 20,
+                                            //       decoration: BoxDecoration(
+                                            //         borderRadius: BorderRadius.circular(12),
+                                            //         color: colorFromStatus(state.filterHistory[index].status),
+                                            //       ),
+                                            //     )
+                                            //   ],
+                                            // )
                                           ],
                                         ),
                                         Row(
@@ -465,7 +471,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                 '${state.filterHistory[index].fname} ${state.filterHistory[index].lname}',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
+                                                  fontSize: 32.sp,
                                                 ),
                                               ),
                                             ),
@@ -477,7 +483,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                   color: getSessionColor(state.filterHistory[index].grp,
                                                     sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
                                                   ),
-                                                  fontSize: 12,
+                                                  fontSize: 24.sp,
                                                 ),
                                                 textAlign: TextAlign.right,
                                               ),

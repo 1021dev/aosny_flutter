@@ -726,11 +726,48 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   ),
                   child: InkWell(
                     onTap: (){
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext ctx) {
+                          return CupertinoAlertDialog(
+                            title: Text(
+                              'Delete Session Note',
+                            ),
+                            content: Text(
+                              'Are you sure you want to delete this session note?'
+                            ),
+                            actions: [
+                              CupertinoDialogAction(
+                                child: Text(
+                                  'Cancel',
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              CupertinoDialogAction(
+                                child: Text(
+                                  'Sure',
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  screenBloc.add(DeleteSessionEvent(id: state.sessionId));
+                                },
+                              ),
+                            ],
+                          );
+                        }
+                      );
                     },
                     child: Container(
-                        color: Colors.redAccent,
-                        alignment: Alignment.center,
-                        child: Text('Delete',style: TextStyle(color:Colors.white),)
+                      color: Colors.redAccent,
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Delete',
+                        style: TextStyle(
+                          color:Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ),

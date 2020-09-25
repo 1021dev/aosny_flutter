@@ -96,3 +96,22 @@ Color colorFromStatus(int status) {
    return Colors.white;
  }
 }
+
+String stringFroStatus(int status) {
+ switch (status) {
+  case 0:
+   return 'Uncertified';
+  case 1:
+   return 'Certified';
+  case 2:
+   return 'Vouchered';
+  case 3:
+   return 'Approved';
+  case 4:
+   return 'Processed';
+  case 5:
+   return 'Completed';
+  default:
+   return 'Uncertified';
+ }
+}

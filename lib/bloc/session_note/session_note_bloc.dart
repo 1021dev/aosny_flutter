@@ -1,5 +1,6 @@
 import 'package:aosny_services/api/add_session_api.dart';
 import 'package:aosny_services/api/complete_session_details_api.dart';
+import 'package:aosny_services/api/delete_session_api.dart';
 import 'package:aosny_services/api/env.dart';
 import 'package:aosny_services/api/session_api.dart';
 import 'package:aosny_services/bloc/session_note/session_note.dart';
@@ -10,6 +11,7 @@ import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
+import 'package:aosny_services/models/missed_session_model.dart';
 import 'package:aosny_services/models/selected_longTerm_model.dart';
 import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScreenState> {
   AddSessionApi addSessionNoteApi = new AddSessionApi();
+  DeleteSessionApi deleteSessionApi = new DeleteSessionApi();
   CompleteSessionApi completeSessionApi = new CompleteSessionApi();
   SessionApi _sessionApi = SessionApi();
 
@@ -122,6 +125,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield state.copyWith(selectedProgText: event.progText, noteText: '', cptText: '');
     } else if (event is UpdateCptText) {
       yield state.copyWith(cptText: event.cptText, noteText: '',);
+    } else if (event is DeleteSessionEvent) {
+      yield* deleteSession(event.id);
+    } else if (event is GetMissedSessionEvent) {
+      yield* getMissedSessions(event);
     }
 
   }
@@ -660,6 +667,27 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       //   selectedDate: selectedDate,
       //   selectedTime: selectedTime,
       // );
+    }
+  }
+
+  Stream<SessionNoteScreenState> deleteSession(int id) async* {
+    try {
+      yield state.copyWith(isLoading: true);
+      dynamic response = await deleteSessionApi.deleteSession(id);
+      yield state.copyWith(isLoading: false);
+      yield SessionNoteScreenStateSuccess();
+    } catch (error) {
+      yield state.copyWith(isLoading: false);
+    }
+  }
+
+  Stream<SessionNoteScreenState> getMissedSessions(GetMissedSessionEvent event) async* {
+    try {
+      yield state.copyWith(isLoading: true);
+      List<MissedSessionModel> response = await completeSessionApi.getMissedSessions(event.date, event.time, event.duration, event.studentId);
+      yield state.copyWith(missedSessions: response, isLoading: false);
+    } catch (error) {
+      yield state.copyWith(isLoading: false);
     }
   }
 }

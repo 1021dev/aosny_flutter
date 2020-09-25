@@ -217,3 +217,22 @@ class UpdateCptText extends SessionNoteScreenEvent {
   final String cptText;
   UpdateCptText({this.cptText});
 }
+
+class DeleteSessionEvent extends SessionNoteScreenEvent {
+  final int id;
+  DeleteSessionEvent({this.id});
+}
+
+class GetMissedSessionEvent extends SessionNoteScreenEvent {
+  final String date;
+  final String time;
+  final int duration;
+  final int studentId;
+
+  GetMissedSessionEvent({
+    this.date,
+    this.time,
+    this.duration,
+    this.studentId,
+  });
+}

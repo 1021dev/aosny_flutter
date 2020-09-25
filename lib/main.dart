@@ -1,17 +1,17 @@
 import 'package:aosny_services/screens/widgets/splash_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/screenutil.dart';
 
 import 'bloc/AosnyBlocDelegate.dart';
 
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   Bloc.observer = AosnyBlocObserver();
+  ScreenUtil.init(designSize: Size(750, 1334), allowFontScaling: false);
   runApp(MyApp());
 }
-
-
-//final storage = FlutterSecureStorage();
 
 class MyApp extends StatelessWidget {
 
@@ -21,8 +21,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'AOSNY Services',
       theme: ThemeData(
-          primarySwatch: Colors.blue//,
-        //primaryColor: Colors.indigo[200]
+        primarySwatch: Colors.blue,
+        accentColor: Colors.blue,
       ),
       home:  SplashScreenPage(),
     );
