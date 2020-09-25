@@ -278,7 +278,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                                     percent: percent,
                                                     circularStrokeCap: CircularStrokeCap.round,
                                                     center: new Text(
-                                                      hmMaker(model.regCompleted),
+                                                      completedString(model.regCompleted),
                                                       style: TextStyle(
                                                         fontSize: 24.sp,
                                                       ),
@@ -291,7 +291,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                                 SizedBox(width: 8,),
                                                 Flexible(
                                                   child: Text(
-                                                    '${discrepString(double.parse(model.required) * 60 - double.parse(model.regCompleted) * 60)} of ${hmMaker(model.required)} remaining',
+                                                    remainingRegularString(double.parse(model.required) * 60, double.parse(model.required) * 60 - double.parse(model.regCompleted) * 60),
                                                     style: TextStyle(
                                                       fontSize: 24.sp,
                                                     ),
@@ -312,7 +312,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                                     percent: percent1,
                                                     circularStrokeCap: CircularStrokeCap.round,
                                                     center: new Text(
-                                                      discrepString(model.actNonDur),
+                                                      completedString(model.actNonDir),
                                                       style: TextStyle(
                                                         fontSize: 24.sp,
                                                       ),
@@ -325,7 +325,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                                 SizedBox(width: 8,),
                                                 Flexible(
                                                   child: Text(
-                                                    '${discrepString(model.discrep)} of ${discrepString(model.reqNonDir1 * 60)} remaining',
+                                                    remainingRegularString(model.reqNonDir1.toDouble() * 60, model.discrep.toDouble()),
                                                     style: TextStyle(
                                                       fontSize: 24.sp,
                                                     ),
@@ -382,11 +382,73 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
   String discrepString(num value) {
     int doubleV = value.toInt();
     if (doubleV < 0) {
-      return sprintf('%i:%02i', [0, 0]);
+      return '0 hour';
+      // return sprintf('%i:%02i', [0, 0]);
     } else {
       int h = doubleV ~/ 60;
       int m = doubleV % 60;
-      return sprintf('%i:%02i', [h, m]);
+      if (h == 0) {
+        return sprintf('%i:%02i', [h, m]);
+      } else if (m == 0) {
+        return sprintf('%i:%02i', [h, m]);
+      } else{
+        return sprintf('%i:%02i', [h, m]);
+      }
+    }
+  }
+
+  String completedString(String completed) {
+    double d = double.parse(completed) * 60;
+    int h = d.toInt() ~/ 60;
+    int m = d.toInt() % 60;
+
+    if (h == 0) {
+      return '$m mins';
+    } else if (m == 0) {
+      return '$h hours';
+    } else {
+      return '$h hours \n$m mins';
+    }
+  }
+
+  String remainingRegularString(double req, double rem) {
+    int h = req.toInt() ~/ 60;
+    int m = req.toInt() % 60;
+
+    int h1 = rem.toInt() ~/ 60;
+    int m1 = rem.toInt() % 60;
+
+    if (rem < 0) {
+      if (h == 0) {
+        return '0 of $m mins remaining';
+      } else if (m == 0) {
+        return '0 of $h hours remaining';
+      } else {
+        return '0 of $h hours \n$m mins remaining';
+      }
+    }
+    if (h == 0 && h1 == 0) {
+      return '$m1 of $m mins remaining';
+    } else if (m == 0 && m1 == 0) {
+      return '$h1 of $h hours remaining';
+    } else {
+      String reqString = '';
+      if (h == 0) {
+        reqString = '$m mins';
+      } else if (m == 0) {
+        reqString = '$h hours';
+      } else {
+        reqString = '$h hours $m mins';
+      }
+      String remString = '';
+      if (h1 == 0) {
+        remString = '$m1 mins';
+      } else if (m1 == 0) {
+        remString = '$h1 hours';
+      } else {
+        remString = '$h1 hours $m1 mins';
+      }
+      return '$remString \n of $reqString remaining';
     }
   }
 
