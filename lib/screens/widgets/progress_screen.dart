@@ -3,14 +3,13 @@ import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/progress_amount_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
-
-
-
+import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:sprintf/sprintf.dart';
 
 class ProgressScreen extends StatefulWidget {
   final MainScreenBloc mainScreenBloc;
@@ -230,6 +229,21 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                             itemCount: state.filterProgress.length,
                             itemBuilder: (context, index){
                               ProgressAmountModel model = state.filterProgress[index];
+
+                              double required = double.parse(model.required);
+                              double completed = double.parse(model.regCompleted);
+                              double percent = required != 0 ? completed / required: 1;
+
+                              double nonRequired = double.parse(model.reqNonDir);
+                              double nonActual = double.parse(model.actNonDir);
+                              double percent1 = nonRequired != 0 ? nonActual / nonRequired: 1;
+                              if (percent1 > 1) {
+                                percent1 = 1;
+                              }
+                              if (percent > 1) {
+                                percent = 1;
+                              }
+
                               return Card(
                                 child: Container(
                                   padding: EdgeInsets.all(8),
@@ -246,7 +260,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                         model.student,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 16,
+                                          fontSize: 32.sp,
                                         ),
                                       ),
                                       SizedBox(height: 8,),
@@ -254,19 +268,33 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           Flexible(
+                                            flex: 1,
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
-                                                Text(
-                                                  'Req: ',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
+                                                Container(
+                                                  child: new CircularPercentIndicator(
+                                                    radius: 64,
+                                                    lineWidth: 5.5,
+                                                    percent: percent,
+                                                    circularStrokeCap: CircularStrokeCap.round,
+                                                    center: new Text(
+                                                      hmMaker(model.regCompleted),
+                                                      style: TextStyle(
+                                                        fontSize: 24.sp,
+                                                      ),
+                                                    ),
+                                                    progressColor: percent >= 0.5
+                                                        ? Colors.blue
+                                                        : percent >= 0.3 ? Colors.orange : Colors.red,
                                                   ),
                                                 ),
-                                                Text(
-                                                  model.required,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.normal,
+                                                SizedBox(width: 8,),
+                                                Flexible(
+                                                  child: Text(
+                                                    '${discrepString(double.parse(model.required) * 60 - double.parse(model.regCompleted) * 60)} of ${hmMaker(model.required)} remaining',
+                                                    style: TextStyle(
+                                                      fontSize: 24.sp,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -274,109 +302,33 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                           ),
                                           SizedBox(width: 16,),
                                           Flexible(
+                                            flex: 1,
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
-                                                Text(
-                                                  'Sessions: ',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
+                                                Container(
+                                                  child: new CircularPercentIndicator(
+                                                    radius: 64,
+                                                    lineWidth: 5.5,
+                                                    percent: percent1,
+                                                    circularStrokeCap: CircularStrokeCap.round,
+                                                    center: new Text(
+                                                      discrepString(model.actNonDur),
+                                                      style: TextStyle(
+                                                        fontSize: 24.sp,
+                                                      ),
+                                                    ),
+                                                    progressColor: percent1 >= 0.5
+                                                        ? Colors.blue
+                                                        : percent1 >= 0.3 ? Colors.orange : Colors.red,
                                                   ),
                                                 ),
-                                                Text(
-                                                  model.direct1,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.normal,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 4,),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Flexible(
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  'Abs/Unavail: ',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  model.discrep1,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.normal,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          SizedBox(width: 16,),
-                                          Flexible(
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  'Req N/D: ',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  model.reqNonDir1,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.normal,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 4,),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Flexible(
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  'Act N/D: ',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  model.actNonDur1,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.normal,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          SizedBox(width: 16,),
-                                          Flexible(
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  'Missing: ',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  model.direct1,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.normal,
+                                                SizedBox(width: 8,),
+                                                Flexible(
+                                                  child: Text(
+                                                    '${discrepString(model.discrep)} of ${discrepString(model.reqNonDir1 * 60)} remaining',
+                                                    style: TextStyle(
+                                                      fontSize: 24.sp,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -419,6 +371,23 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
       endDate =  DateFormat('MM/dd/yyyy').format(GlobalCall.proEndDate).toString();
     });
     super.initState();
+  }
+
+  String hmMaker(String value) {
+    double direct = double.parse(value) * 60;
+
+    return discrepString(direct);
+  }
+
+  String discrepString(num value) {
+    int doubleV = value.toInt();
+    if (doubleV < 0) {
+      return sprintf('%i:%02i', [0, 0]);
+    } else {
+      int h = doubleV ~/ 60;
+      int m = doubleV % 60;
+      return sprintf('%i:%02i', [h, m]);
+    }
   }
 
 }

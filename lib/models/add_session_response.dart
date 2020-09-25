@@ -21,6 +21,7 @@ class AddSessionResponse {
   int manDateType;
   String providerId;
   int xid;
+  int mCalId;
 
   AddSessionResponse(
       {this.sessionID,
@@ -43,6 +44,7 @@ class AddSessionResponse {
         this.sessionNoteExtrasList,
         this.providerId,
         this.xid,
+        this.mCalId,
       });
 
   AddSessionResponse.fromJson(Map<String, dynamic> json) {
@@ -62,6 +64,7 @@ class AddSessionResponse {
     manDateType = json['MandateType'];
     providerId = json['ProviderID'];
     xid = json['xid'];
+    mCalId = json['mCalId'];
     if (json['Goals'] != null) {
       goals = new List<Goals>();
       json['Goals'].forEach((v) {
@@ -101,6 +104,7 @@ class AddSessionResponse {
     data['ManDateType'] = this.manDateType ?? 1;
     data['ProviderID'] = this.providerId ?? 1;
     data['xid'] = this.xid ?? -1;
+    data['mCalId'] = this.mCalId ?? 0;
     if (this.goals != null) {
       data['Goals'] = this.goals.map((v) => v.toJson()).toList();
     }
