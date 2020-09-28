@@ -79,6 +79,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day, timeOfDay.hour, timeOfDay.minute);
       DateTime endDate = dateTime.add(Duration(minutes: finalnumber));
       yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: endDate);
+      if (state.selectedSessionTypeIndex == 1) {
+        add(GetMissedSessionEvent());
+      }
     } else if (event is UpdateSelectedDate) {
       int finalnumber = state.finalNumber;
       TimeOfDay timeOfDay = state.selectedTime;
@@ -92,6 +95,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       DateTime dateTime = state.selectedDate ?? DateTime.now();
       dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day, timeOfDay.hour, timeOfDay.minute);
       DateTime endDate = dateTime.add(Duration(minutes: finalnumber));
+      if (state.selectedSessionTypeIndex == 1) {
+        add(GetMissedSessionEvent());
+      }
       yield state.copyWith(selectedTime: timeOfDay, finalNumber: event.finalNumber, endDateTime: endDate);
     } else if (event is UpdateLocation) {
       yield state.copyWith(location: event.location);
@@ -115,6 +121,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield state.copyWith(selectedOutComesIndex2: event.selectedOutComesIndex);
     } else if (event is UpdateSessionType) {
       yield state.copyWith(selectedSessionTypeIndex: event.selectedSessionTypeIndex);
+      if (event.selectedSessionTypeIndex == 1) {
+        add(GetMissedSessionEvent());
+      }
     } else if (event is UpdateCAIndex) {
       yield state.copyWith(selectedCAIconIndex: event.selectedCAIconIndex);
     } else if (event is UpdateJAIndex) {
@@ -128,7 +137,16 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     } else if (event is DeleteSessionEvent) {
       yield* deleteSession(event.id);
     } else if (event is GetMissedSessionEvent) {
-      yield* getMissedSessions(event);
+      var selectedDate1 = new DateFormat('MM/dd/yy');
+      var selectedDate2 = new DateFormat('hh:mm a');
+
+      String dateFinal =  selectedDate1.format(state.selectedDate);
+      String sessionTime = selectedDate2.format(state.selectedDate);
+      int duration = state.finalNumber;
+      int studentId = state.student.studentID.toInt();
+      yield* getMissedSessions(dateFinal, sessionTime, duration, studentId);
+    } else if (event is UpdateMakeUpSessionId) {
+      yield state.copyWith(mCalId: event.id);
     }
 
   }
@@ -348,9 +366,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
 
         int settingsGroupOrNot;
         String sessionDateTime, sessionTime, duration, sessionEndTime, location, location1, sessionType, sessionIDValue;
-        int confirmedVal;
-
-        bool isHome;
         String dropDownValue;
         String dropDownValue2;
         bool checkedValue;
@@ -623,6 +638,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       progText = state.selectedProgText;
       cptText = state.cptText;
     }
+    int mCalId = 0;
+    if (state.selectedSessionTypeIndex == 1) {
+      mCalId = state.mCalId;
+    }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String providerid = prefs.getString('providerid');
     AddSessionResponse newPost = new AddSessionResponse(
@@ -644,6 +663,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       cptText: cptText,
       sessionNoteExtrasList: sessionNoteExtrasList,
       xid: state.student.xid,
+      mCalId: mCalId,
     );
     try {
       AddSessionResponse responseAddSession = await addSessionNoteApi.addSessionDetails(url, body: newPost.toJson());
@@ -681,11 +701,11 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     }
   }
 
-  Stream<SessionNoteScreenState> getMissedSessions(GetMissedSessionEvent event) async* {
+  Stream<SessionNoteScreenState> getMissedSessions(String date, String time, int duration, int studentId) async* {
     try {
       yield state.copyWith(isLoading: true);
-      List<MissedSessionModel> response = await completeSessionApi.getMissedSessions(event.date, event.time, event.duration, event.studentId);
-      yield state.copyWith(missedSessions: response, isLoading: false);
+      List<MissedSessionModel> response = await completeSessionApi.getMissedSessions(date, time, duration, studentId);
+      yield state.copyWith(missedSessions: response, isLoading: false, mCalId: 0);
     } catch (error) {
       yield state.copyWith(isLoading: false);
     }

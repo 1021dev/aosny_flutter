@@ -2,6 +2,7 @@ import 'package:aosny_services/bloc/session_note/session_note.dart';
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
+import 'package:aosny_services/models/missed_session_model.dart';
 import 'package:aosny_services/models/selected_longTerm_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -1913,8 +1914,75 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         Padding(
           padding: EdgeInsets.only(bottom: 16),
         ),
+        state.selectedSessionTypeIndex == 1 ? Container(
+          padding: EdgeInsets.only(left: 8, top: 4, bottom: 4),
+          child: Text(
+            'Make Up:',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ) : Container(),
+        state.selectedSessionTypeIndex == 1 ?
+            Container(
+              margin: const EdgeInsets.all(5),
+              padding:  const EdgeInsets.all(5.0),
+              height: 50,
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey)
+              ),
+              child: DropdownButton(
+                underline: Container(),
+                hint: state.mCalId == 0 ? Text(
+                  'Select your choice' ,
+                  maxLines: 1,
+                )
+                    : Text(
+                  getSelectedMissedSession(state),
+                  maxLines: 2,
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+                isExpanded: true,
+                iconSize: 30.0,
+                style: TextStyle(color: Colors.black),
+                items: state.missedSession.map(
+                      (val) {
+                    return DropdownMenuItem<MissedSessionModel>(
+                      value: val,
+                      child: Column(
+                        children: <Widget>[
+                          Text(
+                            'Making up for: ${val.sessionDateTime} - Duration: ${val.duration} minutes',
+                          ),
+                          Container(height: 5,),
+                          Divider(height: 10,color: Colors.black,),
+                          Container(height: 5,),
+                        ],
+                      ),
+                    );
+                  },
+                ).toList(),
+                onChanged: (val) {
+                  screenBloc.add(UpdateMakeUpSessionId(id: val.id));
+                },
+              ),
+            ):
+            Container()
       ],
     );
+  }
+
+  String getSelectedMissedSession(SessionNoteScreenState state) {
+    if (state.mCalId == 0) {
+      return '';
+    } else {
+      List<MissedSessionModel> list = state.missedSession.where((element) => element.id == state.mCalId).toList();
+      if (list.length > 0) {
+        return 'Making up for: ${list.first.sessionDateTime} - Duration: ${list.first.duration} minutes';
+      } else {
+        return '';
+      }
+    }
   }
 
   Widget completedActivityReview(SessionNoteScreenState state){
@@ -1996,50 +2064,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         trailing: Icon(Icons.keyboard_arrow_down),
       ),
     );
-//    return Container(
-//      margin: EdgeInsets.only(left:10 ,right: 10, top: 16),
-//      child: Row(
-//        mainAxisAlignment: MainAxisAlignment.center,
-//        children: state.cAcheckListItems.map((e) {
-//          int index = state.cAcheckListItems.indexOf(e);
-//          return InkWell(
-//            child: Container(
-//              height: 110,
-//              width: 90,
-//              decoration: BoxDecoration(
-//                  border: Border.all(color:Colors.grey,width: 0.5)
-//              ),
-//              child: Column(
-//                mainAxisAlignment: MainAxisAlignment.center,
-//                children: <Widget>[
-//                  Icon(
-//                    iconsList[index],
-//                    color: selectedCAIconIndex == index ? Colors.green:Colors.grey,
-//                    size: 40,
-//                  ) ,
-//                  Text('Made',
-//                    style: TextStyle(
-//                        color: selectedCAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
-//                    ),
-//                  ),
-//                  Text('Progress',
-//                    style: TextStyle(
-//                        color: selectedCAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
-//                    ),
-//                  ),
-//                ],
-//              ) ,
-//            ),
-//            onTap: (){
-//              setState(() {
-//                selectedCAIconIndex = index;
-//              });
-//            },
-//          );
-//        },
-//        ).toList(),
-//      ),
-//    );
   }
 
 
@@ -2123,50 +2147,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
       ),
     );
 
-//    return Container(
-//      margin: EdgeInsets.only(left:10 ,right: 10, top :16),
-//      child: Row(
-//        mainAxisAlignment: MainAxisAlignment.center,
-//        children: state.jAcheckListItems.map((e) {
-//          int index = state.jAcheckListItems.indexOf(e);
-//          return InkWell(
-//            child: Container(
-//              height: 110,
-//              width: 90,
-//              decoration: BoxDecoration(
-//                  border: Border.all(color:Colors.grey,width: 0.5)
-//              ),
-//              child: Column(
-//                mainAxisAlignment: MainAxisAlignment.center,
-//                children: <Widget>[
-//                  Icon(
-//                    iconsList[index],
-//                    color: selectedJAIconIndex == index ? Colors.green:Colors.grey,
-//                    size: 40,
-//                  ) ,
-//                  Text('Made',
-//                    style: TextStyle(
-//                        color: selectedJAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
-//                    ),
-//                  ),
-//                  Text('Progress',
-//                    style: TextStyle(
-//                        color: selectedJAIconIndex == index ? Colors.green:Colors.grey,fontSize: 10
-//                    ),
-//                  ),
-//                ],
-//              ) ,
-//            ),
-//            onTap: (){
-//              setState(() {
-//                selectedJAIconIndex = index;
-//              });
-//            },
-//          );
-//        },
-//        ).toList(),
-//      ),
-//    );
   }
 
   Widget editWidget(){

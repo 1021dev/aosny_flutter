@@ -70,7 +70,7 @@ class CompleteSessionApi {
       }
 
       var data = json.decode(response.body);
-      print("Complete Session Notes:$data");
+      print("Missed Session Notes:$data");
 
       List<MissedSessionModel> array = [];
       if (data is List) {
