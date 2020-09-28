@@ -223,16 +223,11 @@ class DeleteSessionEvent extends SessionNoteScreenEvent {
   DeleteSessionEvent({this.id});
 }
 
-class GetMissedSessionEvent extends SessionNoteScreenEvent {
-  final String date;
-  final String time;
-  final int duration;
-  final int studentId;
+class UpdateMakeUpSessionId extends SessionNoteScreenEvent {
+  final int id;
+  UpdateMakeUpSessionId({this.id});
+}
 
-  GetMissedSessionEvent({
-    this.date,
-    this.time,
-    this.duration,
-    this.studentId,
-  });
+class GetMissedSessionEvent extends SessionNoteScreenEvent {
+  GetMissedSessionEvent();
 }

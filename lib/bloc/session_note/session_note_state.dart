@@ -76,6 +76,7 @@ class SessionNoteScreenState extends Equatable {
   final String cptText;
 
   final List<MissedSessionModel> missedSession;
+  final int mCalId;
 
   SessionNoteScreenState( {
     this.isLoading = false,
@@ -147,7 +148,8 @@ class SessionNoteScreenState extends Equatable {
 
     this.selectedProgText,
     this.cptText,
-    this.missedSession,
+    this.missedSession = const [],
+    this.mCalId,
   });
 
   @override
@@ -222,6 +224,7 @@ class SessionNoteScreenState extends Equatable {
     selectedProgText,
     cptText,
     missedSession,
+    mCalId,
   ];
 
   SessionNoteScreenState copyWith({
@@ -284,6 +287,7 @@ class SessionNoteScreenState extends Equatable {
     String selectedProgText,
     String cptText,
     List<MissedSessionModel> missedSessions,
+    int mCalId,
   }) {
     return SessionNoteScreenState(
       isLoading: isLoading ?? this.isLoading,
@@ -351,6 +355,7 @@ class SessionNoteScreenState extends Equatable {
       selectedProgText: selectedProgText ?? this.selectedProgText,
       cptText: cptText ?? this.cptText,
       missedSession: missedSessions ?? this.missedSession,
+      mCalId: mCalId ?? this.mCalId,
     );
   }
 }
