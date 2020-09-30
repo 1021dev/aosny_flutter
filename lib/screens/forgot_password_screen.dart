@@ -106,6 +106,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         Fluttertoast.showToast(msg: 'Username is required');
                         return;
                       }
+                      FocusScope.of(context).unfocus();
                       setState(() {
                         isLoading = true;
                       });

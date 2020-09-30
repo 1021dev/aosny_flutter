@@ -110,7 +110,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 Container(
                   child: TextFormField(
                     focusNode: confirmFocus,
-                    textInputAction: TextInputAction.next,
+                    textInputAction: TextInputAction.done,
                     keyboardType: TextInputType.text,
                     onFieldSubmitted: (text) {
                       FocusScope.of(context).unfocus();
@@ -161,6 +161,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         Fluttertoast.showToast(msg: 'Confirm password doesn\'t match');
                         return;
                       }
+                      FocusScope.of(context).unfocus();
                       setState(() {
                         isLoading = true;
                       });
