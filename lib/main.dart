@@ -9,7 +9,6 @@ import 'bloc/AosnyBlocDelegate.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Bloc.observer = AosnyBlocObserver();
-  ScreenUtil.init(designSize: Size(750, 1334), allowFontScaling: false);
   runApp(MyApp());
 }
 

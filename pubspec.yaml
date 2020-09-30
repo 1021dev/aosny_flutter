@@ -15,7 +15,7 @@ dependencies:
   json_annotation: ^3.1.0
   dio: ^3.0.10
   http:
-  percent_indicator: ^2.1.7+3
+  percent_indicator: ^2.1.7+4
   connectivity: ^0.4.9+3
   splashscreen: ^1.2.0
   rflutter_alert: ^1.1.0
@@ -25,10 +25,10 @@ dependencies:
   signature: 3.2.0
   flutter_bloc: ^6.0.5
   equatable: ^1.2.5
-  url_launcher: ^5.7.1
+  url_launcher: ^5.7.2
   package_info: ^0.4.3
-  flutter_screenutil: ^3.0.2+1
-  sprintf: ^4.1.0
+  flutter_screenutil: ^3.1.1
+  sprintf: ^5.0.0
 
 
 dev_dependencies:

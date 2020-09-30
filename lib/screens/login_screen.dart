@@ -15,6 +15,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aosny_services/api/env.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'forgot_password_screen.dart';
+
 class LoginScreen extends StatefulWidget {
 
   @override
@@ -159,19 +161,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                   controller: _passwordController,
                                 ),
                               ),
-                              SizedBox(height: 8.0),
-//                        Row(
-//                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                          children: <Widget>[
-//                            FlatButton(
-//                              child: Text(
-//                                'Forgot password?',
-//                                style: TextStyle(color: Colors.black54),
-//                              ),
-//                              onPressed: () {},
-//                            ),
-//                          ],
-//                        ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: <Widget>[
+                                  FlatButton(
+                                    child: Text(
+                                      'Forgot password?',
+                                      style: TextStyle(color: Colors.black54),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) {
+                                            return ForgotPasswordScreen(
+                                              userName: _emailController.text,
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                               SizedBox(height: 8.0),
                               InkWell(
                                 child: Container(
