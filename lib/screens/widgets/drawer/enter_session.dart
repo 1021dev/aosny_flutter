@@ -57,7 +57,7 @@ class _EnterSessionState extends State<EnterSession>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.lightBlue[200],
+        backgroundColor: Colors.lightBlue,
         title: Text("Enter sessions",style: TextStyle(fontSize: 18,fontWeight: FontWeight.normal),),
       ),
       drawer: DrawerWidget(),
@@ -87,7 +87,7 @@ class _EnterSessionState extends State<EnterSession>
                             child: Text(snapshot.data[index].firstName[0],
                               style: TextStyle(color:Colors.white),),
                             decoration: BoxDecoration(
-                                color: Colors.lightBlue[200],
+                                color: Colors.lightBlue,
                                 borderRadius: BorderRadius.circular(80)
                             ),
                           ),

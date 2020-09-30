@@ -40,7 +40,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.lightBlue[200],
+        backgroundColor: Colors.lightBlue,
         centerTitle: true,
         title: Text(
           'Signature',

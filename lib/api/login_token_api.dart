@@ -76,7 +76,7 @@ class LoginApi{
     };
 
     return http.post(
-      'http://aosapi.pdgcorp.com//api/Provider/0/forgotpassword',
+      'http://aosapi.pdgcorp.com/api/Provider/0/forgotpassword',
       body: jsonEncode(body),
       headers:  {
         HttpHeaders.contentTypeHeader: 'application/json',
@@ -109,8 +109,11 @@ class LoginApi{
       'plainOldPassword': oldPassword,
       'plainNewPassword': newPassword,
     };
+    String url = 'http://aosapi.pdgcorp.com/api/Provider/$providerID/changepassword';
+    print(url);
+    print(jsonEncode(body));
     return http.post(
-      'http://aosapi.pdgcorp.com/api/Provider/$providerID/changepassword',
+      url,
       body: jsonEncode(body),
       headers:  {
         HttpHeaders.contentTypeHeader: 'application/json',

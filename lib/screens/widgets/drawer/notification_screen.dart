@@ -22,7 +22,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.lightBlue[200],
+        backgroundColor: Colors.lightBlue,
         title: Text(
           "Notifications",
           style: TextStyle(fontSize: 16),

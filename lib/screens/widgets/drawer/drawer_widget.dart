@@ -59,147 +59,157 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       GlobalCall.email = email;
     }
     return Drawer(
-      child: SafeArea(
-        bottom: true,
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: ListView(
-                children: <Widget>[
-                  UserAccountsDrawerHeader(
-                    margin: EdgeInsets.zero,
-                    decoration: BoxDecoration(
-                      color: Colors.lightBlue[400],
-                    ),
-                    accountName: Container(
-                      height: 20,
-                      child: Text(
-                        GlobalCall.name != '' ? GlobalCall.name ?? '' : '',
-                        style: TextStyle(fontSize: 16,color: Colors.white,fontWeight: FontWeight.normal),
+      child: Scaffold(
+        backgroundColor: Colors.lightBlue,
+        body: SafeArea(
+          bottom: true,
+          child: Container(
+            color: Colors.white,
+            child: Column(
+              children: <Widget>[
+                Expanded(
+                  child: ListView(
+                    children: <Widget>[
+                      UserAccountsDrawerHeader(
+                        margin: EdgeInsets.zero,
+                        decoration: BoxDecoration(
+                          color: Colors.lightBlue,
+                        ),
+                        accountName: Container(
+                          child: Text(
+                            GlobalCall.name != '' ? GlobalCall.name ?? '' : '',
+                            style: TextStyle(fontSize: 16,color: Colors.white,fontWeight: FontWeight.normal),
+                          ),
+                        ),
+                        accountEmail: Text(
+                            GlobalCall.singUpEmil != '' ? GlobalCall.singUpEmil: GlobalCall.email ?? '',
+                            style: TextStyle(fontSize: 13,color: Colors.white)
+                          // Theme.of(context).textTheme.subhead Tex
+                        ),
+                        currentAccountPicture: Icon(Icons.person,
+                          size: 90.0,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    accountEmail: Text(
-                        GlobalCall.singUpEmil != '' ? GlobalCall.singUpEmil: GlobalCall.email ?? '',
-                        style: TextStyle(fontSize: 13,color: Colors.white)
-                      // Theme.of(context).textTheme.subhead Tex
-                    ),
-                    currentAccountPicture: Icon(Icons.person,
-                      size: 90.0,
-                      color: Colors.white,
-
-                    ),
+                      new ListTile(
+                          title: Text('My Sessions'),
+                          dense: true,
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(builder:
+                                  (context)=> MenuScreen(
+                                selectedIndex: 0,
+                              ),
+                              ),
+                            );
+                          }
+                      ),
+                      new ListTile(
+                        title: Text('My Progress'),
+                        dense: true,
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(builder:
+                                (context)=> MenuScreen(
+                              selectedIndex: 1,
+                            ),
+                            ),
+                          );
+                        },
+                      ),
+                      new ListTile(
+                        title: Text('Enter Session Notes'),
+                        dense: true,
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context)=> EnterSession(),
+                            ),
+                          );
+                        },
+                      ),
+                      // new ListTile(
+                      //   title: new Text('Notifications'),
+                      //   dense: true,
+                      //   onTap: () {
+                      //     Navigator.pop(context);
+                      //     Navigator.of(context).pushReplacement(
+                      //       MaterialPageRoute(
+                      //         builder: (context)=> NotificationScreen(),
+                      //       ),
+                      //     );
+                      //   },
+                      // ),
+                      // new ListTile(
+                      //   title: new Text('Settings'),
+                      //   dense: true,
+                      //   onTap: (){
+                      //
+                      //   },
+                      // ),
+                      new ListTile(
+                        title: new Text('Change Password'),
+                        dense: true,
+                        onTap: (){
+                          Navigator.pop(context);
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context)=> ChangePasswordScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                  new ListTile(
-                      title: Text('My Sessions'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder:
-                              (context)=> MenuScreen(
-                            selectedIndex: 0,
-                          ),
-                          ),
-                        );
-                      }
-                  ),
-                  new ListTile(
-                    title: Text('My Progress'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder:
-                            (context)=> MenuScreen(
-                          selectedIndex: 1,
-                        ),
-                        ),
-                      );
-                    },
-                  ),
-                  new ListTile(
-                    title: Text('Enter Session Notes'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context)=> EnterSession(),
-                        ),
-                      );
-                    },
-                  ),
-                  new ListTile(
-                    title: new Text('Notifications'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context)=> NotificationScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  new ListTile(
-                    title: new Text('Settings'),
-                    onTap: (){
-
-                    },
-                  ),
-                  new ListTile(
-                    title: new Text('Change Password'),
-                    onTap: (){
-                      Navigator.pop(context);
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context)=> ChangePasswordScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              height: MediaQuery.of(context).size.height/7,
-              width:  MediaQuery.of(context).size.width/2.5,
-              decoration:BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/logo/ic_logo.png'),
-                  fit: BoxFit.contain,
                 ),
-              ),
-            ),
-            Container(
-              child: Align(
-                alignment: FractionalOffset.bottomCenter,
-                child: Container(
-                  padding: EdgeInsets.all(16),
-                  child: GestureDetector(
-                    onTap: () async {
-                      SharedPreferences preferences = await SharedPreferences.getInstance();
-                      preferences.setString('token', '');
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context)=> SplashScreenPage(),
-                        ),
-                      );
-                    },
+                Container(
+                  height: MediaQuery.of(context).size.height/7,
+                  width:  MediaQuery.of(context).size.width/2.5,
+                  decoration:BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/logo/ic_logo.png'),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                Container(
+                  child: Align(
+                    alignment: FractionalOffset.bottomCenter,
                     child: Container(
-                      alignment: Alignment.center,
-                      height: 50,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Text(
-                        'Sign Out',
-                        style: TextStyle(color: Colors.white),
+                      padding: EdgeInsets.all(16),
+                      child: GestureDetector(
+                        onTap: () async {
+                          SharedPreferences preferences = await SharedPreferences.getInstance();
+                          preferences.setString('token', '');
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context)=> SplashScreenPage(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          height: 50,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Text(
+                            'Sign Out',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

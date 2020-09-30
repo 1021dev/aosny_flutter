@@ -170,6 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       style: TextStyle(color: Colors.black54),
                                     ),
                                     onPressed: () {
+                                      FocusScope.of(context).unfocus();
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(

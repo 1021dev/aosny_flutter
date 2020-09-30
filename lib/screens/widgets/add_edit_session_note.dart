@@ -232,7 +232,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             // drawer: DrawerWidget(),
             appBar: AppBar(
               automaticallyImplyLeading: true,
-              backgroundColor: Colors.lightBlue[200],
+              backgroundColor: Colors.lightBlue,
               title: Text(
                 widget.sessionId != null ? 'Session Note Detail': 'Add Session Note',
                 style: TextStyle(

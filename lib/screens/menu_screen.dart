@@ -200,7 +200,7 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
         builder: (BuildContext context, MainScreenState state) {
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: Colors.lightBlue[200],
+              backgroundColor: Colors.lightBlue,
               title: Text("My Sessions",style: TextStyle(fontSize: 18, fontWeight: FontWeight.normal),),
               centerTitle: true,
               actions: <Widget>[
