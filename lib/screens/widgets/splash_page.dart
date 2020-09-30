@@ -3,6 +3,7 @@ import 'package:aosny_services/api/preload_api.dart';
 import 'package:aosny_services/screens/login_screen.dart';
 import 'package:aosny_services/screens/menu_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:splashscreen/splashscreen.dart';
 
@@ -35,6 +36,7 @@ class _MyAppState extends State<SplashScreenPage> {
 
   @override
   Widget build(BuildContext context) {
+    ScreenUtil.init(context, designSize: Size(750, 1334), allowFontScaling: false);
     return new SplashScreen(
       seconds: 3,
       navigateAfterSeconds: token != '' ? new MenuScreen(): new LoginScreen(),

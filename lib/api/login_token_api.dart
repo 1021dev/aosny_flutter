@@ -69,4 +69,67 @@ class LoginApi{
       return response;
     });
   }
+
+  Future<http.Response> forgetPassword({String userName}) async {
+    Map body = {
+      'username': userName,
+    };
+
+    return http.post(
+      'http://aosapi.pdgcorp.com//api/Provider/0/forgotpassword',
+      body: jsonEncode(body),
+      headers:  {
+        HttpHeaders.contentTypeHeader: 'application/json',
+      },
+    ).then((http.Response response) {
+      int statusCode = response.statusCode;
+
+      statuscode = statusCode;
+      print('CODE::::');
+      print(statusCode);
+
+      if (statusCode < 200 || statusCode > 400 || json == null) {
+        throw new Exception('Error while fetching data');
+      }
+      print('data::Login');
+      print(response.body);
+
+      return response;
+    });
+  }
+
+  Future<http.Response> changePassword({String oldPassword, String newPassword}) async {
+
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    int userID = preferences.getInt('user_id') ?? 0;
+    String providerID = preferences.getString('providerid') ?? '';
+    String token = preferences.getString('token');
+
+    Map body = {
+      'plainOldPassword': oldPassword,
+      'plainNewPassword': newPassword,
+    };
+    return http.post(
+      'http://aosapi.pdgcorp.com/api/Provider/$providerID/changepassword',
+      body: jsonEncode(body),
+      headers:  {
+        HttpHeaders.contentTypeHeader: 'application/json',
+        HttpHeaders.authorizationHeader: 'Bearer $token',
+      },
+    ).then((http.Response response) {
+      int statusCode = response.statusCode;
+
+      statuscode = statusCode;
+      print('CODE::::');
+      print(statusCode);
+
+      if (statusCode < 200 || statusCode > 400 || json == null) {
+        throw new Exception('Error while fetching data');
+      }
+      print('data::Login');
+      print(response.body);
+
+      return response;
+    });
+  }
 }
