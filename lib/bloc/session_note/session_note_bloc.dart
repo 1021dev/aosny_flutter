@@ -364,6 +364,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           activitiesListItems[data.categoryTextID] = list;
         }
 
+        List<MissedSessionModel> missedSession = [];
         int settingsGroupOrNot;
         String sessionDateTime, sessionTime, duration, sessionEndTime, location, location1, sessionType, sessionIDValue;
         String dropDownValue;
@@ -514,6 +515,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           }
         }
 
+        missedSession = completeSessionNotes.singleMakeupSessionNote;
+
         yield state.copyWith(
           isLoading: false,
           sessionNotes: completeSessionNotes,
@@ -551,6 +554,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           selectedProgText: completeSessionNotes.progText,
           confirmedVal: completeSessionNotes.confirmed,
           cptText: completeSessionNotes.cptText,
+          missedSessions: missedSession,
+          isLock: completeSessionNotes.sessionType == sessionTypeStrings[1],
+          mCalId: completeSessionNotes.mCalId,
         );
       }
 

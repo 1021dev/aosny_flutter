@@ -700,7 +700,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
           )),
           SizedBox(height:16),
-          widget.isEditable ? Row(
+          widget.isEditable && !state.isLock? Row(
             children: [
               Flexible(
                 child: Container(

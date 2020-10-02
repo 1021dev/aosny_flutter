@@ -131,25 +131,6 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                           );
                         },
                       ),
-                      // new ListTile(
-                      //   title: new Text('Notifications'),
-                      //   dense: true,
-                      //   onTap: () {
-                      //     Navigator.pop(context);
-                      //     Navigator.of(context).pushReplacement(
-                      //       MaterialPageRoute(
-                      //         builder: (context)=> NotificationScreen(),
-                      //       ),
-                      //     );
-                      //   },
-                      // ),
-                      // new ListTile(
-                      //   title: new Text('Settings'),
-                      //   dense: true,
-                      //   onTap: (){
-                      //
-                      //   },
-                      // ),
                       new ListTile(
                         title: new Text('Change Password'),
                         dense: true,
