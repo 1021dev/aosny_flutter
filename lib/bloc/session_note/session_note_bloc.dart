@@ -603,8 +603,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     });
     state.sIcheckListItems.forEach((element) {
       if (element.checkVal) {
+        print(element.id);
+        print(GlobalCall.SEITIntervention.categoryData[0].mainCategoryID);
         sessionNoteExtrasList.add(
-            SessionNoteExtrasList(sNECategoryID: GlobalCall.socialPragmatics.categoryData[0].mainCategoryID,
+            SessionNoteExtrasList(sNECategoryID: GlobalCall.SEITIntervention.categoryData[0].mainCategoryID,
                 sNECategoryDetailID: element.id,
                 sNESubDetailID: 0));
       }

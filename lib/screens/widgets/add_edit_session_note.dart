@@ -652,7 +652,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
           ),
           _sessionTypeWidget(state),
-          state.selectedSessionTypeIndex != 5 ? _dropdowns(state): _nonDirectCare(state),
+          state.selectedSessionTypeIndex != 5 ? _dropDowns(state): _nonDirectCare(state),
           state.selectedProgText == nonDirectActivities[2] ? Container() : Container(
             alignment: Alignment.bottomLeft,
             width: MediaQuery.of(context).size.width,
@@ -665,7 +665,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               ),
             ),
           ),
-          state.isLoading ? Container() : (state.selectedProgText == nonDirectActivities[2]
+          state.selectedProgText == nonDirectActivities[2]
               ? Container() :
           Container(
             alignment: Alignment.topLeft,
@@ -698,7 +698,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                 border: InputBorder.none,
               ),
             ),
-          )),
+          ),
           SizedBox(height:16),
           widget.isEditable && !state.isLock? Row(
             children: [
@@ -719,8 +719,8 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   ),
                 ),
               ),
-              SizedBox(width: 8,),
-              Flexible(
+              widget.eventType == 'Enter' ? Container() : SizedBox(width: 8,),
+              widget.eventType == 'Enter' ? Container() : Flexible(
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
@@ -781,7 +781,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     );
   }
 
-  Widget _dropdowns(SessionNoteScreenState state) {
+  Widget _dropDowns(SessionNoteScreenState state) {
     return Column(
       children: [
         GestureDetector(
