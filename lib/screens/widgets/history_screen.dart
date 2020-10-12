@@ -324,6 +324,10 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                           String smin = stime.split(':').toList()[1];
                           String emin = etime.split(':').toList()[1];
                           int duration = smin == emin ? 60: 30;
+                          String extra = '';
+                          if (model.mcalid != 0 && model.sessionType != sessionTypeStrings[1]) {
+                            extra = '(Made Up)';
+                          }
                           return Card(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
@@ -442,24 +446,6 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                 fontSize: 14,
                                               ),
                                             ),
-                                            // Row(
-                                            //   children: [
-                                            //     Icon(
-                                            //       Icons.check_circle,
-                                            //       color: state.filterHistory[index].confirmed == 1 ? Colors.green: Colors.transparent,
-                                            //       size: 24,
-                                            //     ),
-                                            //     SizedBox(width: 4,),
-                                            //     Container(
-                                            //       width: 20,
-                                            //       height: 20,
-                                            //       decoration: BoxDecoration(
-                                            //         borderRadius: BorderRadius.circular(12),
-                                            //         color: colorFromStatus(state.filterHistory[index].status),
-                                            //       ),
-                                            //     )
-                                            //   ],
-                                            // )
                                           ],
                                         ),
                                         Row(
@@ -477,28 +463,30 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                             ),
                                             Flexible(
                                               flex: 2,
-                                              child: Text(
-                                                state.filterHistory[index].sessionType,
-                                                style: TextStyle(
-                                                  color: getSessionColor(state.filterHistory[index].grp,
-                                                    sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
+                                              child: Container(
+                                                padding: extra != '' ? EdgeInsets.only(left: 4, right: 4): EdgeInsets.zero,
+                                                decoration: extra != '' ? BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(4),
+                                                  border: Border.all(
+                                                    width: 1,
+                                                    color: getSessionColor(state.filterHistory[index].grp,
+                                                      sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
+                                                    ),
                                                   ),
-                                                  fontSize: 24.sp,
+                                                  color: Color(0xFFEEEEEE),
+                                                ): null,
+                                                child: Text(
+                                                  state.filterHistory[index].sessionType,
+                                                  style: TextStyle(
+                                                    color: getSessionColor(state.filterHistory[index].grp,
+                                                      sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
+                                                    ),
+                                                    fontSize: 24.sp,
+                                                  ),
+                                                  textAlign: TextAlign.right,
                                                 ),
-                                                textAlign: TextAlign.right,
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: <Widget>[
-                                            Column(
-                                              mainAxisAlignment: MainAxisAlignment.start,
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                            ),
-//                                                editButton(context,
-//                                                    snapshot.data[index]),
                                           ],
                                         ),
                                       ],

@@ -267,6 +267,28 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
+                                          Expanded(
+                                            child: Text(
+                                              'Regular',
+                                              style: TextStyle(
+                                                fontSize: 22.sp,
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              'Non-Direct',
+                                              style: TextStyle(
+                                                fontSize: 22.sp,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 8,),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
                                           Flexible(
                                             flex: 1,
                                             child: Row(
