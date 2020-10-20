@@ -1952,7 +1952,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                       child: Column(
                         children: <Widget>[
                           Text(
-                            'Making up for: ${val.sessionDateTime} - Duration: ${val.duration} minutes',
+                            '${val.sessionType} - ${val.sessionDateTime} - ${val.duration} minutes',
                           ),
                           Container(height: 5,),
                           Divider(height: 10,color: Colors.black,),
@@ -1978,7 +1978,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     } else {
       List<MissedSessionModel> list = state.missedSession.where((element) => element.id == state.mCalId).toList();
       if (list.length > 0) {
-        return 'Making up for: ${list.first.sessionDateTime} - Duration: ${list.first.duration} minutes';
+        return '${list.first.sessionType} - ${list.first.sessionDateTime} - ${list.first.duration} minutes';
       } else {
         return '';
       }
