@@ -32,7 +32,7 @@ class _EnterSessionState extends State<EnterSession>
   void initState() {
     super.initState();
     _animationController =
-        AnimationController(TickerProvider: this, duration: Duration(milliseconds: 300));
+        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
   }
 
   @override
