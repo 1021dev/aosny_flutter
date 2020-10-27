@@ -57,7 +57,54 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     } else if (event is UpdateActivityListItem) {
       yield state.copyWith(activitiesListItems: event.activitiesListItems);
     } else if (event is SelectLongTermID) {
-      yield state.copyWith(selectedLtGoalId: event.id);
+      List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
+
+      for(int i = 0; i< state.shortTermGpList.length; i++){
+        bool isContain = false;
+        selectedShortTermResultListModel.forEach((element) {
+          if (element.id == state.shortTermGpList[i].shortgoalid) {
+            isContain = true;
+          }
+        });
+        if (!isContain) {
+          if(state.shortTermGpList[i].longGoalID == event.id){
+            selectedShortTermResultListModel.add(
+                SelectedShortTermResultListModel(
+                  id: state.shortTermGpList[i].shortgoalid,
+                  selectedId: state.shortTermGpList[i].longGoalID,
+                  selectedShortgoaltext: state.shortTermGpList[i].shortgoaltext,
+                  checkVal: false,
+                )
+            );
+          }
+        }
+      }
+      yield state.copyWith(selectedLtGoalId: event.id, selectedShortTermResultListModel: selectedShortTermResultListModel);
+    } else if (event is SelectLongTermID2) {
+      List<SelectedShortTermResultListModel> selectedShortTerm2 = [];
+
+      for(int i = 0; i< state.shortTermGpList.length; i++){
+        bool isContain = false;
+        selectedShortTerm2.forEach((element) {
+          if (element.id == state.shortTermGpList[i].shortgoalid) {
+            isContain = true;
+          }
+        });
+        if (!isContain) {
+          if (state.shortTermGpList[i].longGoalID == event.id) {
+            selectedShortTerm2.add(
+                SelectedShortTermResultListModel(
+                  id: state.shortTermGpList[i].shortgoalid,
+                  selectedId: state.shortTermGpList[i].longGoalID,
+                  selectedShortgoaltext: state.shortTermGpList[i].shortgoaltext,
+                  checkVal: false,
+                )
+            );
+          }
+        }
+      }
+      yield state.copyWith(selectedLtGoalId2: event.id, selectedShortTermResultListModel2: selectedShortTerm2);
+
     } else if (event is SaveSessionNoteEvent) {
       yield* saveSessionNote(event.noteText);
     } else if (event is SelectGoalSection) {
@@ -555,7 +602,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           confirmedVal: completeSessionNotes.confirmed,
           cptText: completeSessionNotes.cptText,
           missedSessions: missedSession,
-          isLock: completeSessionNotes.sessionType == sessionTypeStrings[1],
+          isLock: false,
           mCalId: completeSessionNotes.mCalId,
         );
       }

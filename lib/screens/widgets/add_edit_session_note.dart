@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 
@@ -722,6 +723,16 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   ),
                   child: InkWell(
                     onTap: (){
+                      if (state.dropDownValue == null) {
+                        Fluttertoast.showToast(msg: 'Long Term Goal is Required');
+                        return;
+                      }
+                      if (state.selectedSessionTypeIndex == 1) {
+                        if (state.mCalId == 0 || state.mCalId == null) {
+                          Fluttertoast.showToast(msg: 'Please select one of make-up sessions');
+                          return;
+                        }
+                      }
                       screenBloc.add(SaveSessionNoteEvent(noteText: noteTextController.text));
                     },
                     child: Container(
@@ -886,23 +897,9 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   },
                 ).toList(),
                 onChanged: (val) {
-                  List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
                   int selectedLtGoalId = val.longGoalID;
-
-                  for(int i = 0; i< state.shortTermGpList.length; i++){
-                    if(state.shortTermGpList[i].longGoalID == val.longGoalID){
-                      selectedShortTermResultListModel.add(
-                          SelectedShortTermResultListModel(
-                            id: state.shortTermGpList[i].shortgoalid,
-                            selectedId: state.shortTermGpList[i].longGoalID,
-                            selectedShortgoaltext: state.shortTermGpList[i].shortgoaltext,
-                            checkVal: false,
-                          )
-                      );
-                    }
-                  }
                   screenBloc.add(SelectLongTermID(id: selectedLtGoalId));
-                  screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
+                  // screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
                   screenBloc.add(UpdateDropdownValue(longGoalText: val.longGoalText));
                 },
               ),
@@ -931,21 +928,29 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                     value: item.checkVal,
                     onChanged: (newValue) {
                       List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
-
+                      print(state.selectedShortTermResultListModel.length);
                       for(int i = 0; i < state.selectedShortTermResultListModel.length; i++){
-                        if (item.id == state.selectedShortTermResultListModel[i].id){
-                          selectedShortTermResultListModel.add(
-                              SelectedShortTermResultListModel(
-                                id: state.selectedShortTermResultListModel[i].id,
-                                selectedId: state.selectedShortTermResultListModel[i].selectedId,
-                                selectedShortgoaltext: state.selectedShortTermResultListModel[i].selectedShortgoaltext,
-                                checkVal: newValue,
-                              )
-                          );
-                        } else {
-                          selectedShortTermResultListModel.add(
-                              state.selectedShortTermResultListModel[i]
-                          );
+                        bool isContain = false;
+                        selectedShortTermResultListModel.forEach((element) {
+                          if (element.id == state.selectedShortTermResultListModel[i].id) {
+                            isContain = true;
+                          }
+                        });
+                        if (!isContain) {
+                          if (item.id == state.selectedShortTermResultListModel[i].id){
+                            selectedShortTermResultListModel.add(
+                                SelectedShortTermResultListModel(
+                                  id: state.selectedShortTermResultListModel[i].id,
+                                  selectedId: state.selectedShortTermResultListModel[i].selectedId,
+                                  selectedShortgoaltext: state.selectedShortTermResultListModel[i].selectedShortgoaltext,
+                                  checkVal: newValue,
+                                )
+                            );
+                          } else {
+                            selectedShortTermResultListModel.add(
+                                state.selectedShortTermResultListModel[i]
+                            );
+                          }
                         }
                       }
                       screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
@@ -1027,23 +1032,9 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   },
                 ).toList(),
                 onChanged: (val) {
-                  List<SelectedShortTermResultListModel> selectedShortTermResultListModel = [];
                   int selectedLtGoalId = val.longGoalID;
-
-                  for(int i = 0; i< state.shortTermGpList.length; i++){
-                    if(state.shortTermGpList[i].longGoalID == val.longGoalID){
-                      selectedShortTermResultListModel.add(
-                          SelectedShortTermResultListModel(
-                            id: state.shortTermGpList[i].shortgoalid,
-                            selectedId: state.shortTermGpList[i].longGoalID,
-                            selectedShortgoaltext: state.shortTermGpList[i].shortgoaltext,
-                            checkVal: false,
-                          )
-                      );
-                    }
-                  }
                   screenBloc.add(SelectLongTermID2(id: selectedLtGoalId));
-                  screenBloc.add(UpdateSelectedShortTerms2(selectedShortTermResultListModel: selectedShortTermResultListModel));
+                  // screenBloc.add(UpdateSelectedShortTerms2(selectedShortTermResultListModel: selectedShortTerm2));
                   screenBloc.add(UpdateDropdownValue2(longGoalText: val.longGoalText));
                 },
               ),
@@ -1940,13 +1931,16 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             Container(
               margin: const EdgeInsets.all(5),
               padding:  const EdgeInsets.all(5.0),
+              width: double.infinity,
               height: 50,
               decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey)
+                  border: Border.all(color: Colors.grey),
               ),
-              child: state.missedSession.length == 0 ? Text(
-                'No Makeup dates available for this Mandate' ,
-                maxLines: 1,
+              child: state.missedSession.length == 0 ? Center(
+                  child: Text(
+                    'No Makeup dates available for this Mandate' ,
+                    maxLines: 1,
+                  )
               ): DropdownButton(
                 underline: Container(),
                 hint: state.mCalId == 0 ? Text(
