@@ -729,7 +729,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                       }
                       if (state.selectedSessionTypeIndex == 1) {
                         if (state.mCalId == 0 || state.mCalId == null) {
-                          Fluttertoast.showToast(msg: 'Please select one of make-up sessions');
+                          Fluttertoast.showToast(msg: 'Makeup date selection is required');
                           return;
                         }
                       }

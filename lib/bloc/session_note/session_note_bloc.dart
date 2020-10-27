@@ -636,10 +636,18 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         shortTerms.add(ShortGoalIDs(shortGoalID: model.id));
       }
     }
-    var goal = Goals(longGoalID: state.selectedLtGoalId, shortGoalIDs: shortTerms);
-    goals.add(goal);
+    List<ShortGoalIDs> shortTerms2 = List();
+    for (SelectedShortTermResultListModel model in state.selectedShortTermResultListModel2) {
+      if (model.checkVal) {
+        shortTerms2.add(ShortGoalIDs(shortGoalID: model.id));
+      }
+    }
+    if (state.selectedLtGoalId > -1) {
+      var goal = Goals(longGoalID: state.selectedLtGoalId, shortGoalIDs: shortTerms);
+      goals.add(goal);
+    }
     if (state.selectedLtGoalId2 > -1) {
-      var goal2 = Goals(longGoalID: state.selectedLtGoalId2, shortGoalIDs: shortTerms);
+      var goal2 = Goals(longGoalID: state.selectedLtGoalId2, shortGoalIDs: shortTerms2);
       goals.add(goal2);
     }
     List<SessionNoteExtrasList> sessionNoteExtrasList = [];
@@ -662,18 +670,18 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
                 sNESubDetailID: 0));
       }
     });
-    if (state.selectedOutComesIndex > -1) {
+    if (state.selectedOutComesIndex > -1 && state.selectedLtGoalId > -1) {
       sessionNoteExtrasList.add(
           SessionNoteExtrasList(sNECategoryID: GlobalCall.outcomes.categoryData[0].mainCategoryID,
               sNECategoryDetailID: state.outComesListItems[state.selectedOutComesIndex].categoryTextID,
-              sNESubDetailID: 0));
+              sNESubDetailID: state.selectedLtGoalId));
     }
 
-    if (state.selectedOutComesIndex2 > -1) {
+    if (state.selectedOutComesIndex2 > -1 && state.selectedLtGoalId2 > -1) {
       sessionNoteExtrasList.add(
           SessionNoteExtrasList(sNECategoryID: GlobalCall.outcomes.categoryData[0].mainCategoryID,
               sNECategoryDetailID: state.outComesListItems[state.selectedOutComesIndex2].categoryTextID,
-              sNESubDetailID: 0));
+              sNESubDetailID: state.selectedLtGoalId2));
     }
 
     if (state.selectedCAIconIndex > -1) {
@@ -710,16 +718,16 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String providerid = prefs.getString('providerid');
-    String gNote = '';
-    if (state.selectedSessionTypeIndex > 3) {
-      gNote = noteText;
-    } else {
-      if (state.sessionId == null) {
-        gNote = generateNoteText() + '\n' + noteText;
-      } else {
-        gNote = noteText;
-      }
-    }
+    // String gNote = '';
+    // if (state.selectedSessionTypeIndex > 3) {
+    //   gNote = noteText;
+    // } else {
+    //   if (state.sessionId == null) {
+    //     gNote = generateNoteText() + '\n' + noteText;
+    //   } else {
+    //     gNote = noteText;
+    //   }
+    // }
     AddSessionResponse newPost = new AddSessionResponse(
       providerId: providerid,
       studentID: state.student.studentID.toInt(),
@@ -730,7 +738,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       manDateType: state.groupType,
       location: locationHomeOrSchool,
       sessionType: sessionTypeStrings[state.selectedSessionTypeIndex],
-      notes: gNote,
+      notes: noteText,
       confirmed: 0,
       goals: goals,
       activities: activities,
@@ -773,6 +781,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
   }
 
   String generateNoteText() {
+    if (state.selectedLtGoalId < 0) {
+      return '';
+    }
     String student = state.student.name;
     String noteText = 'IEP goals targeted in this session include:\n';
     String longTerm1 = state.dropDownValue + ' ';
