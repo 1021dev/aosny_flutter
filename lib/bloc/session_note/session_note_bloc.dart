@@ -36,8 +36,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       SessionNoteScreenEvent event,) async* {
     if (event is SessionNoteScreenInitEvent) {
       String showDate = DateFormat('EEEE, MMMM d').format(DateTime.now()).toString();
+      DateTime selectedDate = event.selectedTime != null ? event.selectedTime: new DateTime.now();
       TimeOfDay selectedTime = new TimeOfDay.now();
-      DateTime selectedDate = DateTime.now();
 
       yield state.copyWith(
         student: event.student,
@@ -591,6 +591,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     }
     var goal = Goals(longGoalID: state.selectedLtGoalId, shortGoalIDs: shortTerms);
     goals.add(goal);
+    if (state.selectedLtGoalId2 > -1) {
+      var goal2 = Goals(longGoalID: state.selectedLtGoalId2, shortGoalIDs: shortTerms);
+      goals.add(goal2);
+    }
     List<SessionNoteExtrasList> sessionNoteExtrasList = [];
 
     state.sPcheckListItems.forEach((element) {
@@ -615,6 +619,13 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       sessionNoteExtrasList.add(
           SessionNoteExtrasList(sNECategoryID: GlobalCall.outcomes.categoryData[0].mainCategoryID,
               sNECategoryDetailID: state.outComesListItems[state.selectedOutComesIndex].categoryTextID,
+              sNESubDetailID: 0));
+    }
+
+    if (state.selectedOutComesIndex2 > -1) {
+      sessionNoteExtrasList.add(
+          SessionNoteExtrasList(sNECategoryID: GlobalCall.outcomes.categoryData[0].mainCategoryID,
+              sNECategoryDetailID: state.outComesListItems[state.selectedOutComesIndex2].categoryTextID,
               sNESubDetailID: 0));
     }
 
@@ -652,6 +663,16 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String providerid = prefs.getString('providerid');
+    String gNote = '';
+    if (state.selectedSessionTypeIndex > 3) {
+      gNote = noteText;
+    } else {
+      if (state.sessionId == null) {
+        gNote = generateNoteText() + '\n' + noteText;
+      } else {
+        gNote = noteText;
+      }
+    }
     AddSessionResponse newPost = new AddSessionResponse(
       providerId: providerid,
       studentID: state.student.studentID.toInt(),
@@ -662,7 +683,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       manDateType: state.groupType,
       location: locationHomeOrSchool,
       sessionType: sessionTypeStrings[state.selectedSessionTypeIndex],
-      notes: noteText,
+      notes: gNote,
       confirmed: 0,
       goals: goals,
       activities: activities,
@@ -676,25 +697,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     try {
       AddSessionResponse responseAddSession = await addSessionNoteApi.addSessionDetails(url, body: newPost.toJson());
       yield state.copyWith(isLoading: false);
-      yield SessionNoteScreenStateSuccess();
+      yield SessionNoteScreenStateSuccess(selectedDate: state.selectedDate, finalNumber: state.finalNumber);
     } catch (error) {
       print(error.toString());
       yield state.copyWith(isLoading: false);
-      // String showDate = DateFormat('EEEE, MMMM d').format(DateTime.now()).toString();
-      // TimeOfDay selectedTime = new TimeOfDay.now();
-      // DateTime selectedDate = DateTime.now();
-
-      // yield SessionNoteScreenStateFailure(
-      //   error: error.toString(),
-      //   student: state.student,
-      //   selectedStudentName: state.selectedStudentName,
-      //   eventType: state.eventType,
-      //   noteText: state.noteText,
-      //   sessionNotes: state.sessionNotes,
-      //   sessionId: state.sessionId,
-      //   selectedDate: selectedDate,
-      //   selectedTime: selectedTime,
-      // );
     }
   }
 
@@ -717,5 +723,151 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     } catch (error) {
       yield state.copyWith(isLoading: false);
     }
+  }
+
+  String generateNoteText() {
+    String student = state.student.name;
+    String noteText = 'IEP goals targeted in this session include:\n';
+    String longTerm1 = state.dropDownValue + ' ';
+    String shortTerm1 = '';
+    for (SelectedShortTermResultListModel model in state.selectedShortTermResultListModel) {
+      if (model.checkVal) {
+        shortTerm1 += model.selectedShortgoaltext + '\n';
+      }
+    }
+    String outcome1 = 'Outcome was ';
+    if (state.selectedOutComesIndex > -1) {
+      outcome1 += state.outComesListItems[state.selectedOutComesIndex].categoryTextDetail.replaceAll('student', student) + '.\n';
+    }
+
+    String longTerm2 = '';
+    String shortTerm2 = '';
+    String outcome2 = '';
+    String goal2 = '';
+
+    if (state.selectedLtGoalId2 > -1) {
+      if (state.dropDownValue2 != null) {
+        longTerm2 = state.dropDownValue2;
+        for (SelectedShortTermResultListModel model in state.selectedShortTermResultListModel2) {
+          if (model.checkVal) {
+            shortTerm2 += model.selectedShortgoaltext + '\n';
+          }
+        }
+        outcome2 = 'Outcome was ';
+        if (state.selectedOutComesIndex2 > -1) {
+          outcome2 += state.outComesListItems[state.selectedOutComesIndex2].categoryTextDetail.replaceAll('student', student) + '.\n';
+        }
+      }
+      if (longTerm1 != '' && shortTerm2 != '' && outcome2 != '') {
+        goal2 = longTerm2 + '\n' + shortTerm2 + '\n' + outcome2 + '\n';
+      }
+    }
+
+    String activities = student + ' participated in these activities and the session consisted of the following: \n';
+    bool addCRLF = false;
+    bool addAnd = false;
+    String separator = '';
+    String prevCategory = '';
+
+    state.activitiesListItems.forEach((key, alist) {
+      String prefix = '';
+      switch (alist[0].title) {
+        case 'Free Play/Center':
+          prefix = 'Including';
+          break;
+        case 'Art':
+          prefix = 'Including';
+          break;
+        case 'Circle Time':
+          prefix = 'Addressing';
+          break;
+        case 'Lesson Time':
+          prefix = 'Addressing';
+          break;
+        case 'Mealtime/Snack time':
+          prefix = 'Addressing';
+          break;
+        case 'Transition':
+          prefix = 'During';
+          break;
+        case 'Gross Motor':
+          prefix = 'Participating in';
+          break;
+        case 'Small Group Activity':
+          prefix = 'Targeting';
+          break;
+        case 'Trip/Special Events':
+          prefix = 'Trip';
+          break;
+        default:
+          break;
+      }
+      activities += alist[0].title + ' - ' + prefix + ' ';
+      int sameCount = 0;
+      if (prevCategory != alist[0].title && prevCategory != '') {
+        addCRLF = true;
+        addAnd = true;
+      } else {
+        separator = ', ';
+      }
+      for(int j = 1; j < alist.length; j++) {
+        if (alist[j].checkVal) {
+          sameCount += 1;
+          if (sameCount > 1 && addAnd) {
+            separator = ' and ';
+          } else if (sameCount > 1 && addAnd == false) {
+            separator = ', ';
+          } else {
+            separator = '';
+          }
+          activities += separator + alist[j].title;
+          if (addCRLF) {
+            activities += '\n';
+          }
+        }
+      }
+    });
+
+    String spString = '';
+    state.sPcheckListItems.forEach((element) {
+      if (element.checkVal) {
+        if (spString == '') {
+          spString += element.title;
+        } else {
+          spString += 'and ' + element.title;
+        }
+      }
+    });
+    if (spString != '') {
+      spString = student + ' ' + spString + '.';
+    }
+    String siString = '';
+    state.sIcheckListItems.forEach((element) {
+      if (element.checkVal) {
+        if (siString == '') {
+          siString += element.title;
+        } else {
+          siString += 'and ' + element.title;
+        }
+      }
+    });
+    if (siString != '') {
+      siString = 'These Seit interventions were used to prompt goal oriented learning using ' + spString + '.';
+    }
+
+    String caString = '';
+    if (state.selectedCAIconIndex > -1) {
+      caString = student + ' ' + state.cAcheckListItems[state.selectedCAIconIndex].categoryTextDetail;
+    }
+
+    String jaString = '';
+    if (state.selectedJAIconIndex > -1) {
+      jaString = student + ' ' + state.jAcheckListItems[state.selectedJAIconIndex].categoryTextDetail;
+    }
+
+    noteText += longTerm1 + '\n' + shortTerm1 + '\n' + outcome1 + '\n' + goal2 + activities + '\n' + spString + siString + caString + jaString;
+
+    print(noteText);
+    return noteText;
   }
 }

@@ -1,7 +1,7 @@
 name: aosny_services
 description: A new Flutter project.
 
-version: 1.0.8+10
+version: 1.0.9+11
 
 environment:
   sdk: ">=2.1.0 <3.0.0"

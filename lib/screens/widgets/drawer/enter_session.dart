@@ -5,10 +5,7 @@ import 'package:aosny_services/models/students_details_model.dart';
 import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
 import 'package:flutter/material.dart';
 
-import '../../login_screen.dart';
-import '../../menu_screen.dart';
 import 'drawer_widget.dart';
-import 'notification_screen.dart';
 
 class EnterSession extends StatefulWidget {
   static const String routeName = '/enterSession';

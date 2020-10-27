@@ -187,6 +187,23 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                     ),
                     onPressed: () {
                       Navigator.pop(context);
+                      var selectedDate2 = new DateFormat('hh:mm a');
+                      String selectedTime = selectedDate2.format(state.selectedDate);
+
+                      int h = state.selectedDate.hour;
+                      int m = state.selectedDate.minute;
+                      if (state.finalNumber == 30) {
+                        if ((m + 30) >= 60) {
+                          h = h + 1;
+                          m = m + 30 - 60;
+                        } else {
+                          m = m + 30;
+                        }
+                      } else {
+                        h = h + 1;
+                      }
+                      DateTime selectedDate = DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day, h, m);
+                      noteTextController.text = '';
                       screenBloc.add(
                           SessionNoteScreenInitEvent(
                             studentId: widget.student.studentID.toInt(),
@@ -196,13 +213,9 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                             sessionId: widget.sessionId,
                             sessionNotes: widget.sessionNotes,
                             student: widget.student,
+                            selectedTime: selectedDate,
                           )
                       );
-                      // Navigator.of(context).pushReplacement(
-                      //     MaterialPageRoute(
-                      //         builder: (context)=> EnterSession()
-                      //     )
-                      // );
                     },
                   ),
                 ],
@@ -1931,7 +1944,10 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey)
               ),
-              child: DropdownButton(
+              child: state.missedSession.length == 0 ? Text(
+                'No Makeup dates available for this Mandate' ,
+                maxLines: 1,
+              ): DropdownButton(
                 underline: Container(),
                 hint: state.mCalId == 0 ? Text(
                   'Select your choice' ,
@@ -2235,9 +2251,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
       ],
     );
   }
-
-
-
 
   Widget secondRowEditWidget(SessionNoteScreenState state){
     return  Row(
