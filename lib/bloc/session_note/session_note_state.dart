@@ -365,7 +365,11 @@ class SessionNoteScreenState extends Equatable {
   }
 }
 
-class SessionNoteScreenStateSuccess extends SessionNoteScreenState {}
+class SessionNoteScreenStateSuccess extends SessionNoteScreenState {
+  final DateTime selectedDate;
+  final int finalNumber;
+  SessionNoteScreenStateSuccess({this.selectedDate, this.finalNumber});
+}
 
 class SessionNoteScreenStateFailure extends SessionNoteScreenState {
   final String error;
