@@ -274,7 +274,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 
     LoginResponse response = await loginapiCall.loginApiCall(url, body: newPost.toJson());
-
+    GlobalCall.user = response;
     int codeVal = loginapiCall.statuscode;
 
     if(codeVal == 200){
@@ -289,6 +289,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       prefs.setString('token', response.token);
       prefs.setString('password', _passwordController.text);
       prefs.setString('name', _nameController.text);
+      prefs.setString('firstName', response.firstName);
+      prefs.setString('lastName', response.lastName);
 
       GlobalCall.singUpEmil = _emailController.text;
       GlobalCall.name = _nameController.text;

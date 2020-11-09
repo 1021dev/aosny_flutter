@@ -24,6 +24,7 @@ class StudentApi{
     String providerid = prefs.getString('providerid');
 
     String url = baseURL + "Provider/" + providerid + "/students";
+    print(url);
 
 
     List<StudentsDetailsModel> result;
@@ -32,9 +33,9 @@ class StudentApi{
       int statusCode = response.statusCode;
       
       print("Code::");
-      print(statusCode); 
+      print(statusCode);
 
-      if (statusCode < 200 || statusCode > 400 || json == null) {
+      if (statusCode < 200 || statusCode >= 400 || json == null) {
         throw new Exception("Error while fetching data");
       }
 

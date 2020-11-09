@@ -347,7 +347,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
 
     LoginResponse response = await loginapiCall.loginApiCall(url, body: newPost.toJson());
-
+    GlobalCall.user = response;
     int codeVal = loginapiCall.statuscode;
 
     if(codeVal == 200){
@@ -356,6 +356,8 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setInt('user_id', response.userId);
       prefs.setString('email', response.email);
       prefs.setString('userName', response.userName);
+      prefs.setString('firstName', response.firstName);
+      prefs.setString('lastName', response.lastName);
       prefs.setString('providerid', response.providerid);
       prefs.setString('token', response.token);
       prefs.setString('password', passwordString);

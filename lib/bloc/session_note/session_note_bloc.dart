@@ -202,7 +202,19 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     yield state.copyWith(isLoading: true);
     try {
       List<LongTermGpDropDownModel> longTermGpDropDownList = await _sessionApi.getLongTermGpDropDownList(studentId);
-      List<ShortTermGpModel> shortTermGpList = await _sessionApi.getShortTermGpList(studentId);
+      List<ShortTermGpModel> temp = await _sessionApi.getShortTermGpList(studentId);
+      List<ShortTermGpModel> shortTermGpList = [];
+      temp.forEach((element) {
+        bool isContain = false;
+        shortTermGpList.forEach((element1) {
+          if (element.longGoalID == element1.longGoalID && element.shortgoalid == element1.shortgoalid) {
+            isContain = true;
+          }
+        });
+        if (!isContain) {
+          shortTermGpList.add(element);
+        }
+      });
 
       List<CheckList> gPcheckListItems = [];
       List<CategoryTextAndID> spListItems = [];
@@ -344,12 +356,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           if(shortTermGpList[i].longGoalID == selectedLtGoalId){
             bool isSelect = false;
             if (goals.length > 0) {
-              goals.forEach((element) {
-                element.shortGoalIDs.forEach((element) {
-                  if (element.shortGoalID == shortTermGpList[i].shortgoalid) {
-                    isSelect = true;
-                  }
-                });
+              goals[0].shortGoalIDs.forEach((element) {
+                if (element.shortGoalID == shortTermGpList[i].shortgoalid) {
+                  isSelect = true;
+                }
               });
             }
             selectedShortTermResultListModel.add(
@@ -363,13 +373,11 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           }
           if(shortTermGpList[i].longGoalID == selectedLtGoalId2){
             bool isSelect = false;
-            if (goals.length > 0) {
-              goals.forEach((element) {
-                element.shortGoalIDs.forEach((element) {
-                  if (element.shortGoalID == shortTermGpList[i].shortgoalid) {
-                    isSelect = true;
-                  }
-                });
+            if (goals.length > 1) {
+              goals[1].shortGoalIDs.forEach((element) {
+                if (element.shortGoalID == shortTermGpList[i].shortgoalid) {
+                  isSelect = true;
+                }
               });
             }
             selectedShortTermResultListModel2.add(
@@ -460,11 +468,17 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         endDateTime =  toPassDate.add(Duration(days: 0, hours: 0, minutes: int.parse(duration)));
 
         sessionEndTime = DateFormat.jm().format(endDateTime);
-        List<LongTermGpDropDownModel> models = state.longTermGpDropDownList.where((element) => element.longGoalID == state.selectedLtGoalId).toList();
-        if (models.length > 1) {
-          dropDownValue2 = models[1].longGoalText;
-        } else if (models.length > 0) {
-          dropDownValue = models.first.longGoalText;
+        if (selectedLtGoalId > -1) {
+          List<LongTermGpDropDownModel> models = state.longTermGpDropDownList.where((element) => element.longGoalID == selectedLtGoalId).toList();
+          if (models.length > 0) {
+            dropDownValue = models[0].longGoalText;
+          }
+        }
+        if (selectedLtGoalId2 > -1) {
+          List<LongTermGpDropDownModel> models = state.longTermGpDropDownList.where((element) => element.longGoalID == selectedLtGoalId2).toList();
+          if (models.length > 0) {
+            dropDownValue2 = models[1].longGoalText;
+          }
         }
         List<SessionNoteExtrasList> sessionNotesExtras = completeSessionNotes.sessionNoteExtrasList;
 
@@ -545,7 +559,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
               if (sessionNotesExtras.length > 0) {
                 sessionNotesExtras.forEach((element) {
                   if (element.sNECategoryID == GlobalCall.outcomes.categoryData[0].mainCategoryID) {
-                    if (element.sNECategoryDetailID == data.categoryTextID) {
+                    if (element.sNESubDetailID == data.categoryTextID) {
                       temp = data;
                     }
                   }
@@ -615,7 +629,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
 
 
   Stream<SessionNoteScreenState> saveSessionNote(String noteText) async* {
-    yield state.copyWith(isLoading: true);
+    yield state.copyWith(isLoading: true, noteText: noteText);
     var selectedDate1 = new DateFormat('MM/dd/yy');
     var selectedDate2 = new DateFormat('hh:mm a');
 
@@ -673,15 +687,15 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     if (state.selectedOutComesIndex > -1 && state.selectedLtGoalId > -1) {
       sessionNoteExtrasList.add(
           SessionNoteExtrasList(sNECategoryID: GlobalCall.outcomes.categoryData[0].mainCategoryID,
-              sNECategoryDetailID: state.outComesListItems[state.selectedOutComesIndex].categoryTextID,
-              sNESubDetailID: state.selectedLtGoalId));
+              sNESubDetailID: state.outComesListItems[state.selectedOutComesIndex].categoryTextID,
+              sNECategoryDetailID: state.selectedLtGoalId));
     }
 
     if (state.selectedOutComesIndex2 > -1 && state.selectedLtGoalId2 > -1) {
       sessionNoteExtrasList.add(
           SessionNoteExtrasList(sNECategoryID: GlobalCall.outcomes.categoryData[0].mainCategoryID,
-              sNECategoryDetailID: state.outComesListItems[state.selectedOutComesIndex2].categoryTextID,
-              sNESubDetailID: state.selectedLtGoalId2));
+              sNESubDetailID: state.outComesListItems[state.selectedOutComesIndex2].categoryTextID,
+              sNECategoryDetailID: state.selectedLtGoalId2));
     }
 
     if (state.selectedCAIconIndex > -1) {

@@ -22,7 +22,7 @@ Future<bool> deleteSession(int id) async {
 
       statuscode = statusCode;
 
-      if (statusCode < 200 || statusCode > 400 || json == null) {
+      if (statusCode < 200 || statusCode >= 400 || json == null) {
         dynamic data = json.decode(response.body);
         print(data);
         Fluttertoast.showToast(msg: data['Message'] ?? 'error', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
