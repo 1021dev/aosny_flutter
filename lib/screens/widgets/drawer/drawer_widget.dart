@@ -54,7 +54,10 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   Widget build(BuildContext context) {
     if (preferences != null) {
       String userName = preferences.getString('userName') ?? '';
+      String firstName = preferences.getString('firstName') ?? '';
+      String lastName = preferences.getString('lastName') ?? '';
       String email = preferences.getString('email') ?? '';
+      GlobalCall.fullName = '$firstName $lastName';
       GlobalCall.name = userName;
       GlobalCall.email = email;
     }
@@ -77,7 +80,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                         ),
                         accountName: Container(
                           child: Text(
-                            GlobalCall.name != '' ? GlobalCall.name ?? '' : '',
+                            GlobalCall.fullName != '' ? GlobalCall.fullName ?? '' : '',
                             style: TextStyle(fontSize: 16,color: Colors.white,fontWeight: FontWeight.normal),
                           ),
                         ),

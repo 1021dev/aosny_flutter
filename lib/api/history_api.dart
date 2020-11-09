@@ -20,8 +20,8 @@ class HistoryApi{
 
     return http.get(url,headers:  {HttpHeaders.contentTypeHeader: "application/json", HttpHeaders.authorizationHeader: "Bearer $token"}).then((http.Response response) {
       int statusCode = response.statusCode;
-      
-      if (statusCode < 200 || statusCode > 400 || json == null) {
+
+      if (statusCode < 200 || statusCode >= 400 || json == null) {
         throw new Exception("Error while fetching data");
       }
 

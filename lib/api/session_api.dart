@@ -29,7 +29,7 @@ class SessionApi{
       print("Code::getLongTermGpDropDownList");
       print(statusCode);
 
-      if (statusCode < 200 || statusCode > 400 || json == null) {
+      if (statusCode < 200 || statusCode >= 400 || json == null) {
         throw new Exception("Error while fetching data");
       }
 
@@ -66,7 +66,7 @@ class SessionApi{
       print("Code::getShortTermGpList");
       print(statusCode);
 
-      if (statusCode < 200 || statusCode > 400 || json == null) {
+      if (statusCode < 200 || statusCode >= 400 || json == null) {
         throw new Exception("Error while fetching data");
       }
 

@@ -1,4 +1,5 @@
 import 'package:aosny_services/models/category_list.dart';
+import 'package:aosny_services/models/login_response.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ class GlobalCall extends ChangeNotifier{
  static var email  = "";
  static var singUpEmil  = "";
  static var name  = "";
+ static var fullName  = "";
  static var sessionID = "";
 
  static List<StudentsDetailsModel> globaleStudentList = new List();
@@ -34,6 +36,7 @@ class GlobalCall extends ChangeNotifier{
  static String sessionType = '';
  static bool filterSessionTypes = false;
  static int providerID = 0;
+ static LoginResponse user;
 
 }
 

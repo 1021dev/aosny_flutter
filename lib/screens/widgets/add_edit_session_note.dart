@@ -736,9 +736,11 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                       screenBloc.add(SaveSessionNoteEvent(noteText: noteTextController.text));
                     },
                     child: Container(
-                        color: Colors.blue,
-                        alignment: Alignment.center,
-                        child: Text('Save',style: TextStyle(color:Colors.white),)
+                      color: Colors.blue,
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Save',style: TextStyle(color:Colors.white),
+                      ),
                     ),
                   ),
                 ),
@@ -847,7 +849,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             Padding(
               padding: EdgeInsets.only(left: 8, top: 8),
               child: Text(
-                'Goal Group1',
+                'Goal Group 1:',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
@@ -972,13 +974,13 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               padding: EdgeInsets.only(left: 8, top: 8),
               child:  Text.rich(
                 TextSpan(
-                  text: 'Goal Group2',
+                  text: 'Goal Group 2:',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
                   children: <TextSpan>[
                     TextSpan(
-                      text: '(Optional)',
+                      text: ' (Optional)',
                       style: TextStyle(
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.normal
@@ -990,8 +992,24 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
             Padding(
               padding: EdgeInsets.only(left: 8, top: 8),
-              child: Text(
-                'Long Term Goals: ',
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Long Term Goals: ',
+                  ),
+                  MaterialButton(
+                    onPressed: () {
+                      int selectedLtGoalId = -1;
+                      screenBloc.add(SelectLongTermID2(id: selectedLtGoalId));
+                      screenBloc.add(UpdateDropdownValue2(longGoalText: ''));
+                    },
+                    padding: EdgeInsets.zero,
+                    child: Text(
+                      'Clear',
+                    ),
+                  ),
+                ],
               ),
             ),
             Container(
@@ -1003,7 +1021,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               ),
               child: DropdownButton(
                 underline: Container(),
-                hint:  state.dropDownValue2 == null ? Text(
+                hint:  state.dropDownValue2 == null || state.dropDownValue2 == '' ? Text(
                   'Select your choice' ,
                   maxLines: 1,
                 )
@@ -1797,6 +1815,10 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           ),
           child: ListTile(
             onTap: () {
+              if (state.selectedLtGoalId2 == -1) {
+                Fluttertoast.showToast(msg: 'Select Long term Goal 2 first:');
+                return;
+              }
               showModalBottomSheet<void>(
                 context: context,
                 builder: (BuildContext context) {
@@ -1834,7 +1856,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             },
             dense: true,
             title: Text(
-              state.selectedOutComesIndex2 > -1 ? state.outComesListItems[state.selectedOutComesIndex].categoryTextDetail: 'Select Your Choice',
+              state.selectedOutComesIndex2 > -1 ? state.outComesListItems[state.selectedOutComesIndex2].categoryTextDetail: 'Select Your Choice',
               style: TextStyle(
                 color: Colors.blue,
               ),
