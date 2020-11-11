@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/category_list.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'env.dart';
@@ -25,17 +26,19 @@ class PreLoadApi{
       return false;
     }
 
-    for (String key in preloadKeys) {
-      await PreLoadApi().getPreLoadData(key);
-    }
+    // for (String key in preloadKeys) {
+    //   await PreLoadApi().getPreLoadData(key);
+    // }
     print('load all');
+    await getPreLoadData('all');
+
     return true;
   }
 
-  Future<CategoryList> getPreLoadData(String type) async {
+  Future<bool> getPreLoadData(String type) async {
 
     String url =  baseURL + "PreLoad/$type";
-    CategoryList result;
+    bool result = false;
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     String token = prefs.getString('token') ?? '';
@@ -50,38 +53,41 @@ class PreLoadApi{
       print("Code::$type");
       print(statusCode);
 
-      if (statusCode < 200 || statusCode >= 400 || json == null) {
-        throw new Exception("Error while fetching data");
-      }
-
       var data = json.decode(response.body);
+      print("DATA:$data");
+
+      if (statusCode < 200 || statusCode >= 400 || json == null) {
+        Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
+        throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      }
       print("$type => $data");
 
-      result = CategoryList.fromJson(data);
-
-      print(" $type result List Size: ${result.categoryData.length}");
-
-      switch (type) {
-        case "SocialPragmatics":
-          GlobalCall.socialPragmatics = result;
-          return result;
-        case "SEITIntervention":
-          GlobalCall.SEITIntervention = result;
-          return result;
-        case "CompletedActivity":
-          GlobalCall.completedActivity = result;
-          return result;
-        case "JointAttention":
-          GlobalCall.jointAttention = result;
-          return result;
-        case "Activities":
-          GlobalCall.activities = result;
-          return result;
-        case "Outcomes":
-          GlobalCall.outcomes = result;
-          return result;
+      if (data is Map) {
+        data.forEach((key, value) {
+          switch (key) {
+            case "socialPragmatics":
+              GlobalCall.socialPragmatics = CategoryList.fromJson(value);
+              break;
+            case "seitINtervention":
+              GlobalCall.SEITIntervention = CategoryList.fromJson(value);
+              break;
+            case "completedActivity":
+              GlobalCall.completedActivity = CategoryList.fromJson(value);
+              break;
+            case "jointAttention":
+              GlobalCall.jointAttention = CategoryList.fromJson(value);
+              break;
+            case "loadActivities":
+              GlobalCall.activities = CategoryList.fromJson(value);
+              break;
+            case "outComes":
+              GlobalCall.outcomes = CategoryList.fromJson(value);
+              break;
+          }
+        });
       }
-      return result;
+
+      return true;
     });
   }
 

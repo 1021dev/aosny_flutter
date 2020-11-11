@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:aosny_services/models/login_response.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
  
@@ -22,13 +23,17 @@ class LoginApi{
       print('CODE::::');
       print(statusCode);
 
+      var data = json.decode(response.body);
+      print("DATA:$data");
+
       if (statusCode < 200 || statusCode >= 400 || json == null) {
-        throw new Exception('Error while fetching data');
+        Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
+        throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
       }
       print('data::Login');
       print(response.body);
 
-      return LoginResponse.fromJson(json.decode(response.body));
+      return LoginResponse.fromJson(data);
     });
   }
 

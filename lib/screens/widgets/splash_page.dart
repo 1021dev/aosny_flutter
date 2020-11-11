@@ -19,12 +19,7 @@ class _MyAppState extends State<SplashScreenPage> {
 
   @override
   void initState() {
-    PreLoadApi().getPreLoadData('SocialPragmatics');
-    PreLoadApi().getPreLoadData('Outcomes');
-    PreLoadApi().getPreLoadData('SEITIntervention');
-    PreLoadApi().getPreLoadData('CompletedActivity');
-    PreLoadApi().getPreLoadData('JointAttention');
-    PreLoadApi().getPreLoadData('Activities');
+    PreLoadApi().fetchPreLoad();
     SharedPreferences.getInstance().then((pref) {
       String token = pref.getString('token') ?? '';
       setState(() {
