@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:aosny_services/models/missed_session_model.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,12 +66,12 @@ class CompleteSessionApi {
       print("CODE::::");
       print(statusCode);
 
-      if (statusCode < 200 || statusCode >= 400 || json == null) {
-        throw new Exception("Error while fetching data");
-      }
-
       var data = json.decode(response.body);
       print("Missed Session Notes:$data");
+      if (statusCode < 200 || statusCode >= 400 || json == null) {
+        Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
+        throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      }
 
       List<MissedSessionModel> array = [];
       if (data is List) {

@@ -724,7 +724,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   child: InkWell(
                     onTap: (){
                       if (state.dropDownValue == null) {
-                        Fluttertoast.showToast(msg: 'Long Term Goal is Required');
                         return;
                       }
                       if (state.selectedSessionTypeIndex == 1) {
@@ -885,20 +884,37 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                 style: TextStyle(color: Colors.black),
                 items: state.longTermGpDropDownList.map(
                       (val) {
+                        int isContain = 0;
+                        if (state.selectedLtGoalId == val.longGoalID) {
+                          isContain = 1;
+                        } else if (state.selectedLtGoalId2 == val.longGoalID) {
+                          isContain = 2;
+                        }
                     return DropdownMenuItem<LongTermGpDropDownModel>(
                       value: val,
-                      child: Column(
-                        children: <Widget>[
-                          Text(val.longGoalText),
-                          Container(height: 5,),
-                          Divider(height: 10,color: Colors.black,),
-                          Container(height: 5,),
-                        ],
+                      child: Container(
+                        child: Column(
+                          children: <Widget>[
+                            Container(height: 5,),
+                            Text(
+                              val.longGoalText,
+                              style: TextStyle(
+                                color: isContain == 1 ? Colors.red : ( isContain == 2 ? Colors.blue : Colors.black),
+                                fontWeight: isContain == 1 || isContain == 2 ? FontWeight.bold: FontWeight.normal,
+                              ),
+                            ),
+                            Container(height: 5,),
+                            Divider(height: 10,color: Colors.black,),
+                          ],
+                        ),
                       ),
                     );
                   },
                 ).toList(),
                 onChanged: (val) {
+                  if (val.longGoalID == state.selectedLtGoalId2) {
+                    return;
+                  }
                   int selectedLtGoalId = val.longGoalID;
                   screenBloc.add(SelectLongTermID(id: selectedLtGoalId));
                   // screenBloc.add(UpdateSelectedShortTerms(selectedShortTermResultListModel: selectedShortTermResultListModel));
@@ -1036,20 +1052,37 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                 style: TextStyle(color: Colors.black),
                 items: state.longTermGpDropDownList.map(
                       (val) {
-                    return DropdownMenuItem<LongTermGpDropDownModel>(
-                      value: val,
-                      child: Column(
-                        children: <Widget>[
-                          Text(val.longGoalText),
-                          Container(height: 5,),
-                          Divider(height: 10,color: Colors.black,),
-                          Container(height: 5,),
-                        ],
-                      ),
-                    );
+                        int isContain = 0;
+                        if (state.selectedLtGoalId == val.longGoalID) {
+                          isContain = 1;
+                        } else if (state.selectedLtGoalId2 == val.longGoalID) {
+                          isContain = 2;
+                        }
+                        return DropdownMenuItem<LongTermGpDropDownModel>(
+                          value: val,
+                          child: Container(
+                            child: Column(
+                              children: <Widget>[
+                                Container(height: 5,),
+                                Text(
+                                  val.longGoalText,
+                                  style: TextStyle(
+                                    color: isContain == 1 ? Colors.red : ( isContain == 2 ? Colors.blue : Colors.black),
+                                    fontWeight: isContain == 1 || isContain == 2 ? FontWeight.bold: FontWeight.normal,
+                                  ),
+                                ),
+                                Container(height: 5,),
+                                Divider(height: 10,color: Colors.black,),
+                              ],
+                            ),
+                          ),
+                        );
                   },
                 ).toList(),
                 onChanged: (val) {
+                  if (val.longGoalID == state.selectedLtGoalId) {
+                    return;
+                  }
                   int selectedLtGoalId = val.longGoalID;
                   screenBloc.add(SelectLongTermID2(id: selectedLtGoalId));
                   // screenBloc.add(UpdateSelectedShortTerms2(selectedShortTermResultListModel: selectedShortTerm2));
@@ -1744,6 +1777,10 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           ),
           child: ListTile(
             onTap: () {
+              print(state.selectedLtGoalId);
+              if (state.selectedLtGoalId == -1) {
+                return;
+              }
               showModalBottomSheet<void>(
                 context: context,
                 builder: (BuildContext context) {
@@ -1816,7 +1853,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           child: ListTile(
             onTap: () {
               if (state.selectedLtGoalId2 == -1) {
-                Fluttertoast.showToast(msg: 'Select Long term Goal 2 first:');
                 return;
               }
               showModalBottomSheet<void>(

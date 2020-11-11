@@ -317,9 +317,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           }
         }
       }
-      if (longTermGpDropDownList.length > 0 ) {
-        selectedLtGoalId = longTermGpDropDownList[0].longGoalID;
-      }
 
       yield state.copyWith(
         isLoading: state.sessionId != null,

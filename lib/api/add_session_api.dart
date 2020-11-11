@@ -29,8 +29,8 @@ Future<AddSessionResponse> addSessionDetails(String url,{Map body}) async {
       if (statusCode < 200 || statusCode >= 400 || json == null) {
         dynamic data = json.decode(response.body);
         print(data);
-        Fluttertoast.showToast(msg: data['Message'] ?? 'error', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
-        throw new Exception(data['Message'] ?? 'error');
+        Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
+        throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
       }
       print("data::add session");
       print(response.body);

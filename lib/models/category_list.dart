@@ -7,16 +7,16 @@ class CategoryList {
   });
 
   CategoryList.fromJson(Map<String, dynamic> json) {
-    if (json["CategoryData"] != null) {
+    if (json["categoryData"] != null) {
       categoryData = new List<CategoryData>();
-      json['CategoryData'].forEach((v) {
+      json['categoryData'].forEach((v) {
         categoryData.add(new CategoryData.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() => {
-    "CategoryData": categoryData,
+    "categoryData": categoryData,
   };
 }
 
@@ -32,21 +32,21 @@ class CategoryData {
   });
 
   CategoryData.fromJson(Map<String, dynamic> json) {
-    mainCategoryID = json["MainCategoryID"];
-    categoryName = json["CategoryName"];
+    mainCategoryID = json["mainCategoryID"];
+    categoryName = json["categoryName"];
 
-    if (json["CategoryTextAndID"] != null) {
+    if (json["categoryTextAndID"] != null) {
       categoryTextAndID = new List<CategoryTextAndID>();
-      json['CategoryTextAndID'].forEach((v) {
+      json['categoryTextAndID'].forEach((v) {
         categoryTextAndID.add(new CategoryTextAndID.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() => {
-    "MainCategoryID": mainCategoryID,
-    "CategoryName": categoryName,
-    "CategoryTextAndID": categoryTextAndID,
+    "mainCategoryID": mainCategoryID,
+    "categoryName": categoryName,
+    "categoryTextAndID": categoryTextAndID,
   };
 
 }
@@ -62,21 +62,21 @@ class CategoryTextAndID {
   });
 
   CategoryTextAndID.fromJson(Map<String, dynamic> json) {
-    categoryTextID = json["CategoryTextID"];
-    categoryTextDetail = json["CategoryTextDetail"];
+    categoryTextID = json["categoryTextID"];
+    categoryTextDetail = json["categoryTextDetail"];
 
-    if (json["SubCategoryData"] != null) {
+    if (json["subCategoryData"] != null) {
       subCategoryData = new List<SubCategoryData>();
-      json['SubCategoryData'].forEach((v) {
+      json['subCategoryData'].forEach((v) {
         subCategoryData.add(new SubCategoryData.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() => {
-    "CategoryTextID": categoryTextID,
-    "CategoryTextDetail": categoryTextDetail,
-    "SubCategoryData": subCategoryData,
+    "categoryTextID": categoryTextID,
+    "categoryTextDetail": categoryTextDetail,
+    "subCategoryData": subCategoryData,
   };
 
 }
@@ -90,13 +90,13 @@ class SubCategoryData {
   });
 
   SubCategoryData.fromJson(Map<String, dynamic> json) {
-    subCategoryTextID = json["SubCategoryTextID"];
-    subCategoryTextDetail = json["SubCategoryTextDetail"];
+    subCategoryTextID = json["subCategoryTextID"];
+    subCategoryTextDetail = json["subCategoryTextDetail"];
   }
 
   Map<String, dynamic> toJson() => {
-    "SubCategoryTextID": subCategoryTextID,
-    "SubCategoryTextDetail": subCategoryTextDetail,
+    "subCategoryTextID": subCategoryTextID,
+    "subCategoryTextDetail": subCategoryTextDetail,
   };
 
 }
