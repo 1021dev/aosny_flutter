@@ -124,8 +124,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       int finalnumber = state.finalNumber;
       DateTime dateTime = state.selectedDate;
       dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day, timeOfDay.hour, timeOfDay.minute);
-      DateTime endDate = dateTime.add(Duration(minutes: finalnumber));
-      yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: endDate);
+      DateTime currentEndDate = dateTime.add(Duration(minutes: finalnumber));
+      List conflicts = getConflicts(dateTime, state.timeList);
+      yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: currentEndDate, exceedMandate: conflicts[0], conflictTime: conflicts[1]);
       if (state.selectedSessionTypeIndex == 1) {
         add(GetMissedSessionEvent());
       }
@@ -135,7 +136,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       DateTime dateTime = event.selectedDate;
       dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day, timeOfDay.hour, timeOfDay.minute);
       DateTime endDate = dateTime.add(Duration(minutes: finalnumber));
-      yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: endDate);
+      List conflicts = getConflicts(dateTime, state.timeList);
+      yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: endDate, exceedMandate: conflicts[0], conflictTime: conflicts[1]);
     } else if (event is UpdateFinalNumber) {
       int finalnumber = event.finalNumber;
       TimeOfDay timeOfDay = state.selectedTime;
@@ -145,7 +147,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       if (state.selectedSessionTypeIndex == 1) {
         add(GetMissedSessionEvent());
       }
-      yield state.copyWith(selectedTime: timeOfDay, finalNumber: event.finalNumber, endDateTime: endDate);
+      List conflicts = getConflicts(dateTime, state.timeList);
+      yield state.copyWith(selectedTime: timeOfDay, finalNumber: event.finalNumber, endDateTime: endDate, exceedMandate: conflicts[0], conflictTime: conflicts[1]);
     } else if (event is UpdateLocation) {
       yield state.copyWith(location: event.location);
     } else if (event is UpdateLocation1) {
@@ -194,6 +197,13 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield* getMissedSessions(dateFinal, sessionTime, duration, studentId);
     } else if (event is UpdateMakeUpSessionId) {
       yield state.copyWith(mCalId: event.id);
+    } else if (event is GetSessionTimeEvent) {
+      DateTime dateTime = event.dateTime;
+      final format = DateFormat('yy-MM-dd');
+      String dateString = format.format(dateTime);
+      print(dateTime);
+      print(dateString);
+      yield* getSessionTime('20$dateString');
     }
 
   }
@@ -318,26 +328,32 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         }
       }
 
-      yield state.copyWith(
-        isLoading: state.sessionId != null,
-        longTermGpDropDownList: longTermGpDropDownList,
-        selectedLtGoalId: selectedLtGoalId,
-        shortTermGpList: shortTermGpList,
-        gPcheckListItems: gPcheckListItems,
-        sPcheckListItems: sPcheckListItems,
-        sIcheckListItems: sIcheckListItems,
-        cAcheckListItems: cAcheckListItems,
-        jAcheckListItems: jAcheckListItems,
-        outComesListItems: outComesListItems,
-        activitiesListItems: activitiesListItems,
-        selectedShortTermResultListModel: selectedShortTermResultListModel,
-        selectedShortTermResultListModel2: selectedShortTermResultListModel2,
-      );
+      if (state.sessionId == null) {
+        DateTime dateTime = DateTime.now();
+        final format = DateFormat('yy-MM-dd');
+        String dateString = format.format(dateTime);
+        print(dateTime);
+        print(dateString);
+        yield* getSessionTime('20$dateString');
+        yield state.copyWith(
+          isLoading: state.sessionId != null,
+          longTermGpDropDownList: longTermGpDropDownList,
+          selectedLtGoalId: selectedLtGoalId,
+          shortTermGpList: shortTermGpList,
+          gPcheckListItems: gPcheckListItems,
+          sPcheckListItems: sPcheckListItems,
+          sIcheckListItems: sIcheckListItems,
+          cAcheckListItems: cAcheckListItems,
+          jAcheckListItems: jAcheckListItems,
+          outComesListItems: outComesListItems,
+          activitiesListItems: activitiesListItems,
+          selectedShortTermResultListModel: selectedShortTermResultListModel,
+          selectedShortTermResultListModel2: selectedShortTermResultListModel2,
+        );
+      } else {
+        selectedShortTermResultListModel.clear();
+        selectedShortTermResultListModel2.clear();
 
-      selectedShortTermResultListModel.clear();
-      selectedShortTermResultListModel2.clear();
-
-      if (state.sessionId != null) {
         String url = baseURL + 'SessionNote/${state.sessionId}/CompleteSessionNote';
         CompleteSessionNotes completeSessionNotes = await completeSessionApi.getSessionDetails(url);
         List<Goals> goals = completeSessionNotes.goals;
@@ -418,7 +434,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
 
         List<MissedSessionModel> missedSession = [];
         int settingsGroupOrNot;
-        String sessionDateTime, sessionTime, duration, sessionEndTime, location, location1, sessionType, sessionIDValue;
+        String sessionDateTime, sessionTime, duration, sessionEndTime, location, location1, sessionType;
         String dropDownValue;
         String dropDownValue2;
         bool checkedValue;
@@ -433,7 +449,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         int selectedJAIconIndex;
         int selectedSessionTypeIndex;
 
-        TimeOfDay selectedTime;
         int finalNumber;
 
         checkedValue = completeSessionNotes.confirmed == 1;
@@ -462,7 +477,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         sessionTime = DateFormat.jm().format(toPassDate);
         selectedDate = toPassDate;
 
-        endDateTime =  toPassDate.add(Duration(days: 0, hours: 0, minutes: int.parse(duration)));
+        endDateTime =  toPassDate.add(Duration(minutes: int.parse(duration)));
 
         sessionEndTime = DateFormat.jm().format(endDateTime);
         if (selectedLtGoalId > -1) {
@@ -574,7 +589,12 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         }
 
         missedSession = completeSessionNotes.singleMakeupSessionNote;
-
+        DateTime dateTime = selectedDate;
+        final format = DateFormat('yy-MM-dd');
+        String dateString = format.format(dateTime);
+        print(dateTime);
+        print(dateString);
+        yield* getSessionTime('20$dateString');
         yield state.copyWith(
           isLoading: false,
           sessionNotes: completeSessionNotes,
@@ -617,7 +637,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           mCalId: completeSessionNotes.mCalId,
         );
       }
-
     } catch (error) {
       print(error);
       yield SessionNoteScreenStateFailure(error: error.toString());
@@ -730,15 +749,28 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String providerid = prefs.getString('providerid');
     // String gNote = '';
-    // if (state.selectedSessionTypeIndex > 3) {
-    //   gNote = noteText;
-    // } else {
-    //   if (state.sessionId == null) {
-    //     gNote = generateNoteText() + '\n' + noteText;
-    //   } else {
-    //     gNote = noteText;
-    //   }
-    // }
+    int progId = -1;
+    int cptCode = -1;
+    if (state.selectedSessionTypeIndex == 5) {
+      if (state.selectedProgText != '' && state.selectedProgText != null) {
+        int index = nonDirectActivities.indexOf(state.selectedProgText);
+        switch (index) {
+          case 0:
+            progId = 3;
+            if (state.cptText != '' && state.cptText != null) {
+              cptCode = cptCodeId.indexOf(state.cptText) + 1;
+            }
+            break;
+          case 1:
+            progId = 9;
+            break;
+          default:
+            progId = 10;
+            break;
+        }
+
+      }
+    }
     AddSessionResponse newPost = new AddSessionResponse(
       providerId: providerid,
       studentID: state.student.studentID.toInt(),
@@ -756,6 +788,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       sessionID: state.sessionId ?? 0,
       progText: progText,
       cptText: cptText,
+      cptCode: cptCode,
+      progId: progId,
       sessionNoteExtrasList: sessionNoteExtrasList,
       xid: state.student.xid,
       mCalId: mCalId,
@@ -791,152 +825,49 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     }
   }
 
-  String generateNoteText() {
-    if (state.selectedLtGoalId < 0) {
-      return '';
+  Stream<SessionNoteScreenState> getSessionTime(String date) async* {
+    try {
+      yield state.copyWith(isLoading: true);
+      TimeList response = await completeSessionApi.getTimeList(state.student.studentID.toInt(), date);
+      List conflicts = getConflicts(state.selectedDate, response);
+      yield state.copyWith(timeList: response, exceedMandate: conflicts[0], conflictTime: conflicts[1], isLoading: false);
+    } catch (error) {
+      yield state.copyWith(isLoading: false);
     }
-    String student = state.student.name;
-    String noteText = 'IEP goals targeted in this session include:\n';
-    String longTerm1 = state.dropDownValue + ' ';
-    String shortTerm1 = '';
-    for (SelectedShortTermResultListModel model in state.selectedShortTermResultListModel) {
-      if (model.checkVal) {
-        shortTerm1 += model.selectedShortgoaltext + '\n';
-      }
+  }
+
+  List getConflicts(DateTime dateTime, TimeList timeList) {
+    print(timeList);
+    if (timeList == null) {
+      return [false, false];
     }
-    String outcome1 = 'Outcome was ';
-    if (state.selectedOutComesIndex > -1) {
-      outcome1 += state.outComesListItems[state.selectedOutComesIndex].categoryTextDetail.replaceAll('student', student) + '.\n';
+    DateTime currentDate = DateTime(dateTime.year == 20 ? dateTime.year + 2000: dateTime.year, dateTime.month, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second);
+    DateTime currentEndDate = currentDate.add(Duration(minutes: state.finalNumber));
+    ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
+      return element.studentId == state.student.studentID.toInt();
+    });
+    bool exceedMandate = false;
+    if (progressedTime != null) {
+      int weekMins = progressedTime.weekMins + state.finalNumber;
+      exceedMandate = weekMins > progressedTime.mandateMins;
     }
-
-    String longTerm2 = '';
-    String shortTerm2 = '';
-    String outcome2 = '';
-    String goal2 = '';
-
-    if (state.selectedLtGoalId2 > -1) {
-      if (state.dropDownValue2 != null) {
-        longTerm2 = state.dropDownValue2;
-        for (SelectedShortTermResultListModel model in state.selectedShortTermResultListModel2) {
-          if (model.checkVal) {
-            shortTerm2 += model.selectedShortgoaltext + '\n';
-          }
-        }
-        outcome2 = 'Outcome was ';
-        if (state.selectedOutComesIndex2 > -1) {
-          outcome2 += state.outComesListItems[state.selectedOutComesIndex2].categoryTextDetail.replaceAll('student', student) + '.\n';
-        }
-      }
-      if (longTerm1 != '' && shortTerm2 != '' && outcome2 != '') {
-        goal2 = longTerm2 + '\n' + shortTerm2 + '\n' + outcome2 + '\n';
-      }
-    }
-
-    String activities = student + ' participated in these activities and the session consisted of the following: \n';
-    bool addCRLF = false;
-    bool addAnd = false;
-    String separator = '';
-    String prevCategory = '';
-
-    state.activitiesListItems.forEach((key, alist) {
-      String prefix = '';
-      switch (alist[0].title) {
-        case 'Free Play/Center':
-          prefix = 'Including';
-          break;
-        case 'Art':
-          prefix = 'Including';
-          break;
-        case 'Circle Time':
-          prefix = 'Addressing';
-          break;
-        case 'Lesson Time':
-          prefix = 'Addressing';
-          break;
-        case 'Mealtime/Snack time':
-          prefix = 'Addressing';
-          break;
-        case 'Transition':
-          prefix = 'During';
-          break;
-        case 'Gross Motor':
-          prefix = 'Participating in';
-          break;
-        case 'Small Group Activity':
-          prefix = 'Targeting';
-          break;
-        case 'Trip/Special Events':
-          prefix = 'Trip';
-          break;
-        default:
-          break;
-      }
-      activities += alist[0].title + ' - ' + prefix + ' ';
-      int sameCount = 0;
-      if (prevCategory != alist[0].title && prevCategory != '') {
-        addCRLF = true;
-        addAnd = true;
-      } else {
-        separator = ', ';
-      }
-      for(int j = 1; j < alist.length; j++) {
-        if (alist[j].checkVal) {
-          sameCount += 1;
-          if (sameCount > 1 && addAnd) {
-            separator = ' and ';
-          } else if (sameCount > 1 && addAnd == false) {
-            separator = ', ';
-          } else {
-            separator = '';
-          }
-          activities += separator + alist[j].title;
-          if (addCRLF) {
-            activities += '\n';
-          }
-        }
+    bool isConflict = false;
+    timeList.timeList.forEach((element) {
+      final formatDate = DateFormat('M/d/yyyy hh:mm:ss a');
+      String startTimeString = element.startTime;
+      DateTime startDate = formatDate.parse(startTimeString);
+      DateTime endDate = startDate.add(Duration(minutes: element.dur));
+      if (currentDate.isAfter(startDate) && currentDate.isBefore(endDate)) {
+        isConflict = true;
+        return;
+      } else if (currentEndDate.isAfter(startDate) && currentEndDate.isBefore(endDate)) {
+        isConflict = true;
+        return;
+      } else if (currentDate.isBefore(startDate) && currentEndDate.isAfter(endDate)) {
+        isConflict = true;
+        return;
       }
     });
-
-    String spString = '';
-    state.sPcheckListItems.forEach((element) {
-      if (element.checkVal) {
-        if (spString == '') {
-          spString += element.title;
-        } else {
-          spString += 'and ' + element.title;
-        }
-      }
-    });
-    if (spString != '') {
-      spString = student + ' ' + spString + '.';
-    }
-    String siString = '';
-    state.sIcheckListItems.forEach((element) {
-      if (element.checkVal) {
-        if (siString == '') {
-          siString += element.title;
-        } else {
-          siString += 'and ' + element.title;
-        }
-      }
-    });
-    if (siString != '') {
-      siString = 'These Seit interventions were used to prompt goal oriented learning using ' + spString + '.';
-    }
-
-    String caString = '';
-    if (state.selectedCAIconIndex > -1) {
-      caString = student + ' ' + state.cAcheckListItems[state.selectedCAIconIndex].categoryTextDetail;
-    }
-
-    String jaString = '';
-    if (state.selectedJAIconIndex > -1) {
-      jaString = student + ' ' + state.jAcheckListItems[state.selectedJAIconIndex].categoryTextDetail;
-    }
-
-    noteText += longTerm1 + '\n' + shortTerm1 + '\n' + outcome1 + '\n' + goal2 + activities + '\n' + spString + siString + caString + jaString;
-
-    print(noteText);
-    return noteText;
+    return [exceedMandate, isConflict];
   }
 }

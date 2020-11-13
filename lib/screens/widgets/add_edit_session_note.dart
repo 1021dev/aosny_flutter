@@ -109,6 +109,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           sessionId: widget.sessionId,
           sessionNotes: widget.sessionNotes,
           student: widget.student,
+          selectedTime: GlobalCall.lastEnteredTime,
         )
     );
   }
@@ -157,6 +158,23 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           if (widget.eventType != 'Enter') {
             Navigator.pop(context, 'success');
           } else {
+            var selectedDate2 = new DateFormat('hh:mm a');
+            String selectedTime = selectedDate2.format(state.selectedDate);
+
+            int h = state.selectedDate.hour;
+            int m = state.selectedDate.minute;
+            if (state.finalNumber == 30) {
+              if ((m + 30) >= 60) {
+                h = h + 1;
+                m = m + 30 - 60;
+              } else {
+                m = m + 30;
+              }
+            } else {
+              h = h + 1;
+            }
+            DateTime selectedDate = DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day, h, m);
+            GlobalCall.lastEnteredTime = selectedDate;
             showDialog(context: context, builder: (context) {
               return CupertinoAlertDialog(
                 title: Text(
@@ -188,22 +206,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                     ),
                     onPressed: () {
                       Navigator.pop(context);
-                      var selectedDate2 = new DateFormat('hh:mm a');
-                      String selectedTime = selectedDate2.format(state.selectedDate);
-
-                      int h = state.selectedDate.hour;
-                      int m = state.selectedDate.minute;
-                      if (state.finalNumber == 30) {
-                        if ((m + 30) >= 60) {
-                          h = h + 1;
-                          m = m + 30 - 60;
-                        } else {
-                          m = m + 30;
-                        }
-                      } else {
-                        h = h + 1;
-                      }
-                      DateTime selectedDate = DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day, h, m);
                       noteTextController.text = '';
                       screenBloc.add(
                           SessionNoteScreenInitEvent(
@@ -281,6 +283,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
       padding: EdgeInsets.only(bottom: 24),
       child: Column(
         children: <Widget>[
+          showConflicts(state),
           Container(
             padding: const EdgeInsets.only(left:5,right:5,),
             width: MediaQuery.of(context).size.width,
@@ -666,7 +669,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
           ),
           _sessionTypeWidget(state),
-          state.selectedSessionTypeIndex != 5 ? _dropDowns(state): _nonDirectCare(state),
+          state.selectedSessionTypeIndex < 2 ? _dropDowns(state): (state.selectedSessionTypeIndex == 5 ?  _nonDirectCare(state): Container()),
           state.selectedProgText == nonDirectActivities[2] ? Container() : Container(
             alignment: Alignment.bottomLeft,
             width: MediaQuery.of(context).size.width,
@@ -723,9 +726,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   ),
                   child: InkWell(
                     onTap: (){
-                      if (state.dropDownValue == null) {
-                        return;
-                      }
                       if (state.selectedSessionTypeIndex == 1) {
                         if (state.mCalId == 0 || state.mCalId == null) {
                           Fluttertoast.showToast(msg: 'Makeup date selection is required');
@@ -1502,7 +1502,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         children: List.generate(partyContacted.length, (index) {
           return CheckboxListTile(
             title: Text(
-              methodOfContact[index],
+              partyContacted[index],
               style: TextStyle(fontSize: 15),
             ),
             dense: true,
@@ -2366,6 +2366,45 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         ),
       ],
     );
+  }
+
+  Widget showConflicts(SessionNoteScreenState state) {
+    if (state.conflictTime) {
+      return Container(
+        padding: EdgeInsets.all(8),
+        height: 64,
+        color: Colors.red,
+        child: Center(
+          child: Text(
+            'Already logged this time for this provider!',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    } else if (state.exceedMandate) {
+      return Container(
+        padding: EdgeInsets.all(8),
+        height: 64,
+        color: Colors.red,
+        child: Center(
+          child: Text(
+            'Your selection is exceeding mandate time for this week!',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    return Container();
   }
 
 }
