@@ -321,8 +321,8 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                           HistoryModel model = state.filterHistory[index];
                           String stime = model.stime;
                           String etime = model.etime;
-                          String smin = stime.split(':').toList()[1];
-                          String emin = etime.split(':').toList()[1];
+                          String smin = stime.replaceAll(' AM', '').replaceAll(' PM', '').split(':').toList()[1];
+                          String emin = etime.replaceAll(' AM', '').replaceAll(' PM', '').split(':').toList()[1];
                           int duration = smin == emin ? 60: 30;
                           String extra = '';
                           if (model.mcalid != 0 && model.sessionType != sessionTypeStrings[1]) {

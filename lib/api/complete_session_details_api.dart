@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:aosny_services/models/missed_session_model.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:aosny_services/models/complete_session.dart';
@@ -39,6 +40,37 @@ class CompleteSessionApi {
 
 
     });
+  }
+
+  Future<TimeList> getTimeList(int studentId, String startDate) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token');
+    String providerid = prefs.getString('providerid');
+
+    String url = baseURL + 'Provider/$providerid/timelist?studentid=$studentId&startdate=$startDate';
+    print("url in Api::"+url);
+
+    return http.get(url, headers: {HttpHeaders.contentTypeHeader: "application/json",HttpHeaders.authorizationHeader: "Bearer $token"})
+        .then((http.Response response) {
+      int statusCode = response.statusCode;
+
+      statuscode = statusCode;
+      print("CODE::::");
+      print(statusCode);
+      var data = json.decode(response.body);
+      if (statusCode < 200 || statusCode >= 400 || json == null) {
+        Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
+        throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      }
+
+      print(data);
+      TimeList timeList;
+      if (data is Map) {
+        timeList = TimeList.fromJson(data);
+      }
+      return timeList;
+    });
+
   }
 
   Future<List<MissedSessionModel>> getMissedSessions(String date, String time, int duration, num studentId) async {

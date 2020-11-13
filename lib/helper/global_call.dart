@@ -38,6 +38,8 @@ class GlobalCall extends ChangeNotifier{
  static int providerID = 0;
  static LoginResponse user;
 
+ static DateTime lastEnteredTime = DateTime.now();
+
 }
 
 List<String> nonDirectActivities = [
@@ -57,6 +59,19 @@ List<String> partyContacted = [
  'Teacher',
  'Director / Principal',
  'Supervisor',
+ 'Therapist',
+];
+
+List<String> cptCodeId = [
+ 'Phone',
+ 'Parent',
+ 'In Person',
+ 'Teacher',
+ 'Meeting',
+ 'Director / Principal',
+ 'Email',
+ 'Supervisor',
+ 'Notebook',
  'Therapist',
 ];
 

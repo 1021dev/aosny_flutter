@@ -78,6 +78,9 @@ class SessionNoteScreenState extends Equatable {
   final List<MissedSessionModel> missedSession;
   final int mCalId;
   final bool isLock;
+  final TimeList timeList;
+  final bool exceedMandate;
+  final bool conflictTime;
 
   SessionNoteScreenState( {
     this.isLoading = false,
@@ -152,6 +155,9 @@ class SessionNoteScreenState extends Equatable {
     this.missedSession = const [],
     this.mCalId,
     this.isLock = false,
+    this.timeList,
+    this.exceedMandate = false,
+    this.conflictTime = false,
   });
 
   @override
@@ -228,6 +234,9 @@ class SessionNoteScreenState extends Equatable {
     missedSession,
     mCalId,
     isLock,
+    timeList,
+    exceedMandate,
+    conflictTime,
   ];
 
   SessionNoteScreenState copyWith({
@@ -292,6 +301,9 @@ class SessionNoteScreenState extends Equatable {
     List<MissedSessionModel> missedSessions,
     int mCalId,
     bool isLock,
+    bool exceedMandate,
+    bool conflictTime,
+    TimeList timeList,
   }) {
     return SessionNoteScreenState(
       isLoading: isLoading ?? this.isLoading,
@@ -361,6 +373,9 @@ class SessionNoteScreenState extends Equatable {
       missedSession: missedSessions ?? this.missedSession,
       mCalId: mCalId ?? this.mCalId,
       isLock: isLock ?? this.isLock,
+      timeList: timeList ?? this.timeList,
+      exceedMandate: exceedMandate ?? this.exceedMandate,
+      conflictTime: conflictTime ?? this.conflictTime,
     );
   }
 }

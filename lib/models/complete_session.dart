@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import 'missed_session_model.dart';
 
 class CompleteSessionNotes {
@@ -197,5 +199,49 @@ class SessionNoteExtrasList {
     data['SNE_CategoryDetailID'] = this.sNECategoryDetailID;
     data['SNE_SubDetailID'] = this.sNESubDetailID;
     return data;
+  }
+}
+
+class SessionTime {
+  String startTime;
+  int dur;
+  String carId;
+  int studentId;
+  String sessionType;
+
+  SessionTime.fromJson(Map<String, dynamic> json) {
+    startTime = json['starttime'];
+    dur = json['dur'];
+    carId = json['carid'];
+    studentId = json['studentid'];
+    sessionType = json['stype'];
+  }
+}
+
+class ProgressedTime {
+  int studentId;
+  int weekMins;
+  int mandateMins;
+
+  ProgressedTime.fromJson(Map<String, dynamic> json) {
+    studentId = json['studentid'];
+    weekMins = json['weekmins'];
+    mandateMins = json['mandatedmins'];
+  }
+}
+
+class TimeList {
+  List<SessionTime> timeList = [];
+  List<ProgressedTime> progressedList = [];
+
+  TimeList.fromJson(Map<String, dynamic> json) {
+    List progressed = json['progressedList'];
+    progressed.forEach((element) {
+      progressedList.add(ProgressedTime.fromJson(element));
+    });
+    List times = json['timeList'];
+    times.forEach((element) {
+      timeList.add(SessionTime.fromJson(element));
+    });
   }
 }

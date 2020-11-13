@@ -233,3 +233,8 @@ class UpdateMakeUpSessionId extends SessionNoteScreenEvent {
 class GetMissedSessionEvent extends SessionNoteScreenEvent {
   GetMissedSessionEvent();
 }
+
+class GetSessionTimeEvent extends SessionNoteScreenEvent {
+  final DateTime dateTime;
+  GetSessionTimeEvent({this.dateTime});
+}
