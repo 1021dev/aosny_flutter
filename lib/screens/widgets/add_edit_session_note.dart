@@ -682,39 +682,43 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               ),
             ),
           ),
-          state.selectedProgText == nonDirectActivities[2]
-              ? Container() :
-          Container(
-            alignment: Alignment.topLeft,
-            margin: const EdgeInsets.only(left: 16,right: 16,top:2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              border: Border.all(
-                color: Colors.grey,
-                width: 1,
-              ),
-            ) ,
-            child: TextField(
-              focusNode: noteFocus,
-              onChanged: (val) {
-                setState(() {
-                });
-              },
-              controller: noteTextController,
-              keyboardType: TextInputType.multiline,
-              textInputAction: TextInputAction.newline,
-              maxLines: null,
-              scrollPhysics: NeverScrollableScrollPhysics(),
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.all(8),
-                hintText: '',
-                hintStyle: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
+          state.isLoading
+              ? Container()
+              : (
+              state.selectedProgText == nonDirectActivities[2]
+                  ? Container()
+                  : Container(
+                alignment: Alignment.topLeft,
+                margin: const EdgeInsets.only(left: 16,right: 16,top:2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1,
+                  ),
+                ) ,
+                child: TextField(
+                  focusNode: noteFocus,
+                  onChanged: (val) {
+                    setState(() {
+                    });
+                  },
+                  controller: noteTextController,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  maxLines: null,
+                  scrollPhysics: NeverScrollableScrollPhysics(),
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.all(8),
+                    hintText: '',
+                    hintStyle: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
+                    border: InputBorder.none,
+                  ),
                 ),
-                border: InputBorder.none,
-              ),
-            ),
+              )
           ),
           SizedBox(height:16),
           widget.isEditable && !state.isLock? Row(
@@ -753,36 +757,36 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   child: InkWell(
                     onTap: (){
                       showDialog(
-                        context: context,
-                        builder: (BuildContext ctx) {
-                          return CupertinoAlertDialog(
-                            title: Text(
-                              'Delete Session Note',
-                            ),
-                            content: Text(
-                              'Are you sure you want to delete this session note?'
-                            ),
-                            actions: [
-                              CupertinoDialogAction(
-                                child: Text(
-                                  'Cancel',
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
+                          context: context,
+                          builder: (BuildContext ctx) {
+                            return CupertinoAlertDialog(
+                              title: Text(
+                                'Delete Session Note',
                               ),
-                              CupertinoDialogAction(
-                                child: Text(
-                                  'Sure',
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  screenBloc.add(DeleteSessionEvent(id: state.sessionId));
-                                },
+                              content: Text(
+                                  'Are you sure you want to delete this session note?'
                               ),
-                            ],
-                          );
-                        }
+                              actions: [
+                                CupertinoDialogAction(
+                                  child: Text(
+                                    'Cancel',
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                CupertinoDialogAction(
+                                  child: Text(
+                                    'Sure',
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    screenBloc.add(DeleteSessionEvent(id: state.sessionId));
+                                  },
+                                ),
+                              ],
+                            );
+                          }
                       );
                     },
                     child: Container(
@@ -884,12 +888,12 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                 style: TextStyle(color: Colors.black),
                 items: state.longTermGpDropDownList.map(
                       (val) {
-                        int isContain = 0;
-                        if (state.selectedLtGoalId == val.longGoalID) {
-                          isContain = 1;
-                        } else if (state.selectedLtGoalId2 == val.longGoalID) {
-                          isContain = 2;
-                        }
+                    int isContain = 0;
+                    if (state.selectedLtGoalId == val.longGoalID) {
+                      isContain = 1;
+                    } else if (state.selectedLtGoalId2 == val.longGoalID) {
+                      isContain = 2;
+                    }
                     return DropdownMenuItem<LongTermGpDropDownModel>(
                       value: val,
                       child: Container(
@@ -998,8 +1002,8 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                     TextSpan(
                       text: ' (Optional)',
                       style: TextStyle(
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.normal
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.normal
                       ),
                     ),
                   ],
@@ -1052,31 +1056,31 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                 style: TextStyle(color: Colors.black),
                 items: state.longTermGpDropDownList.map(
                       (val) {
-                        int isContain = 0;
-                        if (state.selectedLtGoalId == val.longGoalID) {
-                          isContain = 1;
-                        } else if (state.selectedLtGoalId2 == val.longGoalID) {
-                          isContain = 2;
-                        }
-                        return DropdownMenuItem<LongTermGpDropDownModel>(
-                          value: val,
-                          child: Container(
-                            child: Column(
-                              children: <Widget>[
-                                Container(height: 5,),
-                                Text(
-                                  val.longGoalText,
-                                  style: TextStyle(
-                                    color: isContain == 1 ? Colors.red : ( isContain == 2 ? Colors.blue : Colors.black),
-                                    fontWeight: isContain == 1 || isContain == 2 ? FontWeight.bold: FontWeight.normal,
-                                  ),
-                                ),
-                                Container(height: 5,),
-                                Divider(height: 10,color: Colors.black,),
-                              ],
+                    int isContain = 0;
+                    if (state.selectedLtGoalId == val.longGoalID) {
+                      isContain = 1;
+                    } else if (state.selectedLtGoalId2 == val.longGoalID) {
+                      isContain = 2;
+                    }
+                    return DropdownMenuItem<LongTermGpDropDownModel>(
+                      value: val,
+                      child: Container(
+                        child: Column(
+                          children: <Widget>[
+                            Container(height: 5,),
+                            Text(
+                              val.longGoalText,
+                              style: TextStyle(
+                                color: isContain == 1 ? Colors.red : ( isContain == 2 ? Colors.blue : Colors.black),
+                                fontWeight: isContain == 1 || isContain == 2 ? FontWeight.bold: FontWeight.normal,
+                              ),
                             ),
-                          ),
-                        );
+                            Container(height: 5,),
+                            Divider(height: 10,color: Colors.black,),
+                          ],
+                        ),
+                      ),
+                    );
                   },
                 ).toList(),
                 onChanged: (val) {
@@ -1986,56 +1990,56 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           ),
         ) : Container(),
         state.selectedSessionTypeIndex == 1 ?
-            Container(
-              margin: const EdgeInsets.all(5),
-              padding:  const EdgeInsets.all(5.0),
-              width: double.infinity,
-              height: 50,
-              decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-              ),
-              child: state.missedSession.length == 0 ? Center(
-                  child: Text(
-                    'No Makeup dates available for this Mandate' ,
-                    maxLines: 1,
-                  )
-              ): DropdownButton(
-                underline: Container(),
-                hint: state.mCalId == 0 ? Text(
-                  'Select your choice' ,
-                  maxLines: 1,
-                )
-                    : Text(
-                  getSelectedMissedSession(state),
-                  maxLines: 2,
-                  style: TextStyle(color: Colors.redAccent),
-                ),
-                isExpanded: true,
-                iconSize: 30.0,
-                style: TextStyle(color: Colors.black),
-                items: state.missedSession.map(
-                      (val) {
-                    return DropdownMenuItem<MissedSessionModel>(
-                      value: val,
-                      child: Column(
-                        children: <Widget>[
-                          Text(
-                            '${val.sessionType} - ${val.sessionDateTime} - ${val.duration} minutes',
-                          ),
-                          Container(height: 5,),
-                          Divider(height: 10,color: Colors.black,),
-                          Container(height: 5,),
-                        ],
+        Container(
+          margin: const EdgeInsets.all(5),
+          padding:  const EdgeInsets.all(5.0),
+          width: double.infinity,
+          height: 50,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+          ),
+          child: state.missedSession.length == 0 ? Center(
+              child: Text(
+                'No Makeup dates available for this Mandate' ,
+                maxLines: 1,
+              )
+          ): DropdownButton(
+            underline: Container(),
+            hint: state.mCalId == 0 ? Text(
+              'Select your choice' ,
+              maxLines: 1,
+            )
+                : Text(
+              getSelectedMissedSession(state),
+              maxLines: 2,
+              style: TextStyle(color: Colors.redAccent),
+            ),
+            isExpanded: true,
+            iconSize: 30.0,
+            style: TextStyle(color: Colors.black),
+            items: state.missedSession.map(
+                  (val) {
+                return DropdownMenuItem<MissedSessionModel>(
+                  value: val,
+                  child: Column(
+                    children: <Widget>[
+                      Text(
+                        '${val.sessionType} - ${val.sessionDateTime} - ${val.duration} minutes',
                       ),
-                    );
-                  },
-                ).toList(),
-                onChanged: (val) {
-                  screenBloc.add(UpdateMakeUpSessionId(id: val.id));
-                },
-              ),
-            ):
-            Container()
+                      Container(height: 5,),
+                      Divider(height: 10,color: Colors.black,),
+                      Container(height: 5,),
+                    ],
+                  ),
+                );
+              },
+            ).toList(),
+            onChanged: (val) {
+              screenBloc.add(UpdateMakeUpSessionId(id: val.id));
+            },
+          ),
+        ):
+        Container()
       ],
     );
   }
