@@ -26,9 +26,11 @@ class LoginApi{
       var data = json.decode(response.body);
       print("DATA:$data");
 
-      if (statusCode < 200 || statusCode >= 400 || json == null) {
+      if (statusCode < 200 || statusCode > 400 || json == null) {
         Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
         throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      } else if (statuscode == 400) {
+        Fluttertoast.showToast(msg: data['message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
       }
       print('data::Login');
       print(response.body);
@@ -64,9 +66,13 @@ class LoginApi{
       statuscode = statusCode;
       print('CODE::::');
       print(statusCode);
-
-      if (statusCode < 200 || statusCode >= 400 || json == null) {
-        throw new Exception('Error while fetching data');
+      var data = json.decode(response.body);
+      print("DATA:$data");
+      if (statusCode < 200 || statusCode > 400 || json == null) {
+        Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
+        throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      } else if (statuscode == 400) {
+        Fluttertoast.showToast(msg: data['message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
       }
       print('data::Login');
       print(response.body);
@@ -93,10 +99,15 @@ class LoginApi{
       print('CODE::::');
       print(statusCode);
 
-      if (statusCode < 200 || statusCode >= 400 || json == null) {
-        throw new Exception('Error while fetching data');
+      var data = json.decode(response.body);
+      print("DATA:$data");
+      if (statusCode < 200 || statusCode > 400 || json == null) {
+        Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
+        throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      } else if (statuscode == 400) {
+        Fluttertoast.showToast(msg: data['message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
       }
-      print('data::Login');
+      print('data::forgot');
       print(response.body);
 
       return response;
@@ -131,10 +142,15 @@ class LoginApi{
       print('CODE::::');
       print(statusCode);
 
-      if (statusCode < 200 || statusCode >= 400 || json == null) {
-        throw new Exception('Error while fetching data');
+      var data = json.decode(response.body);
+      print("DATA:$data");
+      if (statusCode < 200 || statusCode > 400 || json == null) {
+        Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
+        throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      } else if (statuscode == 400) {
+        Fluttertoast.showToast(msg: data['message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
       }
-      print('data::Login');
+      print('data:: Change Password');
       print(response.body);
 
       return response;

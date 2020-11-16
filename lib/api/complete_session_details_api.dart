@@ -57,12 +57,14 @@ class CompleteSessionApi {
       statuscode = statusCode;
       print("CODE::::");
       print(statusCode);
-      var data = json.decode(response.body);
-      if (statusCode < 200 || statusCode >= 400 || json == null) {
+      dynamic data = json.decode(response.body);
+      print(data);
+      if (statusCode < 200 || statusCode > 400 || json == null) {
         Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
         throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      } else if (statusCode == 400) {
+        Fluttertoast.showToast(msg: data['message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
       }
-
       print(data);
       TimeList timeList;
       if (data is Map) {

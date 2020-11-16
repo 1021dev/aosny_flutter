@@ -13,7 +13,7 @@ class SessionApi{
 
    //String url =  "http://aosapi.pdgcorp.com/api/Student/246689970/ltgoals";
    String url =  baseURL + "Student/$studentId/ltgoals";
-    
+    print(url);
     List<LongTermGpDropDownModel> result;
 
     //var token = GlobalCall.token;
@@ -33,11 +33,12 @@ class SessionApi{
       var data = json.decode(response.body);
       print(" DATA:$data");
 
-      if (statusCode < 200 || statusCode >= 400 || json == null) {
+      if (statusCode < 200 || statusCode > 400 || json == null) {
         Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
         throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      } else if (statusCode == 400) {
+        Fluttertoast.showToast(msg: data['message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
       }
-
       result = data.map<LongTermGpDropDownModel>(
               (json) => LongTermGpDropDownModel.fromJson(json))
           .toList();

@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 
 class SessionNoteScreenState extends Equatable {
   final bool isLoading;
+  final bool isSaving;
   final List<LongTermGpDropDownModel> longTermGpDropDownList;
   final List<ShortTermGpModel> shortTermGpList;
   final List<CheckList> gPcheckListItems;
@@ -49,7 +50,7 @@ class SessionNoteScreenState extends Equatable {
   final DateTime selectedDate;
   final DateTime toPassDate, endDateTime;
   final String showDate;
-  final bool isSelectecDate;
+  final bool isSelectedDate;
   final bool colorGPMadeProgress;
   final bool colorGPpartialProgress;
   final bool colorGPNoProgress;
@@ -81,9 +82,11 @@ class SessionNoteScreenState extends Equatable {
   final TimeList timeList;
   final bool exceedMandate;
   final bool conflictTime;
+  final bool showAlert;
 
   SessionNoteScreenState( {
     this.isLoading = false,
+    this.isSaving = false,
     this.longTermGpDropDownList = const [],
     this.shortTermGpList = const [],
     this.gPcheckListItems = const [],
@@ -128,7 +131,7 @@ class SessionNoteScreenState extends Equatable {
     this.toPassDate,
     this.endDateTime,
     this.showDate,
-    this.isSelectecDate = false,
+    this.isSelectedDate = false,
     this.colorGPMadeProgress = true,
     this.colorGPpartialProgress = false,
     this.colorGPNoProgress = false,
@@ -158,11 +161,13 @@ class SessionNoteScreenState extends Equatable {
     this.timeList,
     this.exceedMandate = false,
     this.conflictTime = false,
+    this.showAlert = false,
   });
 
   @override
   List<Object> get props => [
     isLoading,
+    isSaving,
     longTermGpDropDownList,
     shortTermGpList,
     gPcheckListItems,
@@ -207,7 +212,7 @@ class SessionNoteScreenState extends Equatable {
     toPassDate,
     endDateTime,
     showDate,
-    isSelectecDate,
+    isSelectedDate,
     colorGPMadeProgress,
     colorGPpartialProgress,
     colorGPNoProgress,
@@ -237,10 +242,12 @@ class SessionNoteScreenState extends Equatable {
     timeList,
     exceedMandate,
     conflictTime,
+    showAlert,
   ];
 
   SessionNoteScreenState copyWith({
     bool isLoading,
+    bool isSaving,
     List<LongTermGpDropDownModel> longTermGpDropDownList,
     List<ShortTermGpModel> shortTermGpList,
     List<CheckList> gPcheckListItems,
@@ -274,7 +281,7 @@ class SessionNoteScreenState extends Equatable {
     DateTime selectedDate,
     DateTime toPassDate,endDateTime,
     String showDate,
-    bool isSelectecDate,
+    bool isSelectedDate,
     bool colorGPMadeProgress,
     bool colorGPpartialProgress,
     bool colorGPNoProgress,
@@ -304,9 +311,11 @@ class SessionNoteScreenState extends Equatable {
     bool exceedMandate,
     bool conflictTime,
     TimeList timeList,
+    bool showAlert,
   }) {
     return SessionNoteScreenState(
       isLoading: isLoading ?? this.isLoading,
+      isSaving: isSaving ?? this.isSaving,
       longTermGpDropDownList: longTermGpDropDownList ?? this.longTermGpDropDownList,
       shortTermGpList: shortTermGpList ?? this.shortTermGpList,
       gPcheckListItems: gPcheckListItems ?? this.gPcheckListItems,
@@ -343,7 +352,7 @@ class SessionNoteScreenState extends Equatable {
       goalsAndProgress: goalsAndProgress ?? this.goalsAndProgress,
       groupType: groupType ?? this.groupType,
       isActivities: isActivities ?? this.isActivities,
-      isSelectecDate: isSelectecDate ?? this.isSelectecDate,
+      isSelectedDate: isSelectedDate ?? this.isSelectedDate,
       jointAttentionEyeContact: jointAttentionEyeContact ?? this.jointAttentionEyeContact,
       location: location ?? this.location,
       location1: location1 ?? this.location1,
@@ -376,6 +385,7 @@ class SessionNoteScreenState extends Equatable {
       timeList: timeList ?? this.timeList,
       exceedMandate: exceedMandate ?? this.exceedMandate,
       conflictTime: conflictTime ?? this.conflictTime,
+      showAlert: showAlert ?? this.showAlert,
     );
   }
 }
@@ -383,7 +393,8 @@ class SessionNoteScreenState extends Equatable {
 class SessionNoteScreenStateSuccess extends SessionNoteScreenState {
   final DateTime selectedDate;
   final int finalNumber;
-  SessionNoteScreenStateSuccess({this.selectedDate, this.finalNumber});
+  final StudentsDetailsModel student;
+  SessionNoteScreenStateSuccess({this.selectedDate, this.finalNumber, this.student});
 }
 
 class SessionNoteScreenStateFailure extends SessionNoteScreenState {

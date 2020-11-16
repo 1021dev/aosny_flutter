@@ -100,6 +100,14 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     super.initState();
 
     screenBloc = SessionNoteScreenBloc(SessionNoteScreenState(isLoading: true));
+    DateTime dateTime = DateTime.now();
+    if (widget.eventType == 'Enter') {
+      if (GlobalCall.lastStudentId != widget.student.studentID.toInt()) {
+        dateTime = GlobalCall.lastEnteredTime.add(Duration(minutes: 1));
+      } else {
+        dateTime = GlobalCall.lastEnteredTime;
+      }
+    }
     screenBloc.add(
         SessionNoteScreenInitEvent(
           studentId: widget.student.studentID.toInt(),
@@ -109,7 +117,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           sessionId: widget.sessionId,
           sessionNotes: widget.sessionNotes,
           student: widget.student,
-          selectedTime: GlobalCall.lastEnteredTime,
+          selectedTime: dateTime,
         )
     );
   }
@@ -119,6 +127,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     var datePick= await showDatePicker(
       context: context,
       initialDate: state.selectedDate,
+      // selectableDayPredicate: (DateTime val) => val.weekday == 5 || val.weekday == 6 ? false : true,
       firstDate: DateTime(state.selectedDate.year - 1),
       lastDate: DateTime(DateTime.now().year + 1),
     );
@@ -158,23 +167,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           if (widget.eventType != 'Enter') {
             Navigator.pop(context, 'success');
           } else {
-            var selectedDate2 = new DateFormat('hh:mm a');
-            String selectedTime = selectedDate2.format(state.selectedDate);
-
-            int h = state.selectedDate.hour;
-            int m = state.selectedDate.minute;
-            if (state.finalNumber == 30) {
-              if ((m + 30) >= 60) {
-                h = h + 1;
-                m = m + 30 - 60;
-              } else {
-                m = m + 30;
-              }
-            } else {
-              h = h + 1;
-            }
-            DateTime selectedDate = DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day, h, m);
-            GlobalCall.lastEnteredTime = selectedDate;
             showDialog(context: context, builder: (context) {
               return CupertinoAlertDialog(
                 title: Text(
@@ -216,7 +208,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                             sessionId: widget.sessionId,
                             sessionNotes: widget.sessionNotes,
                             student: widget.student,
-                            selectedTime: selectedDate,
+                            selectedTime: state.selectedDate,
                           )
                       );
                     },
@@ -258,7 +250,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               ),
             ),
             body: ModalProgressHUD(
-              inAsyncCall: state.isLoading,
+              inAsyncCall: state.isLoading || state.isSaving,
               child: new GestureDetector(
                 onTap: () {
                   FocusScope.of(context).unfocus();
@@ -736,6 +728,18 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                           return;
                         }
                       }
+                      if (state.showAlert && state.exceedMandate) {
+                        TimeList timeList = state.timeList;
+                        ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
+                          return element.studentId == state.student.studentID.toInt();
+                        });
+                        Fluttertoast.showToast(msg: 'This mandate has the maximum of ${progressedTime.mandateMins / 60} hours for the week');
+                        return;
+                      }
+                      if (state.showAlert && state.conflictTime) {
+                        Fluttertoast.showToast(msg: 'There is already a session entered during this time frame');
+                        return;
+                      }
                       screenBloc.add(SaveSessionNoteEvent(noteText: noteTextController.text));
                     },
                     child: Container(
@@ -928,7 +932,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
           ],
         ) : Container(),
-        state.goalsAndProgress ? Column(
+        state.goalsAndProgress && state.selectedLtGoalId > -1 ? Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
@@ -985,7 +989,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
           ],
         ): Container(),
-        state.goalsAndProgress ? goalprogressReview(state) : Container(),
+        state.goalsAndProgress && state.selectedLtGoalId > -1 ? goalProgressReview(state) : Container(),
         state.goalsAndProgress ? Divider(height: 8, thickness: 1,) : Container(),
         state.goalsAndProgress ? Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1096,7 +1100,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
           ],
         ) : Container(),
-        state.goalsAndProgress ? Column(
+        state.goalsAndProgress && state.selectedLtGoalId2 > -1 ? Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
@@ -1145,7 +1149,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
           ],
         ): Container(),
-        state.goalsAndProgress ? goalprogressReview2(state) : Container(),
+        state.goalsAndProgress && state.selectedLtGoalId2 > -1 ? goalProgressReview2(state) : Container(),
         SizedBox(height:2),
         GestureDetector(
           onTap: (){
@@ -1759,7 +1763,8 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     );
   }
 
-  Widget goalprogressReview(SessionNoteScreenState state){
+  Widget goalProgressReview(SessionNoteScreenState state){
+    // print(state.selectedOutComesIndex);
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1834,7 +1839,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     );
   }
 
-  Widget goalprogressReview2(SessionNoteScreenState state){
+  Widget goalProgressReview2(SessionNoteScreenState state){
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2373,6 +2378,9 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
   }
 
   Widget showConflicts(SessionNoteScreenState state) {
+    if (!state.showAlert) {
+      return Container();
+    }
     if (state.conflictTime) {
       return Container(
         padding: EdgeInsets.all(8),
@@ -2380,7 +2388,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         color: Colors.red,
         child: Center(
           child: Text(
-            'Already logged this time for this provider!',
+            'There is already a session entered during this time frame',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w500,
@@ -2391,13 +2399,18 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         ),
       );
     } else if (state.exceedMandate) {
+      TimeList timeList = state.timeList;
+      ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
+        return element.studentId == state.student.studentID.toInt();
+      });
+
       return Container(
         padding: EdgeInsets.all(8),
         height: 64,
         color: Colors.red,
         child: Center(
           child: Text(
-            'Your selection is exceeding mandate time for this week!',
+            'This mandate has the maximum of ${progressedTime.mandateMins / 60} hours for the week',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w500,
