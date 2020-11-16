@@ -208,6 +208,7 @@ class SessionTime {
   String carId;
   int studentId;
   String sessionType;
+  int sessionId;
 
   SessionTime.fromJson(Map<String, dynamic> json) {
     startTime = json['starttime'];
@@ -215,6 +216,7 @@ class SessionTime {
     carId = json['carid'];
     studentId = json['studentid'];
     sessionType = json['stype'];
+    sessionId = json['sessionid'];
   }
 }
 

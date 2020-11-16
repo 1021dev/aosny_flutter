@@ -25,11 +25,12 @@ class HistoryApi{
       var data = json.decode(response.body);
       print("HISTORY DATA:$data");
 
-      if (statusCode < 200 || statusCode >= 400 || json == null) {
+      if (statusCode < 200 || statusCode > 400 || json == null) {
         Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
         throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      } else if (statusCode == 400) {
+        Fluttertoast.showToast(msg: data['message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
       }
-
       result = data.map<HistoryModel>(
               (json) => HistoryModel.fromJson(json))
           .toList();

@@ -39,6 +39,7 @@ class GlobalCall extends ChangeNotifier{
  static LoginResponse user;
 
  static DateTime lastEnteredTime = DateTime.now();
+ static int lastStudentId = 0;
 
 }
 

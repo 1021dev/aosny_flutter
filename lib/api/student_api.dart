@@ -36,14 +36,14 @@ class StudentApi{
       print("Code::");
       print(statusCode);
 
-      var data = json.decode(response.body);
-      print(" DATA:$data");
-
-      if (statusCode < 200 || statusCode >= 400 || json == null) {
+      dynamic data = json.decode(response.body);
+      print(data);
+      if (statusCode < 200 || statusCode > 400 || json == null) {
         Fluttertoast.showToast(msg: data['Message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
         throw new Exception(data['Message'] ?? 'An internal error has occurred. The administrator has been notified');
+      } else if (statusCode == 400) {
+        Fluttertoast.showToast(msg: data['message'] ?? 'An internal error has occurred. The administrator has been notified', toastLength: Toast.LENGTH_LONG, timeInSecForIosWeb: 3);
       }
-
       result = data.map<StudentsDetailsModel>(
               (json) => StudentsDetailsModel.fromJson(json))
           .toList();

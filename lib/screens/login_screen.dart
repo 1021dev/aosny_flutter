@@ -344,50 +344,55 @@ class _LoginScreenState extends State<LoginScreen> {
       password: password,
     );
 
+    try {
+      LoginResponse response = await loginapiCall.loginApiCall(url, body: newPost.toJson());
+      GlobalCall.user = response;
+      int codeVal = loginapiCall.statuscode;
+
+      if(codeVal == 200){
 
 
-    LoginResponse response = await loginapiCall.loginApiCall(url, body: newPost.toJson());
-    GlobalCall.user = response;
-    int codeVal = loginapiCall.statuscode;
+        prefs.setInt('user_id', response.userId);
+        prefs.setString('email', response.email);
+        prefs.setString('userName', response.userName);
+        prefs.setString('firstName', response.firstName);
+        prefs.setString('lastName', response.lastName);
+        prefs.setString('providerid', response.providerid);
+        prefs.setString('token', response.token);
+        prefs.setString('password', passwordString);
 
-    if(codeVal == 200){
+        print(response);
+        GlobalCall.email = email;
+        GlobalCall.name = response.userName;
 
+        Fluttertoast.showToast(msg: 'Logged In Successfully',);
+        setState(() {
+          _isLoading = false;
+        });
 
-      prefs.setInt('user_id', response.userId);
-      prefs.setString('email', response.email);
-      prefs.setString('userName', response.userName);
-      prefs.setString('firstName', response.firstName);
-      prefs.setString('lastName', response.lastName);
-      prefs.setString('providerid', response.providerid);
-      prefs.setString('token', response.token);
-      prefs.setString('password', passwordString);
+        if ((response.signatureFilename ?? '') == '') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => SignatureScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MenuScreen()),
+          );
+        }
 
-      print(response);
-      GlobalCall.email = email;
-      GlobalCall.name = response.userName;
-
-      Fluttertoast.showToast(msg: 'Logged In Successfully',);
-      setState(() {
-        _isLoading = false;
-      });
-
-      if ((response.signatureFilename ?? '') == '') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => SignatureScreen()),
-        );
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MenuScreen()),
-        );
+        setState(() {
+          _isLoading = false;
+        });
+        Fluttertoast.showToast(msg: response.message);
       }
-
-    } else {
+    } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      Fluttertoast.showToast(msg: response.message);
+      Fluttertoast.showToast(msg: e.toString());
     }
   }
 

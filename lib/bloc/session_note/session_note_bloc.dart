@@ -126,7 +126,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day, timeOfDay.hour, timeOfDay.minute);
       DateTime currentEndDate = dateTime.add(Duration(minutes: finalnumber));
       List conflicts = getConflicts(dateTime, state.timeList);
-      yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: currentEndDate, exceedMandate: conflicts[0], conflictTime: conflicts[1]);
+      yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: currentEndDate, exceedMandate: conflicts[0], conflictTime: conflicts[1], showAlert: true);
       if (state.selectedSessionTypeIndex == 1) {
         add(GetMissedSessionEvent());
       }
@@ -136,8 +136,11 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       DateTime dateTime = event.selectedDate;
       dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day, timeOfDay.hour, timeOfDay.minute);
       DateTime endDate = dateTime.add(Duration(minutes: finalnumber));
-      List conflicts = getConflicts(dateTime, state.timeList);
-      yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: endDate, exceedMandate: conflicts[0], conflictTime: conflicts[1]);
+      final format = DateFormat('yy-MM-dd');
+      String dateString = format.format(dateTime);
+      TimeList response = await completeSessionApi.getTimeList(state.student.studentID.toInt(), '20$dateString');
+      List conflicts = getConflicts(dateTime, response);
+      yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: endDate, exceedMandate: conflicts[0], conflictTime: conflicts[1], showAlert: true, timeList: response);
     } else if (event is UpdateFinalNumber) {
       int finalnumber = event.finalNumber;
       TimeOfDay timeOfDay = state.selectedTime;
@@ -148,7 +151,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         add(GetMissedSessionEvent());
       }
       List conflicts = getConflicts(dateTime, state.timeList);
-      yield state.copyWith(selectedTime: timeOfDay, finalNumber: event.finalNumber, endDateTime: endDate, exceedMandate: conflicts[0], conflictTime: conflicts[1]);
+      yield state.copyWith(selectedTime: timeOfDay, finalNumber: event.finalNumber, endDateTime: endDate, exceedMandate: conflicts[0], conflictTime: conflicts[1], showAlert: true);
     } else if (event is UpdateLocation) {
       yield state.copyWith(location: event.location);
     } else if (event is UpdateLocation1) {
@@ -337,6 +340,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         yield* getSessionTime('20$dateString');
         yield state.copyWith(
           isLoading: state.sessionId != null,
+          isSaving: false,
           longTermGpDropDownList: longTermGpDropDownList,
           selectedLtGoalId: selectedLtGoalId,
           shortTermGpList: shortTermGpList,
@@ -349,6 +353,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           activitiesListItems: activitiesListItems,
           selectedShortTermResultListModel: selectedShortTermResultListModel,
           selectedShortTermResultListModel2: selectedShortTermResultListModel2,
+          showAlert: true,
         );
       } else {
         selectedShortTermResultListModel.clear();
@@ -481,13 +486,13 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
 
         sessionEndTime = DateFormat.jm().format(endDateTime);
         if (selectedLtGoalId > -1) {
-          List<LongTermGpDropDownModel> models = state.longTermGpDropDownList.where((element) => element.longGoalID == selectedLtGoalId).toList();
+          List<LongTermGpDropDownModel> models = longTermGpDropDownList.where((element) => element.longGoalID == selectedLtGoalId).toList();
           if (models.length > 0) {
             dropDownValue = models[0].longGoalText;
           }
         }
         if (selectedLtGoalId2 > -1) {
-          List<LongTermGpDropDownModel> models = state.longTermGpDropDownList.where((element) => element.longGoalID == selectedLtGoalId2).toList();
+          List<LongTermGpDropDownModel> models = longTermGpDropDownList.where((element) => element.longGoalID == selectedLtGoalId2).toList();
           if (models.length > 0) {
             dropDownValue2 = models[1].longGoalText;
           }
@@ -542,7 +547,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
                 });
               }
               if (temp != null) {
-                selectedCAIconIndex = state.cAcheckListItems.indexOf(temp) ?? -1;
+                selectedCAIconIndex = cAcheckListItems.indexOf(temp) ?? -1;
               }
             }
           }
@@ -560,7 +565,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
                 });
               }
               if (temp != null) {
-                selectedJAIconIndex = state.jAcheckListItems.indexOf(temp) ?? -1;
+                selectedJAIconIndex = jAcheckListItems.indexOf(temp) ?? -1;
               }
             }
           }
@@ -579,9 +584,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
               }
               if (temp != null) {
                 if (selectedOutComesIndex > -1) {
-                  selectedOutComesIndex2 = state.outComesListItems.indexOf(temp) ?? -1;
+                  selectedOutComesIndex2 = outComesListItems.indexOf(temp) ?? -1;
                 } else {
-                  selectedOutComesIndex = state.outComesListItems.indexOf(temp) ?? -1;
+                  selectedOutComesIndex = outComesListItems.indexOf(temp) ?? -1;
                 }
               }
             }
@@ -597,6 +602,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         yield* getSessionTime('20$dateString');
         yield state.copyWith(
           isLoading: false,
+          isSaving: false,
+          longTermGpDropDownList: longTermGpDropDownList,
+          shortTermGpList: shortTermGpList,
           sessionNotes: completeSessionNotes,
           sPcheckListItems: sPcheckListItems,
           sIcheckListItems: sIcheckListItems,
@@ -632,20 +640,26 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           selectedProgText: completeSessionNotes.progText,
           confirmedVal: completeSessionNotes.confirmed,
           cptText: completeSessionNotes.cptText,
+          gPcheckListItems: gPcheckListItems,
+          cAcheckListItems: cAcheckListItems,
+          jAcheckListItems: jAcheckListItems,
+          outComesListItems: outComesListItems,
           missedSessions: missedSession,
           isLock: false,
           mCalId: completeSessionNotes.mCalId,
+          showAlert: false,
         );
       }
     } catch (error) {
       print(error);
+      yield state.copyWith(isLoading: false, isSaving: false);
       yield SessionNoteScreenStateFailure(error: error.toString());
     }
   }
 
 
   Stream<SessionNoteScreenState> saveSessionNote(String noteText) async* {
-    yield state.copyWith(isLoading: true, noteText: noteText);
+    yield state.copyWith(isSaving: true, noteText: noteText);
     var selectedDate1 = new DateFormat('MM/dd/yy');
     var selectedDate2 = new DateFormat('hh:mm a');
 
@@ -797,21 +811,39 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     try {
       AddSessionResponse responseAddSession = await addSessionNoteApi.addSessionDetails(url, body: newPost.toJson());
       yield state.copyWith(isLoading: false);
-      yield SessionNoteScreenStateSuccess(selectedDate: state.selectedDate, finalNumber: state.finalNumber);
+      int h = state.selectedDate.hour;
+      int m = state.selectedDate.minute;
+      if (state.finalNumber == 30) {
+        if ((m + 30) >= 60) {
+          h = h + 1;
+          m = m + 30 - 60;
+        } else {
+          m = m + 30;
+        }
+      } else {
+        h = h + 1;
+      }
+      DateTime selectedDate = DateTime.now();
+      if ((state.sessionId ?? 0) == 0) {
+        selectedDate = DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day, h, m);
+        GlobalCall.lastEnteredTime = selectedDate;
+        GlobalCall.lastStudentId = state.student.studentID.toInt();
+      }
+      yield SessionNoteScreenStateSuccess(selectedDate: selectedDate, finalNumber: state.finalNumber,);
     } catch (error) {
       print(error.toString());
-      yield state.copyWith(isLoading: false);
+      yield state.copyWith(isLoading: false, isSaving: false);
     }
   }
 
   Stream<SessionNoteScreenState> deleteSession(int id) async* {
     try {
-      yield state.copyWith(isLoading: true);
+      yield state.copyWith(isSaving: true);
       dynamic response = await deleteSessionApi.deleteSession(id);
       yield state.copyWith(isLoading: false);
       yield SessionNoteScreenStateSuccess();
     } catch (error) {
-      yield state.copyWith(isLoading: false);
+      yield state.copyWith(isLoading: false, isSaving: false);
     }
   }
 
@@ -821,7 +853,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       List<MissedSessionModel> response = await completeSessionApi.getMissedSessions(date, time, duration, studentId);
       yield state.copyWith(missedSessions: response, isLoading: false, mCalId: 0);
     } catch (error) {
-      yield state.copyWith(isLoading: false);
+      yield state.copyWith(isLoading: false, isSaving: false);
     }
   }
 
@@ -832,7 +864,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       List conflicts = getConflicts(state.selectedDate, response);
       yield state.copyWith(timeList: response, exceedMandate: conflicts[0], conflictTime: conflicts[1], isLoading: false);
     } catch (error) {
-      yield state.copyWith(isLoading: false);
+      yield state.copyWith(isLoading: false, isSaving: false);
     }
   }
 
@@ -853,19 +885,24 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     }
     bool isConflict = false;
     timeList.timeList.forEach((element) {
-      final formatDate = DateFormat('M/d/yyyy hh:mm:ss a');
-      String startTimeString = element.startTime;
-      DateTime startDate = formatDate.parse(startTimeString);
-      DateTime endDate = startDate.add(Duration(minutes: element.dur));
-      if (currentDate.isAfter(startDate) && currentDate.isBefore(endDate)) {
-        isConflict = true;
-        return;
-      } else if (currentEndDate.isAfter(startDate) && currentEndDate.isBefore(endDate)) {
-        isConflict = true;
-        return;
-      } else if (currentDate.isBefore(startDate) && currentEndDate.isAfter(endDate)) {
-        isConflict = true;
-        return;
+      if (element.sessionId != state.sessionId) {
+        final formatDate = DateFormat('M/d/yyyy hh:mm:ss a');
+        String startTimeString = element.startTime;
+        DateTime startDate = formatDate.parse(startTimeString);
+        DateTime endDate = startDate.add(Duration(minutes: element.dur));
+        if (element.sessionType == sessionTypeStrings[2] || element.sessionType == sessionTypeStrings[4]) {
+        } else {
+          if (currentDate.isAfter(startDate) && currentDate.isBefore(endDate)) {
+            isConflict = true;
+            return;
+          } else if (currentEndDate.isAfter(startDate) && currentEndDate.isBefore(endDate)) {
+            isConflict = true;
+            return;
+          } else if (currentDate.isBefore(startDate) && currentEndDate.isAfter(endDate)) {
+            isConflict = true;
+            return;
+          }
+        }
       }
     });
     return [exceedMandate, isConflict];
