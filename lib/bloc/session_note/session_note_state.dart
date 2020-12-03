@@ -75,6 +75,7 @@ class SessionNoteScreenState extends Equatable {
 
   final String selectedProgText;
   final String cptText;
+  final String cptText2;
 
   final List<MissedSessionModel> missedSession;
   final int mCalId;
@@ -151,10 +152,11 @@ class SessionNoteScreenState extends Equatable {
     this. selectedSessionTypeIndex = 0,
 
     this.selectedTime,
-    this.finalNumber= 30,
+    this.finalNumber= 60,
 
     this.selectedProgText,
     this.cptText,
+    this.cptText2,
     this.missedSession = const [],
     this.mCalId,
     this.isLock = false,
@@ -236,6 +238,7 @@ class SessionNoteScreenState extends Equatable {
 
     selectedProgText,
     cptText,
+    cptText2,
     missedSession,
     mCalId,
     isLock,
@@ -305,6 +308,7 @@ class SessionNoteScreenState extends Equatable {
     int finalNumber,
     String selectedProgText,
     String cptText,
+    String cptText2,
     List<MissedSessionModel> missedSessions,
     int mCalId,
     bool isLock,
@@ -379,6 +383,7 @@ class SessionNoteScreenState extends Equatable {
       toPassDate: toPassDate ?? this.toPassDate,
       selectedProgText: selectedProgText ?? this.selectedProgText,
       cptText: cptText ?? this.cptText,
+      cptText2: cptText2 ?? this.cptText2,
       missedSession: missedSessions ?? this.missedSession,
       mCalId: mCalId ?? this.mCalId,
       isLock: isLock ?? this.isLock,
@@ -391,10 +396,9 @@ class SessionNoteScreenState extends Equatable {
 }
 
 class SessionNoteScreenStateSuccess extends SessionNoteScreenState {
-  final DateTime selectedDate;
   final int finalNumber;
   final StudentsDetailsModel student;
-  SessionNoteScreenStateSuccess({this.selectedDate, this.finalNumber, this.student});
+  SessionNoteScreenStateSuccess({this.finalNumber, this.student});
 }
 
 class SessionNoteScreenStateFailure extends SessionNoteScreenState {
@@ -405,8 +409,6 @@ class SessionNoteScreenStateFailure extends SessionNoteScreenState {
   final String noteText;
   final CompleteSessionNotes sessionNotes;
   final int sessionId;
-  final DateTime selectedDate;
-  final TimeOfDay selectedTime;
   SessionNoteScreenStateFailure({
     @required this.error,
     this.student,
@@ -415,8 +417,6 @@ class SessionNoteScreenStateFailure extends SessionNoteScreenState {
     this.noteText,
     this.sessionId,
     this.sessionNotes,
-    this.selectedDate,
-    this.selectedTime,
   }) : super();
 
   @override

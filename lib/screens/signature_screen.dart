@@ -34,7 +34,39 @@ class _SignatureScreenState extends State<SignatureScreen> {
       backgroundColor: Colors.lightBlueAccent,
     );
 
+    showPopUp();
   }
+
+  showPopUp() {
+    showDialog(context: context, builder: (context) {
+      return CupertinoAlertDialog(
+        title: Text(
+          'Please turn your phone sideways and sign the screen',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        content: Text(
+          'Your digital signature will be kept on file and used when you submit reports and invoices',
+          style: TextStyle(
+            fontSize: 14,
+          ),
+        ),
+        actions: [
+          CupertinoActionSheetAction(
+            child: Text(
+              'Ok',
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
 

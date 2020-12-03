@@ -38,8 +38,7 @@ class GlobalCall extends ChangeNotifier{
  static int providerID = 0;
  static LoginResponse user;
 
- static DateTime lastEnteredTime = DateTime.now();
- static int lastStudentId = 0;
+ static bool openDrawer = true;
 
 }
 

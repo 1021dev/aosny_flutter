@@ -36,7 +36,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       SessionNoteScreenEvent event,) async* {
     if (event is SessionNoteScreenInitEvent) {
       String showDate = DateFormat('EEEE, MMMM d').format(DateTime.now()).toString();
-      DateTime selectedDate = event.selectedTime != null ? event.selectedTime: new DateTime.now();
+      DateTime selectedDate = await getSessionDate(event.studentId);
       TimeOfDay selectedTime = new TimeOfDay.now();
 
       yield state.copyWith(
@@ -182,11 +182,13 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     } else if (event is UpdateJAIndex) {
       yield state.copyWith(selectedJAIconIndex: event.selectedJAIconIndex);
     } else if (event is UpdateSessionNoteEvent) {
-      yield state.copyWith(noteText: event.note, cptText: '',);
+      yield state.copyWith(noteText: event.note, cptText: '', cptText2: '');
     } else if (event is UpdateProgText) {
-      yield state.copyWith(selectedProgText: event.progText, noteText: '', cptText: '');
+      yield state.copyWith(selectedProgText: event.progText, noteText: '', cptText: '', cptText2: '');
     } else if (event is UpdateCptText) {
       yield state.copyWith(cptText: event.cptText, noteText: '',);
+    } else if (event is UpdateCptText2) {
+      yield state.copyWith(cptText2: event.cptText2, noteText: '',);
     } else if (event is DeleteSessionEvent) {
       yield* deleteSession(event.id);
     } else if (event is GetMissedSessionEvent) {
@@ -763,7 +765,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String providerid = prefs.getString('providerid');
     // String gNote = '';
-    int progId = -1;
+    int progId = 0;
     int cptCode = -1;
     if (state.selectedSessionTypeIndex == 5) {
       if (state.selectedProgText != '' && state.selectedProgText != null) {
@@ -823,13 +825,11 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       } else {
         h = h + 1;
       }
-      DateTime selectedDate = DateTime.now();
       if ((state.sessionId ?? 0) == 0) {
-        selectedDate = DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day, h, m);
-        GlobalCall.lastEnteredTime = selectedDate;
-        GlobalCall.lastStudentId = state.student.studentID.toInt();
+        DateTime selectedDate = DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day, h, m);
+        await saveLastSessionDate(state.student.studentID.toInt(), selectedDate);
       }
-      yield SessionNoteScreenStateSuccess(selectedDate: selectedDate, finalNumber: state.finalNumber,);
+      yield SessionNoteScreenStateSuccess(finalNumber: state.finalNumber,);
     } catch (error) {
       print(error.toString());
       yield state.copyWith(isLoading: false, isSaving: false);
@@ -879,7 +879,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       return element.studentId == state.student.studentID.toInt();
     });
     bool exceedMandate = false;
-    if (progressedTime != null) {
+    if (progressedTime != null && state.selectedSessionTypeIndex != 5) {
       int weekMins = progressedTime.weekMins + state.finalNumber;
       exceedMandate = weekMins > progressedTime.mandateMins;
     }
@@ -906,5 +906,33 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       }
     });
     return [exceedMandate, isConflict];
+  }
+
+  Future saveLastSessionDate(int student, DateTime dateTime) async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setInt('lastSessionDate', dateTime.millisecondsSinceEpoch);
+    preferences.setInt('lastStudentId', student);
+  }
+
+  Future<DateTime> getSessionDate(int student) async {
+    DateTime now = DateTime.now();
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    int last = preferences.getInt('lastSessionDate') ?? 0;
+    int studentId = preferences.getInt('lastStudentId') ?? 0;
+    if (last > 0) {
+      DateTime lastDate = DateTime.fromMillisecondsSinceEpoch(last);
+      if (now.year == lastDate.year && now.month == lastDate.month && now.day == lastDate.day) {
+        if (studentId != student) {
+          now = DateTime(now.year, now.month, now.day, lastDate.hour, lastDate.minute + 1);
+        } else {
+          now = DateTime(now.year, now.month, now.day, lastDate.hour, lastDate.minute);
+        }
+      } else {
+        now = DateTime(now.year, now.month, now.day, 9, 0);
+      }
+    } else {
+      now = DateTime(now.year, now.month, now.day, 9, 0);
+    }
+    return now;
   }
 }

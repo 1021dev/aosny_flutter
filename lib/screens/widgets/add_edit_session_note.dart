@@ -73,7 +73,11 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
   TextEditingController startTimeController = new TextEditingController(text: '9:00 AM');
   TextEditingController showTimeController = new TextEditingController(text: '30');
   TextEditingController noteTextController = new TextEditingController();
+  TextEditingController activityChildPerformanceController = new TextEditingController();
+  TextEditingController followUpController = new TextEditingController();
   FocusNode noteFocus = FocusNode();
+  FocusNode activityFocus = FocusNode();
+  FocusNode followUpFocus = FocusNode();
   ScrollController scrollController = ScrollController();
   List<String> listValue =[
     'Select Long Term Goal',
@@ -100,14 +104,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     super.initState();
 
     screenBloc = SessionNoteScreenBloc(SessionNoteScreenState(isLoading: true));
-    DateTime dateTime = DateTime.now();
-    if (widget.eventType == 'Enter') {
-      if (GlobalCall.lastStudentId != widget.student.studentID.toInt()) {
-        dateTime = GlobalCall.lastEnteredTime.add(Duration(minutes: 1));
-      } else {
-        dateTime = GlobalCall.lastEnteredTime;
-      }
-    }
     screenBloc.add(
         SessionNoteScreenInitEvent(
           studentId: widget.student.studentID.toInt(),
@@ -117,7 +113,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           sessionId: widget.sessionId,
           sessionNotes: widget.sessionNotes,
           student: widget.student,
-          selectedTime: dateTime,
         )
     );
   }
@@ -153,7 +148,11 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     startTimeController.dispose();
     showTimeController.dispose();
     noteTextController.dispose();
+    activityChildPerformanceController.dispose();
+    followUpController.dispose();
     noteFocus.dispose();
+    activityFocus.dispose();
+    followUpFocus.dispose();
     scrollController.dispose();
     super.dispose();
   }
@@ -208,7 +207,6 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                             sessionId: widget.sessionId,
                             sessionNotes: widget.sessionNotes,
                             student: widget.student,
-                            selectedTime: state.selectedDate,
                           )
                       );
                     },
@@ -256,9 +254,25 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   FocusScope.of(context).unfocus();
                 },
                 child: SafeArea(
-                  child: Container(
-                    padding: const EdgeInsets.only(left: 5, right: 5, top: 16),
-                    child: _getBody(state),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.only(left: 5, right: 5, top: 16),
+                        child: _getBody(state),
+                      ),
+                      state.showAlert && state.exceedMandate ? GestureDetector(
+                        child: Container(
+                          margin: EdgeInsets.only(top: 250),
+                          height: double.infinity,
+                          width: double.infinity,
+                          color: Colors.grey.withAlpha(1),
+                        ),
+                        onTap: () {
+
+                        },
+                      ): Container(),
+                    ],
                   ),
                 ),
               ),
@@ -272,6 +286,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
   Widget _getBody(SessionNoteScreenState state) {
     return SingleChildScrollView(
       controller: scrollController,
+      physics: state.showAlert && state.exceedMandate ? NeverScrollableScrollPhysics(): AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.only(bottom: 24),
       child: Column(
         children: <Widget>[
@@ -662,7 +677,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           ),
           _sessionTypeWidget(state),
           state.selectedSessionTypeIndex < 2 ? _dropDowns(state): (state.selectedSessionTypeIndex == 5 ?  _nonDirectCare(state): Container()),
-          state.selectedProgText == nonDirectActivities[2] ? Container() : Container(
+          state.selectedSessionTypeIndex == 5 ? Container() : Container(
             alignment: Alignment.bottomLeft,
             width: MediaQuery.of(context).size.width,
             margin: const EdgeInsets.only(left:20,right:20,top:5),
@@ -677,9 +692,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           state.isLoading
               ? Container()
               : (
-              state.selectedProgText == nonDirectActivities[2]
-                  ? Container()
-                  : Container(
+              state.selectedSessionTypeIndex == 5 ? Container() : Container(
                 alignment: Alignment.topLeft,
                 margin: const EdgeInsets.only(left: 16,right: 16,top:2),
                 decoration: BoxDecoration(
@@ -728,13 +741,15 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                           return;
                         }
                       }
-                      if (state.showAlert && state.exceedMandate) {
-                        TimeList timeList = state.timeList;
-                        ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
-                          return element.studentId == state.student.studentID.toInt();
-                        });
-                        Fluttertoast.showToast(msg: 'This mandate has the maximum of ${progressedTime.mandateMins / 60} hours for the week');
-                        return;
+                      if (state.selectedSessionTypeIndex != 5) {
+                        if (state.showAlert && state.exceedMandate) {
+                          TimeList timeList = state.timeList;
+                          ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
+                            return element.studentId == state.student.studentID.toInt();
+                          });
+                          Fluttertoast.showToast(msg: 'This mandate has the maximum of ${progressedTime.mandateMins / 60} hours for the week');
+                          return;
+                        }
                       }
                       if (state.showAlert && state.conflictTime) {
                         Fluttertoast.showToast(msg: 'There is already a session entered during this time frame');
@@ -1428,32 +1443,119 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           ),
         ),
         _nonActivity(state),
-        state.selectedProgText == nonDirectActivities[0] ? Padding(
-          padding: EdgeInsets.only(left: 8, top: 8, bottom: 4),
-          child: Text(
-            'Method of Contact:',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-            ),
+        state.selectedProgText == nonDirectActivities[0] ? Container(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Text(
+                      'Activity and Child Performance:',
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      activityChildPerformanceController.text = 'Updated parents on how child is doing in class and on progress toward attaining goals.';
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Text(
+                        'Updated Parent',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w500
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                alignment: Alignment.topLeft,
+                margin: const EdgeInsets.only(left: 8,right: 8,),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(
+                    color: Colors.grey,
+                    width: 1,
+                  ),
+                ) ,
+                child: TextField(
+                  focusNode: activityFocus,
+                  onChanged: (val) {
+                    setState(() {
+                    });
+                  },
+                  controller: activityChildPerformanceController,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  maxLines: null,
+                  scrollPhysics: NeverScrollableScrollPhysics(),
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.all(8),
+                    hintText: '',
+                    hintStyle: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    flex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: 8, top: 8, bottom: 4),
+                          child: Text(
+                            'Method of Contact:',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Divider(height: 0, thickness: 0.5,),
+                        _coordinationMethods(state),
+                        Divider(height: 0, thickness: 0.5,),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: 8, top: 8, bottom: 4),
+                          child: Text(
+                            'Party Contacted:',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Divider(height: 0, thickness: 0.5,),
+                        _coordinationParty(state),
+                        Divider(height: 0, thickness: 0.5,),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ): Container(),
-        state.selectedProgText == nonDirectActivities[0] ? Divider(height: 0, thickness: 0.5,): Container(),
-        state.selectedProgText == nonDirectActivities[0] ? _coordinationMethods(state): Container(),
-        state.selectedProgText == nonDirectActivities[0] ? Divider(height: 0, thickness: 0.5,): Container(),
-        state.selectedProgText == nonDirectActivities[0] ? Padding(
-          padding: EdgeInsets.only(left: 8, top: 8, bottom: 4),
-          child: Text(
-            'Party Contacted:',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-            ),
-          ),
-        ): Container(),
-        state.selectedProgText == nonDirectActivities[0] ? Divider(height: 0, thickness: 0.5,): Container(),
-        state.selectedProgText == nonDirectActivities[0] ? _coordinationParty(state): Container(),
-        state.selectedProgText == nonDirectActivities[0] ? Divider(height: 0, thickness: 0.5,): Container(),
         state.selectedProgText == nonDirectActivities[1] ? Container(): Container(),
         state.selectedProgText == nonDirectActivities[2] ? Padding(
           padding: EdgeInsets.only(left: 8, top: 8, bottom: 4),
@@ -1467,6 +1569,51 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         ): Container(),
         state.selectedProgText == nonDirectActivities[2] ? _nonPrepType(state): Container(),
         Padding(padding: EdgeInsets.only(top: 16),),
+        state.selectedProgText != nonDirectActivities[0] ? Container()
+            : Row(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(8),
+              child: Text(
+                'Follow Up:',
+                textAlign: TextAlign.left,
+              ),
+            ),
+          ],
+        ),
+        state.selectedProgText != nonDirectActivities[0] ? Container() :
+        Container(
+          alignment: Alignment.topLeft,
+          margin: const EdgeInsets.only(left: 8,right: 8,),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(
+              color: Colors.grey,
+              width: 1,
+            ),
+          ) ,
+          child: TextField(
+            focusNode: followUpFocus,
+            onChanged: (val) {
+              setState(() {
+              });
+            },
+            controller: followUpController,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            maxLines: null,
+            scrollPhysics: NeverScrollableScrollPhysics(),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.all(8),
+              hintText: '',
+              hintStyle: TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+              ),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -1482,6 +1629,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               methodOfContact[index],
               style: TextStyle(fontSize: 15),
             ),
+            contentPadding: EdgeInsets.zero,
             dense: true,
             value: methodOfContact[index] == state.cptText,
             onChanged: (newValue) async {
@@ -1513,13 +1661,14 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               partyContacted[index],
               style: TextStyle(fontSize: 15),
             ),
+            contentPadding: EdgeInsets.zero,
             dense: true,
-            value: partyContacted[index] == state.cptText,
+            value: partyContacted[index] == state.cptText2,
             onChanged: (newValue) async {
-              if (partyContacted[index] == state.cptText) {
-                screenBloc.add(UpdateCptText(cptText: ''));
+              if (partyContacted[index] == state.cptText2) {
+                screenBloc.add(UpdateCptText2(cptText2: ''));
               } else {
-                screenBloc.add(UpdateCptText(cptText: partyContacted[index]));
+                screenBloc.add(UpdateCptText2(cptText2: partyContacted[index]));
               }
               setState(() {
 
@@ -2403,7 +2552,9 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
       ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
         return element.studentId == state.student.studentID.toInt();
       });
-
+      if (state.selectedSessionTypeIndex == 5) {
+        return Container();
+      }
       return Container(
         padding: EdgeInsets.all(8),
         height: 64,

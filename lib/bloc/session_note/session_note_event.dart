@@ -24,7 +24,6 @@ class SessionNoteScreenInitEvent extends SessionNoteScreenEvent {
   final String noteText;
   final CompleteSessionNotes sessionNotes;
   final int sessionId;
-  final DateTime selectedTime;
 
   SessionNoteScreenInitEvent({
     this.studentId,
@@ -34,7 +33,6 @@ class SessionNoteScreenInitEvent extends SessionNoteScreenEvent {
     this.noteText,
     this.sessionNotes,
     this.sessionId,
-    this.selectedTime,
   });
 }
 
@@ -218,6 +216,11 @@ class UpdateProgText extends SessionNoteScreenEvent {
 class UpdateCptText extends SessionNoteScreenEvent {
   final String cptText;
   UpdateCptText({this.cptText});
+}
+
+class UpdateCptText2 extends SessionNoteScreenEvent {
+  final String cptText2;
+  UpdateCptText2({this.cptText2});
 }
 
 class DeleteSessionEvent extends SessionNoteScreenEvent {

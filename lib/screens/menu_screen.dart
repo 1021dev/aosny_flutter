@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:aosny_services/api/student_api.dart';
 import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
+import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
 import 'package:aosny_services/screens/widgets/drawer/drawer_widget.dart';
@@ -103,6 +104,8 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
   bool isBackArrow = false;
   bool isStudents = false;
   bool isCategories = false;
+  GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
+
   StreamController<int> tabIndnex = StreamController<int>.broadcast();
   int selectedIndex = 0;
   TabController tabController;
@@ -161,8 +164,18 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
     }
   }
 
+  _onLayoutDone(_) {
+    //your logic here
+    if (GlobalCall.openDrawer) {
+      GlobalCall.openDrawer = false;
+      _drawerKey.currentState.openDrawer();
+    }
+  }
+
+
   @override
   void initState() {
+
     super.initState();
     selectedIndex = widget.selectedIndex;
     tabController = TabController(vsync: this, length: 2, initialIndex: selectedIndex);
@@ -177,6 +190,7 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
     print('GlobalCall().isHistoryOrProgress');
     print(GlobalCall.isHistoryOrProgress);
     tabController.addListener(_handleTabSelection);
+    WidgetsBinding.instance.addPostFrameCallback(_onLayoutDone);
 
   }
 
@@ -190,7 +204,6 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-
     return BlocListener(
       cubit: widget.mainScreenBloc,
       listener: (BuildContext context, MainScreenState state) async {
@@ -198,7 +211,9 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
       child: BlocBuilder<MainScreenBloc, MainScreenState>(
         cubit: widget.mainScreenBloc,
         builder: (BuildContext context, MainScreenState state) {
+
           return Scaffold(
+            key: _drawerKey,
             appBar: AppBar(
               backgroundColor: Colors.lightBlue,
               title: Text("My Sessions",style: TextStyle(fontSize: 18, fontWeight: FontWeight.normal),),
