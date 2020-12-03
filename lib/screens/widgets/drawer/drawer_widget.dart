@@ -7,6 +7,7 @@ import 'package:aosny_services/screens/widgets/drawer/enter_session.dart';
 import 'package:aosny_services/screens/widgets/drawer/notification_screen.dart';
 import 'package:aosny_services/screens/widgets/splash_page.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info/package_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../menu_screen.dart';
@@ -39,6 +40,9 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   List<LongTermGpDropDownModel> longTermGpDropDownList = new List();
   List<ShortTermGpModel> shortTermGpList = new List();
   SharedPreferences preferences;
+  String buildNumber = '';
+  String versionNumber = '';
+  @override
 
   @override
   void initState() {
@@ -48,6 +52,18 @@ class _DrawerWidgetState extends State<DrawerWidget> {
         preferences = value;
       });
     });
+
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      String appName = packageInfo.appName;
+      String packageName = packageInfo.packageName;
+      setState(() {
+        versionNumber = packageInfo.version;
+        buildNumber = packageInfo.buildNumber;
+      });
+      print(versionNumber);
+    });
+
+
   }
 
   @override
@@ -157,6 +173,11 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                       image: AssetImage('assets/logo/ic_logo.png'),
                       fit: BoxFit.contain,
                     ),
+                  ),
+                ),
+                Container(
+                  child: Text(
+                    'App version: $versionNumber($buildNumber)',
                   ),
                 ),
                 Container(
