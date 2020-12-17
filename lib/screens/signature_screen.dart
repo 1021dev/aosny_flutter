@@ -24,21 +24,48 @@ class _SignatureScreenState extends State<SignatureScreen> {
     exportBackgroundColor: Colors.white,
   );
 
-  var _signatureCanvas;
+  bool loaded = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _signatureCanvas = Signature(
-      controller: _controller,
-      backgroundColor: Colors.lightBlueAccent,
-    );
-
-    showPopUp();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await showDialog<String>(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: Text(
+            'Please turn your phone sideways and sign the screen',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          content: Text(
+            'Your digital signature will be kept on file and used when you submit reports and invoices',
+            style: TextStyle(
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            CupertinoActionSheetAction(
+              child: Text(
+                'Ok',
+              ),
+              onPressed: () async {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        )
+      );
+    });
   }
 
-  showPopUp() {
-    showDialog(context: context, builder: (context) {
+  showPopUp() async {
+    setState(() {
+      loaded = true;
+    });
+    await showDialog(context: context, builder: (context) {
       return CupertinoAlertDialog(
         title: Text(
           'Please turn your phone sideways and sign the screen',
@@ -58,7 +85,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
             child: Text(
               'Ok',
             ),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
             },
           ),
@@ -108,16 +135,16 @@ class _SignatureScreenState extends State<SignatureScreen> {
               Uint8List bytes = await _controller.toPngBytes();
               LoginApi loginapiCall = new LoginApi();
               dynamic response = await loginapiCall.postSignature(base: base64Encode(bytes));
+              setState(() {
+                _isLoading = false;
+              });
 
-              if (loginapiCall.statuscode == 200) {
+              if (response.statusCode == 200) {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => MenuScreen()),
                 );
               }
-              setState(() {
-                _isLoading = false;
-              });
             },
             minWidth: 0,
             child: Text(
