@@ -43,9 +43,4 @@ class _MyAppState extends State<SplashScreenPage> {
       loaderColor: Colors.blue,
     );
   }
-
-
-
 }
-
-

@@ -91,6 +91,9 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
         setState(() {
           GlobalCall.startDate = datePick;
           startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.startDate);
+          DateTime endDateTime = datePick.add(Duration(days: 6));
+          GlobalCall.endDate = endDateTime;
+          endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.endDate);
         });
         if (endDate != null) {
           widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));
@@ -101,6 +104,9 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
         setState(() {
           GlobalCall.endDate = datePick;
           endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.endDate);
+          DateTime startDateTime = datePick.subtract(Duration(days: 6));
+          GlobalCall.startDate = startDateTime;
+          startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.startDate);
         });
         if (startDate != null) {
           widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));

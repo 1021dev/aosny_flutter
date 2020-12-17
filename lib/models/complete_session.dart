@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import 'add_session_response.dart';
 import 'missed_session_model.dart';
 
 class CompleteSessionNotes {
@@ -22,6 +23,7 @@ class CompleteSessionNotes {
   List<SessionNoteExtrasList> sessionNoteExtrasList;
   List<MissedSessionModel> singleMakeupSessionNote;
   num mCalId;
+  List<CptCode> cptCodeList = [];
 
   CompleteSessionNotes({
     this.sessionID,
@@ -43,6 +45,7 @@ class CompleteSessionNotes {
     this.progText,
     this.singleMakeupSessionNote,
     this.mCalId,
+    this.cptCodeList = const [],
   });
 
   CompleteSessionNotes.fromJson(Map<String, dynamic> json) {
@@ -85,6 +88,12 @@ class CompleteSessionNotes {
         singleMakeupSessionNote.add(new MissedSessionModel.fromJson(v));
       });
     }
+    if (json['CptCodeList'] != null) {
+      List list = json['CptCodeList'];
+      list.forEach((element) {
+        cptCodeList.add(CptCode.fromJson(element));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -114,6 +123,11 @@ class CompleteSessionNotes {
       data['SessionNoteExtrasList'] =
           this.sessionNoteExtrasList.map((v) => v.toJson()).toList();
     }
+    List list = [];
+    this.cptCodeList.forEach((element) {
+      list.add(element.toJson());
+    });
+    data['CptCodeList'] = list;
     return data;
   }
 }

@@ -182,12 +182,14 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     } else if (event is UpdateJAIndex) {
       yield state.copyWith(selectedJAIconIndex: event.selectedJAIconIndex);
     } else if (event is UpdateSessionNoteEvent) {
-      yield state.copyWith(noteText: event.note, cptText: '', cptText2: '');
+      yield state.copyWith(noteText: event.note, cptText1: '', cptText2: '');
     } else if (event is UpdateProgText) {
-      yield state.copyWith(selectedProgText: event.progText, noteText: '', cptText: '', cptText2: '');
-    } else if (event is UpdateCptText) {
-      yield state.copyWith(cptText: event.cptText, noteText: '',);
+      yield state.copyWith(selectedProgText: event.progText, noteText: '', cptText1: '', cptText2: '');
+    } else if (event is UpdateCptText1) {
+      print(event.cptText1);
+      yield state.copyWith(cptText1: event.cptText1, noteText: '',);
     } else if (event is UpdateCptText2) {
+      print(event.cptText2);
       yield state.copyWith(cptText2: event.cptText2, noteText: '',);
     } else if (event is DeleteSessionEvent) {
       yield* deleteSession(event.id);
@@ -209,6 +211,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       print(dateTime);
       print(dateString);
       yield* getSessionTime('20$dateString');
+    } else if (event is UpdateActivityChildPerformanceEvent) {
+      yield state.copyWith(activityChildPerformance: event.note);
+    } else if (event is UpdateFollowUpEvent) {
+      yield state.copyWith(followUp: event.note);
     }
 
   }
@@ -496,7 +502,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         if (selectedLtGoalId2 > -1) {
           List<LongTermGpDropDownModel> models = longTermGpDropDownList.where((element) => element.longGoalID == selectedLtGoalId2).toList();
           if (models.length > 0) {
-            dropDownValue2 = models[1].longGoalText;
+            dropDownValue2 = models[0].longGoalText;
           }
         }
         List<SessionNoteExtrasList> sessionNotesExtras = completeSessionNotes.sessionNoteExtrasList;
@@ -595,6 +601,26 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           }
         }
 
+        List<CptCode> cptCodeList = completeSessionNotes.cptCodeList;
+        String cptText1 = '';
+        String cptText2 = '';
+        if (cptCodeList.length > 0) {
+          cptText1 = cptCodeId[cptCodeList[0].tmpId - 1];
+        }
+        if (cptCodeList.length > 1) {
+          cptText2 = cptCodeId[cptCodeList[1].tmpId - 1];
+        }
+        String activityChildPerformance = '';
+        String followUp = '';
+        if (completeSessionNotes.sessionType == sessionTypeStrings[5] && completeSessionNotes.progId == 3) {
+          List<String> tempNotes = completeSessionNotes.notes.split('~');
+          if (tempNotes.length > 0) {
+            activityChildPerformance = tempNotes.first;
+          }
+          if (tempNotes.length > 1) {
+            followUp = tempNotes.last;
+          }
+        }
         missedSession = completeSessionNotes.singleMakeupSessionNote;
         DateTime dateTime = selectedDate;
         final format = DateFormat('yy-MM-dd');
@@ -642,6 +668,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           selectedProgText: completeSessionNotes.progText,
           confirmedVal: completeSessionNotes.confirmed,
           cptText: completeSessionNotes.cptText,
+          cptText1: cptText1,
+          cptText2: cptText2,
+          cptCodeList: completeSessionNotes.cptCodeList,
           gPcheckListItems: gPcheckListItems,
           cAcheckListItems: cAcheckListItems,
           jAcheckListItems: jAcheckListItems,
@@ -650,6 +679,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           isLock: false,
           mCalId: completeSessionNotes.mCalId,
           showAlert: false,
+          activityChildPerformance: activityChildPerformance,
+          followUp: followUp,
         );
       }
     } catch (error) {
@@ -767,15 +798,20 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     // String gNote = '';
     int progId = 0;
     int cptCode = -1;
+    List<CptCode> cptCodeList = [];
     if (state.selectedSessionTypeIndex == 5) {
       if (state.selectedProgText != '' && state.selectedProgText != null) {
         int index = nonDirectActivities.indexOf(state.selectedProgText);
         switch (index) {
           case 0:
             progId = 3;
-            if (state.cptText != '' && state.cptText != null) {
-              cptCode = cptCodeId.indexOf(state.cptText) + 1;
+            if (state.cptText1 != '' && state.cptText1 != null) {
+              cptCodeList.add(CptCode(tmpId: cptCodeId.indexOf(state.cptText1) + 1));
             }
+            if (state.cptText2 != '' && state.cptText2 != null) {
+              cptCodeList.add(CptCode(tmpId: cptCodeId.indexOf(state.cptText2) + 1));
+            }
+            noteText = state.activityChildPerformance + ' ~ ' + state.followUp;
             break;
           case 1:
             progId = 9;
@@ -804,6 +840,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       sessionID: state.sessionId ?? 0,
       progText: progText,
       cptText: cptText,
+      cptCodeList: cptCodeList,
       cptCode: cptCode,
       progId: progId,
       sessionNoteExtrasList: sessionNoteExtrasList,

@@ -22,7 +22,7 @@ class AddSessionResponse {
   String providerId;
   int xid;
   int mCalId;
-
+  List<CptCode> cptCodeList = [];
   AddSessionResponse(
       {this.sessionID,
         this.studentID,
@@ -45,6 +45,7 @@ class AddSessionResponse {
         this.providerId,
         this.xid,
         this.mCalId,
+        this.cptCodeList = const [],
       });
 
   AddSessionResponse.fromJson(Map<String, dynamic> json) {
@@ -84,6 +85,12 @@ class AddSessionResponse {
         sessionNoteExtrasList.add(new SessionNoteExtrasList.fromJson(v));
       });
     }
+    if (json['CptCodeList'] != null) {
+      List list = json['CptCodeList'];
+      list.forEach((element) {
+        cptCodeList.add(CptCode.fromJson(element));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -116,6 +123,27 @@ class AddSessionResponse {
       data['SessionNoteExtrasList'] =
           this.sessionNoteExtrasList.map((v) => v.toJson()).toList();
     }
+    List list = [];
+    this.cptCodeList.forEach((element) {
+      list.add(element.toJson());
+    });
+    data['CptCodeList'] = list;
+    return data;
+  }
+}
+
+class CptCode {
+  num tmpId;
+
+  CptCode({this.tmpId});
+  CptCode.fromJson(Map<String, dynamic> json) {
+    tmpId = json['tmpid'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+
+    data['tmpid'] = tmpId;
     return data;
   }
 }

@@ -1,11 +1,11 @@
 class ProgressAmountModel {
   String student;
   num osis;
-  String required;
-  String regCompleted;
+  num required;
+  num regCompleted;
   String missed;
-  String reqNonDir;
-  String actNonDir;
+  num reqNonDir;
+  num actNonDir;
   String discrep1;
   num direct;
   num reqNonDir1;
