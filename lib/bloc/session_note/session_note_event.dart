@@ -213,9 +213,9 @@ class UpdateProgText extends SessionNoteScreenEvent {
   UpdateProgText({this.progText});
 }
 
-class UpdateCptText extends SessionNoteScreenEvent {
-  final String cptText;
-  UpdateCptText({this.cptText});
+class UpdateCptText1 extends SessionNoteScreenEvent {
+  final String cptText1;
+  UpdateCptText1({this.cptText1});
 }
 
 class UpdateCptText2 extends SessionNoteScreenEvent {
@@ -240,4 +240,12 @@ class GetMissedSessionEvent extends SessionNoteScreenEvent {
 class GetSessionTimeEvent extends SessionNoteScreenEvent {
   final DateTime dateTime;
   GetSessionTimeEvent({this.dateTime});
+}
+class UpdateActivityChildPerformanceEvent extends SessionNoteScreenEvent {
+  final String note;
+  UpdateActivityChildPerformanceEvent({this.note});
+}
+class UpdateFollowUpEvent extends SessionNoteScreenEvent {
+  final String note;
+  UpdateFollowUpEvent({this.note});
 }

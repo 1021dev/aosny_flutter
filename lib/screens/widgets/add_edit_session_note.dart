@@ -115,6 +115,33 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           student: widget.student,
         )
     );
+    noteFocus.addListener(_handleNoteChanges);
+    activityFocus.addListener(_handleActivityChanges);
+    followUpFocus.addListener(_handleFollowUpChanges);
+  }
+
+  void _handleNoteChanges() {
+    if (!noteFocus.hasFocus) {
+      if (screenBloc != null) {
+        screenBloc.add(UpdateSessionNoteEvent(note: noteTextController.text));
+      }
+    }
+  }
+
+  void _handleActivityChanges() {
+    if (!activityFocus.hasFocus) {
+      if (screenBloc != null) {
+        screenBloc.add(UpdateActivityChildPerformanceEvent(note: activityChildPerformanceController.text));
+      }
+    }
+  }
+
+  void _handleFollowUpChanges() {
+    if (!followUpFocus.hasFocus) {
+      if (screenBloc != null) {
+        screenBloc.add(UpdateFollowUpEvent(note: followUpController.text));
+      }
+    }
   }
 
   Future<Null> _selectDate(BuildContext context, SessionNoteScreenState state) async {
@@ -228,6 +255,8 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         }
         setState(() {
           noteTextController.text = state.noteText;
+          activityChildPerformanceController.text = state.activityChildPerformance ?? '';
+          followUpController.text = state.followUp ?? '';
         });
       },
       child: BlocBuilder<SessionNoteScreenBloc, SessionNoteScreenState>(
@@ -1460,6 +1489,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                   InkWell(
                     onTap: () {
                       activityChildPerformanceController.text = 'Updated parents on how child is doing in class and on progress toward attaining goals.';
+                      screenBloc.add(UpdateActivityChildPerformanceEvent(note: activityChildPerformanceController.text));
                     },
                     child: Padding(
                       padding: EdgeInsets.all(8),
@@ -1487,8 +1517,9 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                 child: TextField(
                   focusNode: activityFocus,
                   onChanged: (val) {
-                    setState(() {
-                    });
+                  },
+                  onSubmitted: (val) {
+                    screenBloc.add(UpdateActivityChildPerformanceEvent(note: val));
                   },
                   controller: activityChildPerformanceController,
                   keyboardType: TextInputType.multiline,
@@ -1595,9 +1626,14 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           child: TextField(
             focusNode: followUpFocus,
             onChanged: (val) {
-              setState(() {
-              });
             },
+            onEditingComplete: () {
+              screenBloc.add(UpdateFollowUpEvent(note: followUpController.text));
+            },
+            onSubmitted: (val) {
+              screenBloc.add(UpdateFollowUpEvent(note: val));
+            },
+
             controller: followUpController,
             keyboardType: TextInputType.multiline,
             textInputAction: TextInputAction.newline,
@@ -1631,12 +1667,12 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
             contentPadding: EdgeInsets.zero,
             dense: true,
-            value: methodOfContact[index] == state.cptText,
+            value: methodOfContact[index] == state.cptText1,
             onChanged: (newValue) async {
-              if (methodOfContact[index] == state.cptText) {
-                screenBloc.add(UpdateCptText(cptText: ''));
+              if (methodOfContact[index] == state.cptText1) {
+                screenBloc.add(UpdateCptText1(cptText1: ''));
               } else {
-                screenBloc.add(UpdateCptText(cptText: methodOfContact[index]));
+                screenBloc.add(UpdateCptText1(cptText1: methodOfContact[index]));
               }
               setState(() {
 

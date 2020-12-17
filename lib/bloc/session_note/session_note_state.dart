@@ -1,4 +1,5 @@
 
+import 'package:aosny_services/models/add_session_response.dart';
 import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
@@ -74,8 +75,10 @@ class SessionNoteScreenState extends Equatable {
   final int finalNumber;
 
   final String selectedProgText;
-  final String cptText;
+  final String cptText1;
   final String cptText2;
+  final List<CptCode> cptCodeList;
+  final String cptText;
 
   final List<MissedSessionModel> missedSession;
   final int mCalId;
@@ -84,6 +87,8 @@ class SessionNoteScreenState extends Equatable {
   final bool exceedMandate;
   final bool conflictTime;
   final bool showAlert;
+  final String activityChildPerformance;
+  final String followUp;
 
   SessionNoteScreenState( {
     this.isLoading = false,
@@ -156,6 +161,8 @@ class SessionNoteScreenState extends Equatable {
 
     this.selectedProgText,
     this.cptText,
+    this.cptCodeList,
+    this.cptText1,
     this.cptText2,
     this.missedSession = const [],
     this.mCalId,
@@ -164,6 +171,8 @@ class SessionNoteScreenState extends Equatable {
     this.exceedMandate = false,
     this.conflictTime = false,
     this.showAlert = false,
+    this.activityChildPerformance,
+    this.followUp,
   });
 
   @override
@@ -237,7 +246,7 @@ class SessionNoteScreenState extends Equatable {
     finalNumber,
 
     selectedProgText,
-    cptText,
+    cptText1,
     cptText2,
     missedSession,
     mCalId,
@@ -246,6 +255,8 @@ class SessionNoteScreenState extends Equatable {
     exceedMandate,
     conflictTime,
     showAlert,
+    activityChildPerformance,
+    followUp
   ];
 
   SessionNoteScreenState copyWith({
@@ -308,6 +319,8 @@ class SessionNoteScreenState extends Equatable {
     int finalNumber,
     String selectedProgText,
     String cptText,
+    List<CptCode> cptCodeList,
+    String cptText1,
     String cptText2,
     List<MissedSessionModel> missedSessions,
     int mCalId,
@@ -316,6 +329,8 @@ class SessionNoteScreenState extends Equatable {
     bool conflictTime,
     TimeList timeList,
     bool showAlert,
+    String activityChildPerformance,
+    String followUp,
   }) {
     return SessionNoteScreenState(
       isLoading: isLoading ?? this.isLoading,
@@ -383,6 +398,8 @@ class SessionNoteScreenState extends Equatable {
       toPassDate: toPassDate ?? this.toPassDate,
       selectedProgText: selectedProgText ?? this.selectedProgText,
       cptText: cptText ?? this.cptText,
+      cptCodeList: cptCodeList ?? this.cptCodeList,
+      cptText1: cptText1 ?? this.cptText1,
       cptText2: cptText2 ?? this.cptText2,
       missedSession: missedSessions ?? this.missedSession,
       mCalId: mCalId ?? this.mCalId,
@@ -391,6 +408,8 @@ class SessionNoteScreenState extends Equatable {
       exceedMandate: exceedMandate ?? this.exceedMandate,
       conflictTime: conflictTime ?? this.conflictTime,
       showAlert: showAlert ?? this.showAlert,
+      activityChildPerformance: activityChildPerformance ?? this.activityChildPerformance,
+      followUp: followUp ?? this.followUp,
     );
   }
 }

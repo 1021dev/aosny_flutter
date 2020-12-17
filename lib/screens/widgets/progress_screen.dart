@@ -58,7 +58,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
         setState(() {
           GlobalCall.proStartDate = datePick;
           startDate = DateFormat('MM/dd/yyyy').format(datePick);
-          DateTime sevenDaysAgo = GlobalCall.proStartDate.add(new Duration(days: 7));
+          DateTime sevenDaysAgo = GlobalCall.proStartDate.add(new Duration(days: 6));
           GlobalCall.proEndDate = sevenDaysAgo;
           endDate = DateFormat('MM/dd/yyyy').format(sevenDaysAgo);
         });
@@ -215,12 +215,12 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                               itemBuilder: (context, index){
                                 ProgressAmountModel model = state.filterProgress[index];
 
-                                double required = double.parse(model.required);
-                                double completed = double.parse(model.regCompleted);
+                                double required = model.required.toDouble();
+                                double completed = model.regCompleted.toDouble();
                                 double percent = required != 0 ? completed / required: 1;
 
-                                double nonRequired = double.parse(model.reqNonDir);
-                                double nonActual = double.parse(model.actNonDir);
+                                double nonRequired = model.reqNonDir.toDouble();
+                                double nonActual = model.actNonDir.toDouble();
                                 double percent1 = nonRequired != 0 ? nonActual / nonRequired: 1;
                                 if (percent1 > 1) {
                                   percent1 = 1;
@@ -254,7 +254,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                           children: [
                                             Expanded(
                                               child: Text(
-                                                'Regular',
+                                                'Mandated',
                                                 style: TextStyle(
                                                   fontSize: 22.sp,
                                                 ),
@@ -285,7 +285,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                                       percent: percent,
                                                       circularStrokeCap: CircularStrokeCap.round,
                                                       center: new Text(
-                                                        completedString(model.regCompleted),
+                                                        completedString(completed),
                                                         style: TextStyle(
                                                           fontSize: 24.sp,
                                                         ),
@@ -298,7 +298,8 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                                   SizedBox(width: 8,),
                                                   Flexible(
                                                     child: Text(
-                                                      remainingRegularString(double.parse(model.required) * 60, double.parse(model.required) * 60 - double.parse(model.regCompleted) * 60),
+                                                      // remainingRegularString(required, required - completed),
+                                                      requiredString(required),
                                                       style: TextStyle(
                                                         fontSize: 24.sp,
                                                       ),
@@ -319,7 +320,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                                       percent: percent1,
                                                       circularStrokeCap: CircularStrokeCap.round,
                                                       center: new Text(
-                                                        completedString(model.actNonDir),
+                                                        completedString(nonActual),
                                                         style: TextStyle(
                                                           fontSize: 24.sp,
                                                         ),
@@ -332,7 +333,8 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
                                                   SizedBox(width: 8,),
                                                   Flexible(
                                                     child: Text(
-                                                      remainingRegularString(model.reqNonDir1.toDouble() * 60, model.discrep.toDouble()),
+                                                      // remainingRegularString(nonRequired, nonRequired - nonActual),
+                                                      requiredString(nonRequired),
                                                       style: TextStyle(
                                                         fontSize: 24.sp,
                                                       ),
@@ -375,7 +377,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
 
     setState(() {
       startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
-      GlobalCall.proEndDate = GlobalCall.proStartDate.add(new Duration(days: 7));
+      GlobalCall.proEndDate = GlobalCall.proStartDate.add(new Duration(days: 6));
       endDate =  DateFormat('MM/dd/yyyy').format(GlobalCall.proEndDate).toString();
     });
     super.initState();
@@ -405,8 +407,8 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
     }
   }
 
-  String completedString(String completed) {
-    double d = double.parse(completed) * 60;
+  String completedString(double completed) {
+    double d = completed;
     int h = d.toInt() ~/ 60;
     int m = d.toInt() % 60;
 
@@ -416,6 +418,20 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
       return '$h hours';
     } else {
       return '$h hours \n$m mins';
+    }
+  }
+
+  String requiredString(double completed) {
+    double d = completed;
+    int h = d.toInt() ~/ 60;
+    int m = d.toInt() % 60;
+
+    if (h == 0) {
+      return '$m mins\nmandated';
+    } else if (m == 0) {
+      return '$h hours\nmandated';
+    } else {
+      return '$h hours \n$m mins\nmandated';
     }
   }
 

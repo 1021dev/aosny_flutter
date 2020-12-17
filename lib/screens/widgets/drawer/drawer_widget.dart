@@ -11,6 +11,7 @@ import 'package:package_info/package_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../menu_screen.dart';
+import '../planned_schedule_screen.dart';
 
 class DrawerWidget extends StatefulWidget {
   final Function openHistory;
@@ -158,6 +159,18 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
                               builder: (context)=> ChangePasswordScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      new ListTile(
+                        title: new Text('Planned Schedule'),
+                        dense: true,
+                        onTap: (){
+                          Navigator.pop(context);
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context)=> PlannedScheduleScreen(),
                             ),
                           );
                         },
