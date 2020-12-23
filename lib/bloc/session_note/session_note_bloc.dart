@@ -478,7 +478,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           selectedSessionTypeIndex = index;
         }
 
-
         settingsGroupOrNot = completeSessionNotes.manDateType;
 
         groupType = settingsGroupOrNot ?? 1;
@@ -601,17 +600,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           }
         }
 
-        List<CptCode> cptCodeList = completeSessionNotes.cptCodeList;
-        String cptText1 = '';
-        String cptText2 = '';
-        if (cptCodeList.length > 0) {
-          cptText1 = cptCodeId[cptCodeList[0].tmpId - 1];
-        }
-        if (cptCodeList.length > 1) {
-          cptText2 = cptCodeId[cptCodeList[1].tmpId - 1];
-        }
         String activityChildPerformance = '';
         String followUp = '';
+        String cptText1 = '';
+        String cptText2 = '';
         if (completeSessionNotes.sessionType == sessionTypeStrings[5] && completeSessionNotes.progId == 3) {
           List<String> tempNotes = completeSessionNotes.notes.split('~');
           if (tempNotes.length > 0) {
@@ -620,6 +612,18 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           if (tempNotes.length > 1) {
             followUp = tempNotes.last;
           }
+          List<CptCode> cptCodeList = completeSessionNotes.cptCodeList;
+          if (cptCodeList.length > 0) {
+            if (cptCodeList[8].cptid > 0) {
+              cptText1 = cptCodeId[cptCodeList[0].cptid - 1];
+            }
+          }
+          if (cptCodeList.length > 1) {
+            if (cptCodeList[1].cptid > 0) {
+              cptText2 = cptCodeId[cptCodeList[1].cptid - 1];
+            }
+          }
+
         }
         missedSession = completeSessionNotes.singleMakeupSessionNote;
         DateTime dateTime = selectedDate;
@@ -806,10 +810,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           case 0:
             progId = 3;
             if (state.cptText1 != '' && state.cptText1 != null) {
-              cptCodeList.add(CptCode(tmpId: cptCodeId.indexOf(state.cptText1) + 1));
+              cptCodeList.add(CptCode(cptid: cptCodeId.indexOf(state.cptText1) + 1));
             }
             if (state.cptText2 != '' && state.cptText2 != null) {
-              cptCodeList.add(CptCode(tmpId: cptCodeId.indexOf(state.cptText2) + 1));
+              cptCodeList.add(CptCode(cptid: cptCodeId.indexOf(state.cptText2) + 1));
             }
             noteText = state.activityChildPerformance + ' ~ ' + state.followUp;
             break;

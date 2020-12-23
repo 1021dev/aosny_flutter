@@ -149,6 +149,10 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     var datePick= await showDatePicker(
       context: context,
       initialDate: state.selectedDate,
+      selectableDayPredicate: (day) {
+        return isAvailable(day);
+      },
+      // selectableDayPredicate: (DateTime val) => isAvailable(val),
       // selectableDayPredicate: (DateTime val) => val.weekday == 5 || val.weekday == 6 ? false : true,
       firstDate: DateTime(state.selectedDate.year - 1),
       lastDate: DateTime(DateTime.now().year + 1),
