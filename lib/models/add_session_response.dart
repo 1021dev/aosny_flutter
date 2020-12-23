@@ -133,17 +133,17 @@ class AddSessionResponse {
 }
 
 class CptCode {
-  num tmpId;
+  num cptid;
 
-  CptCode({this.tmpId});
+  CptCode({this.cptid});
   CptCode.fromJson(Map<String, dynamic> json) {
-    tmpId = json['tmpid'];
+    cptid = json['cptid'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
 
-    data['tmpid'] = tmpId;
+    data['cptid'] = cptid;
     return data;
   }
 }

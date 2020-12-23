@@ -1,8 +1,10 @@
+import 'package:aosny_services/models/block_dates.dart';
 import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/login_response.dart';
 import 'package:aosny_services/models/students_details_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class GlobalCall extends ChangeNotifier{
 
@@ -37,9 +39,25 @@ class GlobalCall extends ChangeNotifier{
  static bool filterSessionTypes = false;
  static int providerID = 0;
  static LoginResponse user;
+ static List<BlockDate> blockDates = [];
+ // static List<String> blockDates = [];
 
  static bool openDrawer = true;
+}
 
+bool isAvailable(DateTime dateTime) {
+  bool isAvailable = true;
+  String compareString = DateFormat('20yy-MM-dd').format(dateTime).toString();
+  // print(compareString);
+  GlobalCall.blockDates.forEach((element) {
+    var dateString = element.startTime.split('T').first;
+    if (dateString == compareString) {
+     print(dateString);
+     isAvailable = false;
+     // return isAvailable;
+    }
+  });
+  return isAvailable;
 }
 
 List<String> nonDirectActivities = [
