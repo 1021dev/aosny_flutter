@@ -2,6 +2,7 @@ import 'package:aosny_services/api/add_session_api.dart';
 import 'package:aosny_services/api/complete_session_details_api.dart';
 import 'package:aosny_services/api/delete_session_api.dart';
 import 'package:aosny_services/api/env.dart';
+import 'package:aosny_services/api/history_api.dart';
 import 'package:aosny_services/api/session_api.dart';
 import 'package:aosny_services/bloc/session_note/session_note.dart';
 import 'package:aosny_services/bloc/session_note/session_note_event.dart';
@@ -11,6 +12,7 @@ import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
+import 'package:aosny_services/models/history_model.dart';
 import 'package:aosny_services/models/missed_session_model.dart';
 import 'package:aosny_services/models/selected_longTerm_model.dart';
 import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
@@ -140,6 +142,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       String dateString = format.format(dateTime);
       TimeList response = await completeSessionApi.getTimeList(state.student.studentID.toInt(), '20$dateString');
       List conflicts = getConflicts(dateTime, response);
+      final historyFormat = DateFormat('MM/dd/20yy');
+      String historyDate = historyFormat.format(dateTime);
+      add(GetSessionsOnDayEvent(date: historyDate));
       yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: endDate, exceedMandate: conflicts[0], conflictTime: conflicts[1], showAlert: true, timeList: response);
     } else if (event is UpdateFinalNumber) {
       int finalnumber = event.finalNumber;
@@ -182,15 +187,12 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     } else if (event is UpdateJAIndex) {
       yield state.copyWith(selectedJAIconIndex: event.selectedJAIconIndex);
     } else if (event is UpdateSessionNoteEvent) {
-      yield state.copyWith(noteText: event.note, cptText1: '', cptText2: '');
+      yield state.copyWith(noteText: event.note, cptCodeList: []);
     } else if (event is UpdateProgText) {
-      yield state.copyWith(selectedProgText: event.progText, noteText: '', cptText1: '', cptText2: '');
+      yield state.copyWith(selectedProgText: event.progText, noteText: '', cptCodeList: []);
     } else if (event is UpdateCptText1) {
-      print(event.cptText1);
-      yield state.copyWith(cptText1: event.cptText1, noteText: '',);
-    } else if (event is UpdateCptText2) {
-      print(event.cptText2);
-      yield state.copyWith(cptText2: event.cptText2, noteText: '',);
+      print(event.cptCodeList);
+      yield state.copyWith(cptCodeList: event.cptCodeList, noteText: '',);
     } else if (event is DeleteSessionEvent) {
       yield* deleteSession(event.id);
     } else if (event is GetMissedSessionEvent) {
@@ -215,6 +217,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield state.copyWith(activityChildPerformance: event.note);
     } else if (event is UpdateFollowUpEvent) {
       yield state.copyWith(followUp: event.note);
+    } else if (event is GetSessionsOnDayEvent) {
+      yield* getSessionsOnDay(event.date);
     }
 
   }
@@ -346,6 +350,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         print(dateTime);
         print(dateString);
         yield* getSessionTime('20$dateString');
+        final historyFormat = DateFormat('MM/dd/20yy');
+        String historyDate = historyFormat.format(dateTime);
+        add(GetSessionsOnDayEvent(date: historyDate));
+
         yield state.copyWith(
           isLoading: state.sessionId != null,
           isSaving: false,
@@ -602,8 +610,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
 
         String activityChildPerformance = '';
         String followUp = '';
-        String cptText1 = '';
-        String cptText2 = '';
         if (completeSessionNotes.sessionType == sessionTypeStrings[5] && completeSessionNotes.progId == 3) {
           List<String> tempNotes = completeSessionNotes.notes.split('~');
           if (tempNotes.length > 0) {
@@ -612,18 +618,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           if (tempNotes.length > 1) {
             followUp = tempNotes.last;
           }
-          List<CptCode> cptCodeList = completeSessionNotes.cptCodeList;
-          if (cptCodeList.length > 0) {
-            if (cptCodeList[8].cptid > 0) {
-              cptText1 = cptCodeId[cptCodeList[0].cptid - 1];
-            }
-          }
-          if (cptCodeList.length > 1) {
-            if (cptCodeList[1].cptid > 0) {
-              cptText2 = cptCodeId[cptCodeList[1].cptid - 1];
-            }
-          }
-
         }
         missedSession = completeSessionNotes.singleMakeupSessionNote;
         DateTime dateTime = selectedDate;
@@ -632,6 +626,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         print(dateTime);
         print(dateString);
         yield* getSessionTime('20$dateString');
+        final historyFormat = DateFormat('MM/dd/20yy');
+        String historyDate = historyFormat.format(dateTime);
+        add(GetSessionsOnDayEvent(date: historyDate));
+
         yield state.copyWith(
           isLoading: false,
           isSaving: false,
@@ -672,8 +670,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           selectedProgText: completeSessionNotes.progText,
           confirmedVal: completeSessionNotes.confirmed,
           cptText: completeSessionNotes.cptText,
-          cptText1: cptText1,
-          cptText2: cptText2,
           cptCodeList: completeSessionNotes.cptCodeList,
           gPcheckListItems: gPcheckListItems,
           cAcheckListItems: cAcheckListItems,
@@ -809,12 +805,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         switch (index) {
           case 0:
             progId = 3;
-            if (state.cptText1 != '' && state.cptText1 != null) {
-              cptCodeList.add(CptCode(cptid: cptCodeId.indexOf(state.cptText1) + 1));
-            }
-            if (state.cptText2 != '' && state.cptText2 != null) {
-              cptCodeList.add(CptCode(cptid: cptCodeId.indexOf(state.cptText2) + 1));
-            }
+            cptCodeList = state.cptCodeList;
             noteText = state.activityChildPerformance + ' ~ ' + state.followUp;
             break;
           case 1:
@@ -903,7 +894,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield state.copyWith(isLoading: true);
       TimeList response = await completeSessionApi.getTimeList(state.student.studentID.toInt(), date);
       List conflicts = getConflicts(state.selectedDate, response);
-      yield state.copyWith(timeList: response, exceedMandate: conflicts[0], conflictTime: conflicts[1], isLoading: false);
+       yield state.copyWith(timeList: response, exceedMandate: conflicts[0], conflictTime: conflicts[1], isLoading: false);
     } catch (error) {
       yield state.copyWith(isLoading: false, isSaving: false);
     }
@@ -975,5 +966,15 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       now = DateTime(now.year, now.month, now.day, 9, 0);
     }
     return now;
+  }
+
+  Stream<SessionNoteScreenState> getSessionsOnDay(String date) async* {
+    try {
+      yield state.copyWith(isLoading: true);
+      List<HistoryModel> response = await HistoryApi().getHistoryList(sdate: date, endDate: date);
+      yield state.copyWith(isLoading: false, sessionOnDay: response);
+    } catch (error) {
+      yield state.copyWith(isLoading: false, isSaving: false);
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:aosny_services/models/add_session_response.dart';
 import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/selected_longTerm_model.dart';
@@ -214,13 +215,8 @@ class UpdateProgText extends SessionNoteScreenEvent {
 }
 
 class UpdateCptText1 extends SessionNoteScreenEvent {
-  final String cptText1;
-  UpdateCptText1({this.cptText1});
-}
-
-class UpdateCptText2 extends SessionNoteScreenEvent {
-  final String cptText2;
-  UpdateCptText2({this.cptText2});
+  final List<CptCode> cptCodeList;
+  UpdateCptText1({this.cptCodeList = const []});
 }
 
 class DeleteSessionEvent extends SessionNoteScreenEvent {
@@ -248,4 +244,9 @@ class UpdateActivityChildPerformanceEvent extends SessionNoteScreenEvent {
 class UpdateFollowUpEvent extends SessionNoteScreenEvent {
   final String note;
   UpdateFollowUpEvent({this.note});
+}
+
+class GetSessionsOnDayEvent extends SessionNoteScreenEvent {
+  final String date;
+  GetSessionsOnDayEvent({this.date});
 }

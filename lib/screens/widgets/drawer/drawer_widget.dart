@@ -3,6 +3,7 @@ import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
 import 'package:aosny_services/screens/change_password_screen.dart';
+import 'package:aosny_services/screens/widgets/calendar_screen.dart';
 import 'package:aosny_services/screens/widgets/drawer/enter_session.dart';
 import 'package:aosny_services/screens/widgets/drawer/notification_screen.dart';
 import 'package:aosny_services/screens/widgets/splash_page.dart';
@@ -171,6 +172,18 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
                               builder: (context)=> PlannedScheduleScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      new ListTile(
+                        title: new Text('Calendar'),
+                        dense: true,
+                        onTap: (){
+                          Navigator.pop(context);
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context)=> CalendarScreen(),
                             ),
                           );
                         },
