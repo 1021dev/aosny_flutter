@@ -46,18 +46,33 @@ class GlobalCall extends ChangeNotifier{
 }
 
 bool isAvailable(DateTime dateTime) {
-  bool isAvailable = true;
-  String compareString = DateFormat('20yy-MM-dd').format(dateTime).toString();
-  // print(compareString);
-  GlobalCall.blockDates.forEach((element) {
-    var dateString = element.startTime.split('T').first;
-    if (dateString == compareString) {
-     print(dateString);
-     isAvailable = false;
-     // return isAvailable;
-    }
-  });
-  return isAvailable;
+ if (dateTime == null) {
+  return true;
+ }
+ bool isAvailable = true;
+ String compareString = DateFormat('20yy-MM-dd').format(dateTime).toString();
+ // print(compareString);
+ GlobalCall.blockDates.forEach((element) {
+  var dateString = element.startTime.split('T').first;
+  if (dateString == compareString) {
+   print(dateString);
+   isAvailable = false;
+   // return isAvailable;
+  }
+ });
+ return isAvailable;
+}
+
+DateTime getAvailableDate(DateTime dateTime) {
+ if (dateTime == null) {
+  return DateTime.now();
+ }
+ DateTime tempDate = DateTime.now();
+ while (!isAvailable(tempDate)) {
+  tempDate = tempDate.add(Duration(days: 1));
+ }
+
+ return tempDate;
 }
 
 List<String> nonDirectActivities = [

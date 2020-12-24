@@ -29,7 +29,7 @@ dependencies:
   package_info: ^0.4.3
   flutter_screenutil: ^3.1.1
   sprintf: ^5.0.0
-
+  syncfusion_flutter_calendar: ^18.4.31
 
 dev_dependencies:
   flutter_test:

@@ -15,8 +15,9 @@ class HistoryApi{
     String token = prefs.getString('token');
     String providerid = prefs.getString('providerid');
 
-    //String url = "http://aosapi.pdgcorp.com/api/Provider/051829096/history?startdate=$sdate&enddate=$endDate";
+    // String url = "http://aosapi.pdgcorp.com/api/Provider/051829096/history?startdate=$sdate&enddate=$endDate";
     String url = baseURL + "Provider/" + providerid + "/history?startdate=$sdate&enddate=$endDate";
+    print(url);
     List<HistoryModel> result;
 
     return http.get(url,headers:  {HttpHeaders.contentTypeHeader: "application/json", HttpHeaders.authorizationHeader: "Bearer $token"}).then((http.Response response) {

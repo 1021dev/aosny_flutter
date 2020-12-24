@@ -1,7 +1,9 @@
 import 'package:aosny_services/bloc/session_note/session_note.dart';
 import 'package:aosny_services/helper/global_call.dart';
+import 'package:aosny_services/models/add_session_response.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
+import 'package:aosny_services/models/history_model.dart';
 import 'package:aosny_services/models/missed_session_model.dart';
 import 'package:aosny_services/models/selected_longTerm_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
@@ -69,7 +71,7 @@ class AddEditSessionNote extends StatefulWidget {
 class _AddEditSessionNoteState extends State<AddEditSessionNote> {
 
   SessionNoteScreenBloc screenBloc;
-
+  bool showSessionsOnDay = false;
   TextEditingController startTimeController = new TextEditingController(text: '9:00 AM');
   TextEditingController showTimeController = new TextEditingController(text: '30');
   TextEditingController noteTextController = new TextEditingController();
@@ -146,19 +148,34 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
 
   Future<Null> _selectDate(BuildContext context, SessionNoteScreenState state) async {
     print('show DatePicker');
-    var datePick= await showDatePicker(
-      context: context,
-      initialDate: state.selectedDate,
-      selectableDayPredicate: (day) {
-        return isAvailable(day);
-      },
-      // selectableDayPredicate: (DateTime val) => isAvailable(val),
-      // selectableDayPredicate: (DateTime val) => val.weekday == 5 || val.weekday == 6 ? false : true,
-      firstDate: DateTime(state.selectedDate.year - 1),
-      lastDate: DateTime(DateTime.now().year + 1),
-    );
-    if (datePick != null && datePick != state.selectedDate ?? DateTime.now()) {
-      screenBloc.add(UpdateSelectedDate(selectedDate: datePick));
+    if (!isAvailable(state.selectedDate)) {
+      var datePick= await showDatePicker(
+        context: context,
+        initialDate: getAvailableDate(state.selectedDate),
+        selectableDayPredicate: (day) {
+          return isAvailable(day);
+        },
+        firstDate: DateTime(state.selectedDate.year - 1),
+        lastDate: DateTime(DateTime.now().year + 1),
+      );
+      if (datePick != null && datePick != state.selectedDate ?? DateTime.now()) {
+        screenBloc.add(UpdateSelectedDate(selectedDate: datePick));
+      }
+    } else {
+      var datePick= await showDatePicker(
+        context: context,
+        initialDate: state.selectedDate,
+        selectableDayPredicate: (day) {
+          return isAvailable(day);
+        },
+        // selectableDayPredicate: (DateTime val) => isAvailable(val),
+        // selectableDayPredicate: (DateTime val) => val.weekday == 5 || val.weekday == 6 ? false : true,
+        firstDate: DateTime(state.selectedDate.year - 1),
+        lastDate: DateTime(DateTime.now().year + 1),
+      );
+      if (datePick != null && datePick != state.selectedDate ?? DateTime.now()) {
+        screenBloc.add(UpdateSelectedDate(selectedDate: datePick));
+      }
     }
   }
 
@@ -323,6 +340,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
       padding: EdgeInsets.only(bottom: 24),
       child: Column(
         children: <Widget>[
+          showBlockDates(state),
           showConflicts(state),
           Container(
             padding: const EdgeInsets.only(left:5,right:5,),
@@ -411,7 +429,116 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                     ],
                   ),
                 ),
-                Container(
+                (state.selectedDate != null) ? Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: MaterialButton(
+                    onPressed: () {
+                      setState(() {
+                        showSessionsOnDay = !showSessionsOnDay;
+                      });
+                    },
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                        color: Colors.grey,
+                      )
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Sessions on ${state.selectedDate.month}/${state.selectedDate.day}/20${state.selectedDate.year}',
+                          ),
+                        ),
+                        Icon(
+                          showSessionsOnDay ? Icons.keyboard_arrow_up: Icons.keyboard_arrow_down,
+                        ),
+                      ],
+                    ),
+                  ),
+                ): Container(),
+                showSessionsOnDay ? Padding(
+                  padding: EdgeInsets.only(left: 8, right: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'Start',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          'End',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Name',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                ): Container(),
+                showSessionsOnDay ? Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color:Colors.grey),
+                  ),
+                  margin: EdgeInsets.only(bottom: 8),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: state.sessionOnDay.length,
+                    separatorBuilder: (context, index) {
+                      return Divider(color: Colors.black38,
+                        height: 0,
+                        thickness: 0.5,);
+                    },
+                    itemBuilder: (context, index) {
+                      HistoryModel model = state.sessionOnDay[index];
+                      String stime = model.stime;
+                      String etime = model.etime;
+
+                      return Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                stime,
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                etime,
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                '${model.fname} ${model.lname}',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ): Container(),
+                isAvailable(state.selectedDate) ? Container(
                   margin: const EdgeInsets.only(left: 8 ,right: 8),
                   child: Column(
                     children: <Widget>[
@@ -704,159 +831,163 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                       ),
                     ],
                   ),
-                )
+                ): Container(),
               ],
             ),
           ),
-          _sessionTypeWidget(state),
-          state.selectedSessionTypeIndex < 2 ? _dropDowns(state): (state.selectedSessionTypeIndex == 5 ?  _nonDirectCare(state): Container()),
-          state.selectedSessionTypeIndex == 5 ? Container() : Container(
-            alignment: Alignment.bottomLeft,
-            width: MediaQuery.of(context).size.width,
-            margin: const EdgeInsets.only(left:20,right:20,top:5),
-            child: Text(
-              'Notes: (Optional)',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ),
-          state.isLoading
-              ? Container()
-              : (
+          isAvailable(state.selectedDate) ? Column(
+            children: [
+              _sessionTypeWidget(state),
+              state.selectedSessionTypeIndex < 2 ? _dropDowns(state): (state.selectedSessionTypeIndex == 5 ?  _nonDirectCare(state): Container()),
               state.selectedSessionTypeIndex == 5 ? Container() : Container(
-                alignment: Alignment.topLeft,
-                margin: const EdgeInsets.only(left: 16,right: 16,top:2),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  border: Border.all(
-                    color: Colors.grey,
-                    width: 1,
-                  ),
-                ) ,
-                child: TextField(
-                  focusNode: noteFocus,
-                  onChanged: (val) {
-                    setState(() {
-                    });
-                  },
-                  controller: noteTextController,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  maxLines: null,
-                  scrollPhysics: NeverScrollableScrollPhysics(),
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.all(8),
-                    hintText: '',
-                    hintStyle: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
-                    border: InputBorder.none,
+                alignment: Alignment.bottomLeft,
+                width: MediaQuery.of(context).size.width,
+                margin: const EdgeInsets.only(left:20,right:20,top:5),
+                child: Text(
+                  'Notes: (Optional)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
                   ),
                 ),
-              )
-          ),
-          SizedBox(height:16),
-          widget.isEditable && !state.isLock? Row(
-            children: [
-              Flexible(
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                  ),
-                  child: InkWell(
-                    onTap: (){
-                      if (state.selectedSessionTypeIndex == 1) {
-                        if (state.mCalId == 0 || state.mCalId == null) {
-                          Fluttertoast.showToast(msg: 'Makeup date selection is required');
-                          return;
-                        }
-                      }
-                      if (state.selectedSessionTypeIndex != 5) {
-                        if (state.showAlert && state.exceedMandate) {
-                          TimeList timeList = state.timeList;
-                          ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
-                            return element.studentId == state.student.studentID.toInt();
-                          });
-                          Fluttertoast.showToast(msg: 'This mandate has the maximum of ${progressedTime.mandateMins / 60} hours for the week');
-                          return;
-                        }
-                      }
-                      if (state.showAlert && state.conflictTime) {
-                        Fluttertoast.showToast(msg: 'There is already a session entered during this time frame');
-                        return;
-                      }
-                      screenBloc.add(SaveSessionNoteEvent(noteText: noteTextController.text));
-                    },
-                    child: Container(
-                      color: Colors.blue,
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Save',style: TextStyle(color:Colors.white),
+              ),
+              state.isLoading
+                  ? Container()
+                  : (
+                  state.selectedSessionTypeIndex == 5 ? Container() : Container(
+                    alignment: Alignment.topLeft,
+                    margin: const EdgeInsets.only(left: 16,right: 16,top:2),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
+                    ) ,
+                    child: TextField(
+                      focusNode: noteFocus,
+                      onChanged: (val) {
+                        setState(() {
+                        });
+                      },
+                      controller: noteTextController,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      maxLines: null,
+                      scrollPhysics: NeverScrollableScrollPhysics(),
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.all(8),
+                        hintText: '',
+                        hintStyle: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                        border: InputBorder.none,
                       ),
                     ),
-                  ),
-                ),
+                  )
               ),
-              widget.eventType == 'Enter' ? Container() : SizedBox(width: 8,),
-              widget.eventType == 'Enter' ? Container() : Flexible(
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                  ),
-                  child: InkWell(
-                    onTap: (){
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext ctx) {
-                            return CupertinoAlertDialog(
-                              title: Text(
-                                'Delete Session Note',
-                              ),
-                              content: Text(
-                                  'Are you sure you want to delete this session note?'
-                              ),
-                              actions: [
-                                CupertinoDialogAction(
-                                  child: Text(
-                                    'Cancel',
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                                CupertinoDialogAction(
-                                  child: Text(
-                                    'Sure',
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    screenBloc.add(DeleteSessionEvent(id: state.sessionId));
-                                  },
-                                ),
-                              ],
-                            );
-                          }
-                      );
-                    },
+              SizedBox(height:16),
+              widget.isEditable && !state.isLock? Row(
+                children: [
+                  Flexible(
                     child: Container(
-                      color: Colors.redAccent,
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Delete',
-                        style: TextStyle(
-                          color:Colors.white,
+                      height: 44,
+                      decoration: BoxDecoration(
+                      ),
+                      child: InkWell(
+                        onTap: (){
+                          if (state.selectedSessionTypeIndex == 1) {
+                            if (state.mCalId == 0 || state.mCalId == null) {
+                              Fluttertoast.showToast(msg: 'Makeup date selection is required');
+                              return;
+                            }
+                          }
+                          if (state.selectedSessionTypeIndex != 5) {
+                            if (state.showAlert && state.exceedMandate) {
+                              TimeList timeList = state.timeList;
+                              ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
+                                return element.studentId == state.student.studentID.toInt();
+                              });
+                              Fluttertoast.showToast(msg: 'This mandate has the maximum of ${progressedTime.mandateMins / 60} hours for the week');
+                              return;
+                            }
+                          }
+                          if (state.showAlert && state.conflictTime) {
+                            Fluttertoast.showToast(msg: 'There is already a session entered during this time frame');
+                            return;
+                          }
+                          screenBloc.add(SaveSessionNoteEvent(noteText: noteTextController.text));
+                        },
+                        child: Container(
+                          color: Colors.blue,
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Save',style: TextStyle(color:Colors.white),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ],
-          ): Container(),
-          SizedBox(height:16),
+                  widget.eventType == 'Enter' ? Container() : SizedBox(width: 8,),
+                  widget.eventType == 'Enter' ? Container() : Flexible(
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                      ),
+                      child: InkWell(
+                        onTap: (){
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext ctx) {
+                                return CupertinoAlertDialog(
+                                  title: Text(
+                                    'Delete Session Note',
+                                  ),
+                                  content: Text(
+                                      'Are you sure you want to delete this session note?'
+                                  ),
+                                  actions: [
+                                    CupertinoDialogAction(
+                                      child: Text(
+                                        'Cancel',
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                    CupertinoDialogAction(
+                                      child: Text(
+                                        'Sure',
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        screenBloc.add(DeleteSessionEvent(id: state.sessionId));
+                                      },
+                                    ),
+                                  ],
+                                );
+                              }
+                          );
+                        },
+                        child: Container(
+                          color: Colors.redAccent,
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(
+                              color:Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ): Container(),
+              SizedBox(height:16),
+            ]
+          ) : Container()
         ],
       ),
     );
@@ -1658,6 +1789,20 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     );
   }
 
+  bool getSelected(String text, SessionNoteScreenState state) {
+    int index = cptCodeId.indexOf(text);
+    bool isSelected = false;
+    state.cptCodeList.forEach((element) {
+      if (element.cptid <= cptCodeId.length) {
+        if (element.cptid > 0) {
+          if (cptCodeId[element.cptid - 1] == text) {
+            isSelected = true;
+          }
+        }
+      }
+    });
+    return isSelected;
+  }
   Widget _coordinationMethods(SessionNoteScreenState state) {
     return Container(
       margin: EdgeInsets.only(left:5,right:5),
@@ -1671,12 +1816,23 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
             contentPadding: EdgeInsets.zero,
             dense: true,
-            value: methodOfContact[index] == state.cptText1,
+            value: getSelected(methodOfContact[index], state),
             onChanged: (newValue) async {
-              if (methodOfContact[index] == state.cptText1) {
-                screenBloc.add(UpdateCptText1(cptText1: ''));
+              if (getSelected(methodOfContact[index], state)) {
+                List<CptCode> list = state.cptCodeList;
+                list.removeWhere((element) {
+                  if (element.cptid > 0) {
+                    return (methodOfContact[index] == cptCodeId[element.cptid - 1]);
+                  } else {
+                    return false;
+                  }
+                });
+                screenBloc.add(UpdateCptText1(cptCodeList: list));
               } else {
-                screenBloc.add(UpdateCptText1(cptText1: methodOfContact[index]));
+                List<CptCode> list = state.cptCodeList;
+                int id = cptCodeId.indexOf(methodOfContact[index]);
+                list.add(CptCode(cptid: id + 1));
+                screenBloc.add(UpdateCptText1(cptCodeList: list));
               }
               setState(() {
 
@@ -1703,12 +1859,23 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
             contentPadding: EdgeInsets.zero,
             dense: true,
-            value: partyContacted[index] == state.cptText2,
+            value: getSelected(partyContacted[index], state),
             onChanged: (newValue) async {
-              if (partyContacted[index] == state.cptText2) {
-                screenBloc.add(UpdateCptText2(cptText2: ''));
+              if (getSelected(partyContacted[index], state)) {
+                List<CptCode> list = state.cptCodeList;
+                list.removeWhere((element) {
+                  if (element.cptid > 0) {
+                    return (partyContacted[index] == cptCodeId[element.cptid - 1]);
+                  } else {
+                    return false;
+                  }
+                });
+                screenBloc.add(UpdateCptText1(cptCodeList: list));
               } else {
-                screenBloc.add(UpdateCptText2(cptText2: partyContacted[index]));
+                List<CptCode> list = state.cptCodeList;
+                int id = cptCodeId.indexOf(partyContacted[index]);
+                list.add(CptCode(cptid: id + 1));
+                screenBloc.add(UpdateCptText1(cptCodeList: list));
               }
               setState(() {
 
@@ -2615,6 +2782,30 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
     return Container();
   }
 
+  Widget showBlockDates(SessionNoteScreenState state) {
+    if (!state.showAlert) {
+      return Container();
+    }
+    if (!isAvailable(state.selectedDate)) {
+      return Container(
+        padding: EdgeInsets.all(8),
+        height: 36,
+        color: Colors.red,
+        child: Center(
+          child: Text(
+            'No sessions may be entered on this date.',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    return Container();
+  }
 }
 
 class CheckList{

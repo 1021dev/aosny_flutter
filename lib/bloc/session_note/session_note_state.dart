@@ -4,6 +4,7 @@ import 'package:aosny_services/models/category_list.dart';
 import 'package:aosny_services/models/complete_session.dart';
 import 'package:aosny_services/models/gp_Listview_model.dart';
 import 'package:aosny_services/models/gp_dropdown_model.dart';
+import 'package:aosny_services/models/history_model.dart';
 import 'package:aosny_services/models/missed_session_model.dart';
 import 'package:aosny_services/models/selected_longTerm_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
@@ -75,8 +76,6 @@ class SessionNoteScreenState extends Equatable {
   final int finalNumber;
 
   final String selectedProgText;
-  final String cptText1;
-  final String cptText2;
   final List<CptCode> cptCodeList;
   final String cptText;
 
@@ -89,6 +88,8 @@ class SessionNoteScreenState extends Equatable {
   final bool showAlert;
   final String activityChildPerformance;
   final String followUp;
+
+  final List<HistoryModel> sessionOnDay;
 
   SessionNoteScreenState( {
     this.isLoading = false,
@@ -162,8 +163,6 @@ class SessionNoteScreenState extends Equatable {
     this.selectedProgText,
     this.cptText,
     this.cptCodeList,
-    this.cptText1,
-    this.cptText2,
     this.missedSession = const [],
     this.mCalId,
     this.isLock = false,
@@ -173,6 +172,8 @@ class SessionNoteScreenState extends Equatable {
     this.showAlert = false,
     this.activityChildPerformance,
     this.followUp,
+
+    this.sessionOnDay = const [],
   });
 
   @override
@@ -246,8 +247,6 @@ class SessionNoteScreenState extends Equatable {
     finalNumber,
 
     selectedProgText,
-    cptText1,
-    cptText2,
     missedSession,
     mCalId,
     isLock,
@@ -256,7 +255,8 @@ class SessionNoteScreenState extends Equatable {
     conflictTime,
     showAlert,
     activityChildPerformance,
-    followUp
+    followUp,
+    sessionOnDay,
   ];
 
   SessionNoteScreenState copyWith({
@@ -320,8 +320,6 @@ class SessionNoteScreenState extends Equatable {
     String selectedProgText,
     String cptText,
     List<CptCode> cptCodeList,
-    String cptText1,
-    String cptText2,
     List<MissedSessionModel> missedSessions,
     int mCalId,
     bool isLock,
@@ -331,6 +329,7 @@ class SessionNoteScreenState extends Equatable {
     bool showAlert,
     String activityChildPerformance,
     String followUp,
+    List<HistoryModel> sessionOnDay,
   }) {
     return SessionNoteScreenState(
       isLoading: isLoading ?? this.isLoading,
@@ -399,8 +398,6 @@ class SessionNoteScreenState extends Equatable {
       selectedProgText: selectedProgText ?? this.selectedProgText,
       cptText: cptText ?? this.cptText,
       cptCodeList: cptCodeList ?? this.cptCodeList,
-      cptText1: cptText1 ?? this.cptText1,
-      cptText2: cptText2 ?? this.cptText2,
       missedSession: missedSessions ?? this.missedSession,
       mCalId: mCalId ?? this.mCalId,
       isLock: isLock ?? this.isLock,
@@ -410,6 +407,7 @@ class SessionNoteScreenState extends Equatable {
       showAlert: showAlert ?? this.showAlert,
       activityChildPerformance: activityChildPerformance ?? this.activityChildPerformance,
       followUp: followUp ?? this.followUp,
+      sessionOnDay: sessionOnDay ?? this.sessionOnDay,
     );
   }
 }
