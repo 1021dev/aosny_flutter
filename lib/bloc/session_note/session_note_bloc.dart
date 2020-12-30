@@ -129,7 +129,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       DateTime currentEndDate = dateTime.add(Duration(minutes: finalnumber));
       List conflicts = getConflicts(dateTime, state.timeList);
       yield state.copyWith(selectedTime: timeOfDay, selectedDate: dateTime, endDateTime: currentEndDate, exceedMandate: conflicts[0], conflictTime: conflicts[1], showAlert: true);
-      if (state.selectedSessionTypeIndex == 1) {
+      if (state.sessionType == sessionTypeStrings[1]) {
         add(GetMissedSessionEvent());
       }
     } else if (event is UpdateSelectedDate) {
@@ -152,7 +152,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       DateTime dateTime = state.selectedDate ?? DateTime.now();
       dateTime = DateTime(dateTime.year, dateTime.month, dateTime.day, timeOfDay.hour, timeOfDay.minute);
       DateTime endDate = dateTime.add(Duration(minutes: finalnumber));
-      if (state.selectedSessionTypeIndex == 1) {
+      if (state.sessionType == sessionTypeStrings[1]) {
         add(GetMissedSessionEvent());
       }
       List conflicts = getConflicts(dateTime, state.timeList);
@@ -178,8 +178,8 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     } else if (event is UpdateOutComeIndex2) {
       yield state.copyWith(selectedOutComesIndex2: event.selectedOutComesIndex);
     } else if (event is UpdateSessionType) {
-      yield state.copyWith(selectedSessionTypeIndex: event.selectedSessionTypeIndex);
-      if (event.selectedSessionTypeIndex == 1) {
+      yield state.copyWith(sessionType: event.sessionType);
+      if (event.sessionType == sessionTypeStrings[1]) {
         add(GetMissedSessionEvent());
       }
     } else if (event is UpdateCAIndex) {
@@ -369,6 +369,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           activitiesListItems: activitiesListItems,
           selectedShortTermResultListModel: selectedShortTermResultListModel,
           selectedShortTermResultListModel2: selectedShortTermResultListModel2,
+          sessionType: sessionTypeStrings[0],
           showAlert: true,
         );
       } else {
@@ -468,7 +469,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         int selectedOutComesIndex2 = -1;
         int selectedCAIconIndex;
         int selectedJAIconIndex;
-        int selectedSessionTypeIndex;
 
         int finalNumber;
 
@@ -480,12 +480,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         List<String> locations = locationHomeOrSchool.split('|').toList();
         location = locations.first;
         location1 = locations[1];
-        sessionType =  completeSessionNotes.sessionType ?? 1;
-        int index = sessionTypeStrings.indexOf(sessionType);
-        if (index != null) {
-          selectedSessionTypeIndex = index;
-        }
-
+        sessionType = completeSessionNotes.sessionType ?? sessionTypeStrings[0];
         settingsGroupOrNot = completeSessionNotes.manDateType;
 
         groupType = settingsGroupOrNot ?? 1;
@@ -610,7 +605,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
 
         String activityChildPerformance = '';
         String followUp = '';
-        if (completeSessionNotes.sessionType == sessionTypeStrings[5] && completeSessionNotes.progId == 3) {
+        if (completeSessionNotes.sessionType == sessionTypesForState().last && completeSessionNotes.progId == 3) {
           List<String> tempNotes = completeSessionNotes.notes.split('~');
           if (tempNotes.length > 0) {
             activityChildPerformance = tempNotes.first;
@@ -647,7 +642,6 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           location: location,
           location1: location1,
           sessionType: sessionType,
-          selectedSessionTypeIndex: selectedSessionTypeIndex,
           checkedValue: checkedValue,
           settingsGroupOrNot: settingsGroupOrNot,
           groupType: groupType,
@@ -785,12 +779,12 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     });
     String progText = '';
     String cptText = '';
-    if (state.selectedSessionTypeIndex == 5) {
+    if (state.sessionType == sessionTypeStrings[5]) {
       progText = state.selectedProgText;
       cptText = state.cptText;
     }
     int mCalId = 0;
-    if (state.selectedSessionTypeIndex == 1) {
+    if (state.sessionType == sessionTypeStrings[1]) {
       mCalId = state.mCalId;
     }
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -799,14 +793,20 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     int progId = 0;
     int cptCode = -1;
     List<CptCode> cptCodeList = [];
-    if (state.selectedSessionTypeIndex == 5) {
+    if (state.sessionType == sessionTypeStrings[5]) {
       if (state.selectedProgText != '' && state.selectedProgText != null) {
         int index = nonDirectActivities.indexOf(state.selectedProgText);
         switch (index) {
           case 0:
             progId = 3;
             cptCodeList = state.cptCodeList;
-            noteText = state.activityChildPerformance + ' ~ ' + state.followUp;
+            noteText = (state.activityChildPerformance ?? '').trimRight() + ' ~ ' + (state.followUp ?? '').trimLeft();
+            CptCode cid = cptCodeList.firstWhere((element) {
+              return element.cptid < 6;
+            });
+            if (cid != null && cid.cptid > 01) {
+              cptText = cptCodeId[cid.cptid - 1];
+            }
             break;
           case 1:
             progId = 9;
@@ -827,7 +827,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       group: state.groupType,
       manDateType: state.groupType,
       location: locationHomeOrSchool,
-      sessionType: sessionTypeStrings[state.selectedSessionTypeIndex],
+      sessionType: state.sessionType,
       notes: noteText,
       confirmed: 0,
       goals: goals,
@@ -907,41 +907,54 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     }
     DateTime currentDate = DateTime(dateTime.year == 20 ? dateTime.year + 2000: dateTime.year, dateTime.month, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second);
     DateTime currentEndDate = currentDate.add(Duration(minutes: state.finalNumber));
-    ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
-      return element.studentId == state.student.studentID.toInt();
-    });
     bool exceedMandate = false;
-    if (progressedTime != null && state.selectedSessionTypeIndex != 5) {
-      int weekMins = progressedTime.weekMins + state.finalNumber;
-      exceedMandate = weekMins > progressedTime.mandateMins;
+    if (timeList.progressedList.length == 0) {
+    } else {
+      ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
+        return element.studentId == state.student.studentID.toInt();
+      });
+      if (progressedTime != null && state.sessionType != sessionTypeStrings[5]) {
+        int weekMins = progressedTime.weekMins + state.finalNumber;
+        exceedMandate = weekMins > progressedTime.mandateMins;
+      }
     }
     bool isConflict = false;
-    timeList.timeList.forEach((element) {
-      if (element.sessionId != state.sessionId) {
-        final formatDate = DateFormat('M/d/yyyy hh:mm:ss a');
-        String startTimeString = element.startTime;
-        DateTime startDate = formatDate.parse(startTimeString);
-        DateTime endDate = startDate.add(Duration(minutes: element.dur));
-        if (element.sessionType == sessionTypeStrings[2] || element.sessionType == sessionTypeStrings[4]) {
-        } else {
-          if (currentDate.isAfter(startDate) && currentDate.isBefore(endDate)) {
-            isConflict = true;
-            return;
-          } else if (currentEndDate.isAfter(startDate) && currentEndDate.isBefore(endDate)) {
-            isConflict = true;
-            return;
-          } else if (currentDate.isBefore(startDate) && currentEndDate.isAfter(endDate)) {
-            isConflict = true;
-            return;
+    if (timeList.timeList.length == 0) {
+
+    } else {
+      timeList.timeList.forEach((element) {
+        if (element.sessionId != state.sessionId) {
+          print(state.sessionId);
+          print(element.sessionId);
+          final formatDate = DateFormat('M/d/yyyy hh:mm:ss a');
+          String startTimeString = element.startTime;
+          DateTime startDate = formatDate.parse(startTimeString);
+          DateTime endDate = startDate.add(Duration(minutes: element.dur));
+          if (element.sessionType == sessionTypesForState()[sessionTypesForState().length - 4] || element.sessionType == sessionTypesForState()[sessionTypesForState().length - 2]) {
+          } else {
+            if (currentDate.isAfter(startDate) && currentDate.isBefore(endDate)) {
+              isConflict = true;
+              return;
+            } else if (currentEndDate.isAfter(startDate) && currentEndDate.isBefore(endDate)) {
+              isConflict = true;
+              return;
+            } else if (currentDate.isBefore(startDate) && currentEndDate.isAfter(endDate)) {
+              isConflict = true;
+              return;
+            }
           }
         }
-      }
-    });
+      });
+    }
     return [exceedMandate, isConflict];
   }
 
   Future saveLastSessionDate(int student, DateTime dateTime) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
+
+    print('last sessionDate saved ${dateTime.millisecondsSinceEpoch}');
+    print('last student saved $student');
+
     preferences.setInt('lastSessionDate', dateTime.millisecondsSinceEpoch);
     preferences.setInt('lastStudentId', student);
   }
@@ -951,6 +964,10 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     SharedPreferences preferences = await SharedPreferences.getInstance();
     int last = preferences.getInt('lastSessionDate') ?? 0;
     int studentId = preferences.getInt('lastStudentId') ?? 0;
+
+    print('last sessionDate open $last');
+    print('last student open $studentId');
+
     if (last > 0) {
       DateTime lastDate = DateTime.fromMillisecondsSinceEpoch(last);
       if (now.year == lastDate.year && now.month == lastDate.month && now.day == lastDate.day) {
@@ -972,9 +989,25 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     try {
       yield state.copyWith(isLoading: true);
       List<HistoryModel> response = await HistoryApi().getHistoryList(sdate: date, endDate: date);
+      if (response.length > 0) response.sort((a,b) => a.starttime.compareTo(b.starttime));
+
       yield state.copyWith(isLoading: false, sessionOnDay: response);
     } catch (error) {
       yield state.copyWith(isLoading: false, isSaving: false);
+    }
+  }
+
+  List<String> sessionTypesForState() {
+    if (state.exceedMandate) {
+      return [
+        'Service provided - Make-up',
+        'Student Absent',
+        'Provider Absent',
+        'Student Unavailable',
+        'Non-Direct Care',
+      ];
+    } else {
+      return sessionTypeStrings;
     }
   }
 }

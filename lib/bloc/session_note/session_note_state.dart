@@ -70,7 +70,6 @@ class SessionNoteScreenState extends Equatable {
   final int selectedOutComesIndex2;
   final int selectedCAIconIndex;
   final int selectedJAIconIndex;
-  final int selectedSessionTypeIndex;
 
   final TimeOfDay selectedTime;
   final int finalNumber;
@@ -155,7 +154,6 @@ class SessionNoteScreenState extends Equatable {
     this. selectedOutComesIndex = -1,
     this. selectedCAIconIndex = -1,
     this. selectedJAIconIndex = -1,
-    this. selectedSessionTypeIndex = 0,
 
     this.selectedTime,
     this.finalNumber= 60,
@@ -241,7 +239,6 @@ class SessionNoteScreenState extends Equatable {
     selectedOutComesIndex,
     selectedCAIconIndex,
     selectedJAIconIndex,
-    selectedSessionTypeIndex,
 
     selectedTime ,
     finalNumber,
@@ -313,7 +310,6 @@ class SessionNoteScreenState extends Equatable {
     int selectedOutComesIndex2,
     int selectedCAIconIndex,
     int selectedJAIconIndex,
-    int selectedSessionTypeIndex,
 
     TimeOfDay selectedTime,
     int finalNumber,
@@ -380,7 +376,6 @@ class SessionNoteScreenState extends Equatable {
       selectedJAIconIndex: selectedJAIconIndex ?? this.selectedJAIconIndex,
       selectedOutComesIndex: selectedOutComesIndex ?? this.selectedOutComesIndex,
       selectedOutComesIndex2: selectedOutComesIndex2 ?? this.selectedOutComesIndex2,
-      selectedSessionTypeIndex: selectedSessionTypeIndex ?? this.selectedSessionTypeIndex,
       selectedSIIndex: selectedSIIndex ?? this.selectedSIIndex,
       selectedSPIndex: selectedSPIndex ?? this.selectedSPIndex,
       selectedTime: selectedTime ?? this.selectedTime,

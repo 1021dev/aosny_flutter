@@ -475,18 +475,14 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
                                                   borderRadius: BorderRadius.circular(4),
                                                   border: Border.all(
                                                     width: 1,
-                                                    color: getSessionColor(state.filterHistory[index].grp,
-                                                      sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
-                                                    ),
+                                                    color: getSessionColor(state.filterHistory[index].grp, state.filterHistory[index].sessionType),
                                                   ),
                                                   color: Color(0xFFEEEEEE),
                                                 ): null,
                                                 child: Text(
                                                   state.filterHistory[index].sessionType,
                                                   style: TextStyle(
-                                                    color: getSessionColor(state.filterHistory[index].grp,
-                                                      sessionTypeStrings.indexOf(state.filterHistory[index].sessionType),
-                                                    ),
+                                                    color: getSessionColor(state.filterHistory[index].grp, state.filterHistory[index].sessionType),
                                                     fontSize: 24.sp,
                                                   ),
                                                   textAlign: TextAlign.right,

@@ -31,17 +31,17 @@ List<Color> sessionColors = [
   Colors.blue,
 ];
 
-Color getSessionColor(int group, int sessionType) {
-  if (group == 1 && (sessionType == 0 || sessionType == 1)) {
+Color getSessionColor(int group, String sessionType) {
+  if (group == 1 && (sessionType == sessionTypeStrings[0] || sessionType == sessionTypeStrings[1])) {
     return Colors.green;
-  } else if (group == 2 && (sessionType == 0 || sessionType == 1)) {
+  } else if (group == 2 && (sessionType == sessionTypeStrings[0] || sessionType == sessionTypeStrings[1])) {
     return Colors.blue;
-  } else if (sessionType == 2 || sessionType == 3 || sessionType == 4) {
+  } else if (sessionType == sessionTypeStrings[2] || sessionType == sessionTypeStrings[3] || sessionType == sessionTypeStrings[4]) {
     return Colors.red;
-  } else if (sessionType == 5) {
+  } else if (sessionType == sessionTypeStrings[5]) {
     return Colors.purple;
-  } else if (sessionType == 6) {
-    return Colors.red;
+  // } else if (sessionType == sessionTypeStrings[6]) {
+  //   return Colors.red;
   }
   return Colors.white;
 }
@@ -311,17 +311,17 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                         padding: const EdgeInsets.only(left: 5, right: 5, top: 16),
                         child: _getBody(state),
                       ),
-                      state.showAlert && state.exceedMandate ? GestureDetector(
-                        child: Container(
-                          margin: EdgeInsets.only(top: 250),
-                          height: double.infinity,
-                          width: double.infinity,
-                          color: Colors.grey.withAlpha(1),
-                        ),
-                        onTap: () {
-
-                        },
-                      ): Container(),
+                      // state.conflictTime ? GestureDetector(
+                      //   child: Container(
+                      //     margin: EdgeInsets.only(top: 250),
+                      //     height: double.infinity,
+                      //     width: double.infinity,
+                      //     color: Colors.grey.withAlpha(1),
+                      //   ),
+                      //   onTap: () {
+                      //
+                      //   },
+                      // ): Container(),
                     ],
                   ),
                 ),
@@ -336,7 +336,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
   Widget _getBody(SessionNoteScreenState state) {
     return SingleChildScrollView(
       controller: scrollController,
-      physics: state.showAlert && state.exceedMandate ? NeverScrollableScrollPhysics(): AlwaysScrollableScrollPhysics(),
+      physics: state.showAlert && state.conflictTime ? NeverScrollableScrollPhysics(): AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.only(bottom: 24),
       child: Column(
         children: <Widget>[
@@ -661,7 +661,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                                       border: Border.all(color:Colors.grey)
                                   ),
                                   child: Text(
-                                    DateFormat.jm().format((state.selectedDate ?? DateTime.now()).add(new Duration(minutes: state.finalNumber))).toString(),//'10:21 PM',
+                                    DateFormat.jm().format((state.selectedDate ?? DateTime.now()).add(new Duration(minutes: state.finalNumber ?? 30))).toString(),//'10:21 PM',
                                     style: TextStyle(
                                       color:Colors.black,
                                       fontSize: 16,
@@ -838,8 +838,8 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           isAvailable(state.selectedDate) ? Column(
             children: [
               _sessionTypeWidget(state),
-              state.selectedSessionTypeIndex < 2 ? _dropDowns(state): (state.selectedSessionTypeIndex == 5 ?  _nonDirectCare(state): Container()),
-              state.selectedSessionTypeIndex == 5 ? Container() : Container(
+              state.sessionType == sessionTypeStrings[0] || state.sessionType == sessionTypeStrings[1] ? _dropDowns(state): (state.sessionType == sessionTypeStrings[5] ?  _nonDirectCare(state): Container()),
+              state.sessionType == sessionTypeStrings[5] ? Container() : Container(
                 alignment: Alignment.bottomLeft,
                 width: MediaQuery.of(context).size.width,
                 margin: const EdgeInsets.only(left:20,right:20,top:5),
@@ -854,7 +854,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
               state.isLoading
                   ? Container()
                   : (
-                  state.selectedSessionTypeIndex == 5 ? Container() : Container(
+                  state.sessionType == sessionTypeStrings[5] ? Container() : Container(
                     alignment: Alignment.topLeft,
                     margin: const EdgeInsets.only(left: 16,right: 16,top:2),
                     decoration: BoxDecoration(
@@ -897,13 +897,13 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                       ),
                       child: InkWell(
                         onTap: (){
-                          if (state.selectedSessionTypeIndex == 1) {
+                          if (state.sessionType == sessionTypeStrings[1]) {
                             if (state.mCalId == 0 || state.mCalId == null) {
                               Fluttertoast.showToast(msg: 'Makeup date selection is required');
                               return;
                             }
                           }
-                          if (state.selectedSessionTypeIndex != 5) {
+                          if (state.sessionType == sessionTypeStrings[0]) {
                             if (state.showAlert && state.exceedMandate) {
                               TimeList timeList = state.timeList;
                               ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
@@ -2288,7 +2288,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           margin: EdgeInsets.only(top: 12),
           decoration: BoxDecoration(
             shape: BoxShape.rectangle,
-            color: getSessionColor(state.groupType, state.selectedSessionTypeIndex),
+            color: getSessionColor(state.groupType, state.sessionType),
             border: Border.all(
               color: Colors.black,
               width: 1,
@@ -2301,27 +2301,30 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                 builder: (BuildContext context) {
                   return SafeArea(
                     maintainBottomViewPadding: true,
-                    child: ListView.separated(
-                      padding: EdgeInsets.only(top: 16),
-                      itemCount: sessionTypeStrings.length,
-                      separatorBuilder: (context, index) {
-                        return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
-                      },
-                      itemBuilder: (context, index){
-                        return CheckboxListTile(
-                          dense: true,
-                          title: Text(
-                            sessionTypeStrings[index],
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          value: state.selectedSessionTypeIndex == index,
-                          onChanged: (newValue) {
-                            screenBloc.add(UpdateSessionType(selectedSessionTypeIndex: index));
-                            Navigator.pop(context);
-                          },
-                          controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-                        );
-                      },
+                    child: Container(
+                      height: 300,
+                      child: ListView.separated(
+                        padding: EdgeInsets.only(top: 16),
+                        itemCount: sessionTypesForState(state).length,
+                        separatorBuilder: (context, index) {
+                          return Divider(color: Colors.black38, height: 0, thickness: 0.5,);
+                        },
+                        itemBuilder: (context, index){
+                          return CheckboxListTile(
+                            dense: true,
+                            title: Text(
+                              sessionTypesForState(state)[index],
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            value: state.sessionType == sessionTypesForState(state)[index],
+                            onChanged: (newValue) {
+                              screenBloc.add(UpdateSessionType(sessionType: sessionTypesForState(state)[index]));
+                              Navigator.pop(context);
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
+                          );
+                        },
+                      ),
                     ),
                   );
                 },
@@ -2329,7 +2332,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             },
             dense: true,
             title: Text(
-              state.selectedSessionTypeIndex > -1 ? sessionTypeStrings[state.selectedSessionTypeIndex]: sessionTypeStrings[0],
+              (state.exceedMandate) ? state.sessionType ?? sessionTypeStrings[1]: state.sessionType ?? sessionTypeStrings[0],
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -2341,7 +2344,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         Padding(
           padding: EdgeInsets.only(bottom: 16),
         ),
-        state.selectedSessionTypeIndex == 1 ? Container(
+        state.sessionType == sessionTypeStrings[1] ? Container(
           padding: EdgeInsets.only(left: 8, top: 4, bottom: 4),
           child: Text(
             'Make Up:',
@@ -2350,7 +2353,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
             ),
           ),
         ) : Container(),
-        state.selectedSessionTypeIndex == 1 ?
+        state.sessionType == sessionTypeStrings[1] ?
         Container(
           margin: const EdgeInsets.all(5),
           padding:  const EdgeInsets.all(5.0),
@@ -2759,9 +2762,10 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
       ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
         return element.studentId == state.student.studentID.toInt();
       });
-      if (state.selectedSessionTypeIndex == 5) {
+      if (state.sessionType == sessionTypeStrings[5]) {
         return Container();
       }
+      print('exceed mandate');
       return Container(
         padding: EdgeInsets.all(8),
         height: 64,
@@ -2805,6 +2809,23 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
       );
     }
     return Container();
+  }
+
+  List<String> sessionTypesForState(SessionNoteScreenState state) {
+    if (state.exceedMandate) {
+      if (state.sessionType == null || state.sessionType == sessionTypeStrings[0]) {
+        screenBloc.add(UpdateSessionType(sessionType: sessionTypeStrings[1]));
+      }
+      return [
+        'Service provided - Make-up',
+        'Student Absent',
+        'Provider Absent',
+        'Student Unavailable',
+        'Non-Direct Care',
+      ];
+    } else {
+      return sessionTypeStrings;
+    }
   }
 }
 
