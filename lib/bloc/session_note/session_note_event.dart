@@ -160,8 +160,8 @@ class UpdateOutComeIndex2 extends SessionNoteScreenEvent {
 }
 
 class UpdateSessionType extends SessionNoteScreenEvent {
-  final int selectedSessionTypeIndex;
-  UpdateSessionType({this.selectedSessionTypeIndex});
+  final String sessionType;
+  UpdateSessionType({this.sessionType});
 }
 
 class UpdateCAIndex extends SessionNoteScreenEvent {

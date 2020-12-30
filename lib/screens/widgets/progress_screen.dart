@@ -380,6 +380,7 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
       GlobalCall.proEndDate = GlobalCall.proStartDate.add(new Duration(days: 6));
       endDate =  DateFormat('MM/dd/yyyy').format(GlobalCall.proEndDate).toString();
     });
+    widget.mainScreenBloc.add(GetProgressEvent(startDate: startDate, endDate: endDate));
     super.initState();
   }
 

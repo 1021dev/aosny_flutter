@@ -153,15 +153,15 @@ class _MainTopTabBarState extends State<MainTopTabBar> with SingleTickerProvider
     setState(() {
       tabIndex = tabController.index;
     });
-    if (tabIndex == 0) {
-      String startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.startDate).toString();
-      String endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.endDate).toString();
-      widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));
-    } else {
-      String startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
-      String endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proEndDate).toString();
-      widget.mainScreenBloc.add(GetProgressEvent(startDate: startDate, endDate: endDate));
-    }
+    // if (tabIndex == 0) {
+    //   String startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.startDate).toString();
+    //   String endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.endDate).toString();
+    //   widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));
+    // } else {
+    //   String startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
+    //   String endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proEndDate).toString();
+    //   widget.mainScreenBloc.add(GetProgressEvent(startDate: startDate, endDate: endDate));
+    // }
   }
 
   _onLayoutDone(_) {

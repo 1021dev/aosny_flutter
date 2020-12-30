@@ -5,6 +5,7 @@ import 'package:aosny_services/api/history_api.dart';
 import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/history_model.dart';
+import 'package:aosny_services/models/students_details_model.dart';
 import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
 import 'package:date_util/date_util.dart';
 import 'package:flutter/cupertino.dart';
@@ -157,18 +158,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
 
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-      // setState(() {
-      //   _blackoutDates = blockedDates;
-      //
-      //   // if (_calendarController.view == CalendarView.month ||
-      //   //     _calendarController.view == CalendarView.timelineMonth) {
-      //   //   _blackoutDates = blockedDates;
-      //   // } else {
-      //   //   _blackoutDates?.clear();
-      //   // }
-      // });
       calendarScreenBloc.add(CalendarLoadingEvent(isLoading: false));
-
     });
 
     if (_calendarController.view != CalendarView.schedule) {
@@ -203,24 +193,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 '${model.fname} ${model.lname}',
                 startDate,
                 startDate.add(Duration(minutes: duration)),
-                getSessionColor(model.grp, sessionTypeStrings.indexOf(model.sessionType)),
+                getSessionColor(model.grp, model.sessionType),
                 false,
+                model,
               ));
             } else if (_calendarController.view == CalendarView.day){
               appointment.add(_Meeting(
                 '${model.stime} - ${model.etime} ${model.fname} ${model.lname}',
                 startDate,
                 startDate.add(Duration(minutes: duration)),
-                getSessionColor(model.grp, sessionTypeStrings.indexOf(model.sessionType)),
+                getSessionColor(model.grp, model.sessionType),
                 false,
+                model,
               ));
             } else {
               appointment.add(_Meeting(
                 '${model.stime} - ${model.etime}',
                 startDate,
                 startDate.add(Duration(minutes: duration)),
-                getSessionColor(model.grp, sessionTypeStrings.indexOf(model.sessionType)),
+                getSessionColor(model.grp, model.sessionType),
                 false,
+                model,
               ));
             }
           }
@@ -231,8 +224,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       // DateTime rangeEndDate = visibleDatesChangedDetails.visibleDates.last;
       final DateTime rangeStartDate =
       DateTime.now().add(const Duration(days: -365));
-      final DateTime rangeEndDate =
-      DateTime.now().add(const Duration(days: 365 + 30));
+      final DateTime rangeEndDate = DateTime.now();
 
       for (DateTime i = rangeStartDate; i.isBefore(rangeEndDate); i = i.add(const Duration(days: 1))) {
         final DateTime date = i;
@@ -256,16 +248,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
             }
             final DateTime startDate = DateTime(date.year, date.month, date.day, hour, min);
             appointment.add(_Meeting(
-              '${model.fname} ${model.lname}',
-              startDate,
-              startDate.add(Duration(minutes: duration)),
-              getSessionColor(model.grp, sessionTypeStrings.indexOf(model.sessionType)),
-              false,
+                '${model.fname} ${model.lname}',
+                startDate,
+                startDate.add(Duration(minutes: duration)),
+                getSessionColor(model.grp, model.sessionType),
+                false,
+                model,
             ));
           }
         }
       }
-
     }
 
     for (int i = 0; i < appointment.length; i++) {
@@ -276,6 +268,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
     /// the appointments on the visible dates.
     _events.notifyListeners(CalendarDataSourceAction.reset, appointment);
 
+  }
+
+  StudentsDetailsModel getStudent(int id) {
+    List<StudentsDetailsModel> list = GlobalCall.globaleStudentList.where((element) => element.studentID.toInt() == id).toList();
+    if (list != null && list.length > 0) {
+      return list.first;
+    } else {
+      return null;
+    }
+  }
+
+  Future<Null> updatedSessionNote() async {
+    _calendarController.notifyPropertyChangedListeners('');
+    await Future.delayed(Duration(seconds: 4));
+    return null;
   }
 
   SfCalendar _getGettingStartedCalendar(
@@ -307,7 +314,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
             showTrailingAndLeadingDates: true,
             appointmentDisplayCount: 6),
         timeSlotViewSettings: TimeSlotViewSettings(
-            minimumAppointmentDuration: const Duration(minutes: 30)));
+            minimumAppointmentDuration: const Duration(minutes: 30)
+        ),
+      onTap: (details) async {
+        final _Meeting meeting = details.appointments.first;
+        HistoryModel model = meeting.model;
+        GlobalCall.sessionID = model.iD.toString();
+        String studentId = model.osis.toString().replaceAll('-', '');
+        int id = int.parse(studentId);
+        StudentsDetailsModel studentsDetailsModel = getStudent(id);
+        if (studentsDetailsModel == null) {
+          return ;
+        }
+        final result = await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => AddEditSessionNote(
+              eventType: "Edit",
+              student: studentsDetailsModel,
+              sessionId: model.iD,
+              selectedStudentName: model.fname + ' ' + model.lname,
+              noteText: model.notes,
+              isEditable: model.confirmed == 0,
+            ),
+          ),
+        );
+
+        if (result != null) {
+          await updatedSessionNote();
+        }
+
+      },
+    );
   }
 
 }
@@ -405,11 +442,12 @@ class _MeetingDataSource extends CalendarDataSource {
 /// Custom business object class which contains properties to hold the detailed
 /// information about the event data which will be rendered in calendar.
 class _Meeting {
-  _Meeting(this.eventName, this.from, this.to, this.background, this.isAllDay);
+  _Meeting(this.eventName, this.from, this.to, this.background, this.isAllDay, this.model);
 
   String eventName;
   DateTime from;
   DateTime to;
   Color background;
   bool isAllDay;
+  HistoryModel model;
 }
