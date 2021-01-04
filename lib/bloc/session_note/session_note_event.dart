@@ -90,8 +90,10 @@ class SelectLongTermID2 extends SessionNoteScreenEvent {
 
 class SaveSessionNoteEvent extends SessionNoteScreenEvent {
   final String noteText;
+  final String activityText;
+  final String followText;
 
-  SaveSessionNoteEvent({this.noteText});
+  SaveSessionNoteEvent({this.noteText, this.activityText, this.followText});
 }
 
 class UpdateSelectedDate extends SessionNoteScreenEvent {

@@ -108,6 +108,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
       yield state.copyWith(selectedLtGoalId2: event.id, selectedShortTermResultListModel2: selectedShortTerm2);
 
     } else if (event is SaveSessionNoteEvent) {
+      yield state.copyWith(noteText: event.noteText, activityChildPerformance: event.activityText, followUp: event.followText);
       yield* saveSessionNote(event.noteText);
     } else if (event is SelectGoalSection) {
       yield state.copyWith(goalsAndProgress: event.isSelect);
@@ -791,7 +792,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     String providerid = prefs.getString('providerid');
     // String gNote = '';
     int progId = 0;
-    int cptCode = -1;
+    int cptCode = 0;
     List<CptCode> cptCodeList = [];
     if (state.sessionType == sessionTypeStrings[5]) {
       if (state.selectedProgText != '' && state.selectedProgText != null) {

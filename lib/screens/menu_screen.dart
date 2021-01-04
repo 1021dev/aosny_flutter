@@ -14,6 +14,7 @@ import 'package:aosny_services/screens/widgets/progress_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:new_version/new_version.dart';
 
 import 'login_screen.dart';
 import 'widgets/drawer/enter_session.dart';
@@ -77,6 +78,18 @@ class _MenuScreenState extends State<MenuScreen> {
   void initState() {
     mainScreenBloc = MainScreenBloc(MainScreenState(isLoading: true));
     mainScreenBloc.add(MainScreenInitialEvent());
+    final newVersion = NewVersion(context: context);
+    print(newVersion.iOSId);
+    print(newVersion.androidId);
+    newVersion.getVersionStatus().then((status) {
+      print(status.canUpdate);
+      print(status.localVersion);
+      print(status.storeVersion);
+      print(status.appStoreLink);
+
+      newVersion.showAlertIfNecessary();
+    });
+
     super.initState();
   }
 }
