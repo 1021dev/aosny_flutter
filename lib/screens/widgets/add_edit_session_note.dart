@@ -917,7 +917,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                             Fluttertoast.showToast(msg: 'There is already a session entered during this time frame');
                             return;
                           }
-                          screenBloc.add(SaveSessionNoteEvent(noteText: noteTextController.text));
+                          screenBloc.add(SaveSessionNoteEvent(noteText: noteTextController.text, activityText: activityChildPerformanceController.text, followText: followUpController.text));
                         },
                         child: Container(
                           color: Colors.blue,

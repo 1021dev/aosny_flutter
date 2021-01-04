@@ -31,6 +31,8 @@ dependencies:
   sprintf: ^5.0.0
   syncfusion_flutter_calendar: ^18.4.31
   date_util: ^0.1.4
+  new_version: ^0.0.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
