@@ -43,6 +43,7 @@ class GlobalCall extends ChangeNotifier{
  // static List<String> blockDates = [];
 
  static bool openDrawer = true;
+ static bool openUpdate = true;
 }
 
 bool isAvailable(DateTime dateTime) {

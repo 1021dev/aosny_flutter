@@ -78,17 +78,20 @@ class _MenuScreenState extends State<MenuScreen> {
   void initState() {
     mainScreenBloc = MainScreenBloc(MainScreenState(isLoading: true));
     mainScreenBloc.add(MainScreenInitialEvent());
-    final newVersion = NewVersion(context: context);
-    print(newVersion.iOSId);
-    print(newVersion.androidId);
-    newVersion.getVersionStatus().then((status) {
-      print(status.canUpdate);
-      print(status.localVersion);
-      print(status.storeVersion);
-      print(status.appStoreLink);
+    if (GlobalCall.openUpdate) {
+      final newVersion = NewVersion(context: context);
+      print(newVersion.iOSId);
+      print(newVersion.androidId);
+      newVersion.getVersionStatus().then((status) {
+        print(status.canUpdate);
+        print(status.localVersion);
+        print(status.storeVersion);
+        print(status.appStoreLink);
 
-      newVersion.showAlertIfNecessary();
-    });
+        GlobalCall.openUpdate = false;
+        newVersion.showAlertIfNecessary();
+      });
+    }
 
     super.initState();
   }

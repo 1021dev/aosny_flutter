@@ -792,7 +792,7 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
     String providerid = prefs.getString('providerid');
     // String gNote = '';
     int progId = 0;
-    int cptCode = 0;
+    int cptCode = -1;
     List<CptCode> cptCodeList = [];
     if (state.sessionType == sessionTypeStrings[5]) {
       if (state.selectedProgText != '' && state.selectedProgText != null) {
@@ -818,6 +818,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
         }
 
       }
+    }
+    if (state.sessionType == sessionTypeStrings[0] || state.sessionType == sessionTypeStrings[1]) {
+      cptCode = 1;
     }
     AddSessionResponse newPost = new AddSessionResponse(
       providerId: providerid,

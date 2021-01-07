@@ -369,6 +369,7 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           _isLoading = false;
         });
+        GlobalCall.openDrawer = true;
 
         if ((response.signatureFilename ?? '') == '') {
           Navigator.pushReplacement(
@@ -408,9 +409,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void handleTimeout() {
     if (GlobalCall.token.length > 33) {
+      GlobalCall.openDrawer = true;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MenuScreen()),
+        // MaterialPageRoute(builder: (context) => SignatureScreen()),
       );
     } else {
       // Navigator.pop(context);

@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -96,7 +97,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     child: Row(children: <Widget>[
                       Expanded(
                         child: _calendarController.view == CalendarView.month &&
-                            screenHeight < 800
+                            screenHeight < screenHeight
                             ? Scrollbar(
                           isAlwaysShown: true,
                           controller: _controller,
@@ -105,7 +106,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             children: <Widget>[
                               Container(
                                 color: Colors.white,
-                                height: 600,
+                                height: screenHeight,
                                 child: calendar,
                               )
                             ],
@@ -132,7 +133,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final List<_Meeting> appointment = <_Meeting>[];
     _events.appointments.clear();
     print(visibleDatesChangedDetails.visibleDates.length);
-    // final DateTime month = visibleDatesChangedDetails.visibleDates[visibleDatesChangedDetails.visibleDates.length ~/ 2];
+
     calendarScreenBloc.add(CalendarLoadingEvent(isLoading: true));
     DateTime sMonth = visibleDatesChangedDetails.visibleDates.first;
     DateTime eMonth = visibleDatesChangedDetails.visibleDates.last;
@@ -147,6 +148,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     List<HistoryModel> history = await HistoryApi().getHistoryList(
         sdate: startDate, endDate: endDate);
+    if (history.length > 0) history.sort((a,b) => a.starttime.compareTo(b.starttime));
 
     final List<DateTime> blockedDates = <DateTime>[];
     DateTime firstDate = visibleDatesChangedDetails.visibleDates.first;
@@ -156,7 +158,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         blockedDates.add(firstDate);
       }
     }
-
+    _blackoutDates = blockedDates;
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       calendarScreenBloc.add(CalendarLoadingEvent(isLoading: false));
     });
@@ -167,6 +169,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
         if (blockedDates != null &&
             blockedDates.isNotEmpty &&
             blockedDates.contains(date)) {
+            print(date);
+          if (isBlockOut(date) != '') {
+            DateTime sdate = DateTime(date.year, date.month, date.day, 0, 0, 1);
+            print(sdate);
+            appointment.add(_Meeting(
+              isBlockOut(date),
+              sdate,
+              sdate.add(Duration(hours: 23, minutes: 59)),
+              Colors.red,
+              false,
+              null,
+            ));
+          }
+
           continue;
         }
         for (int j = 0; j < history.length; j++) {
@@ -182,9 +198,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             int duration = sm == emin ? 60: 30;
             int hour = int.parse(sh);
             int min = int.parse(sm);
-            if (sa == 'AM' && sh == '12') {
-              hour = 0;
-            } else if (sa == 'PM') {
+            if (sa == 'PM' && sh != '12') {
               hour  = hour + 12;
             }
             final DateTime startDate = DateTime(date.year, date.month, date.day, hour, min);
@@ -199,7 +213,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ));
             } else if (_calendarController.view == CalendarView.day){
               appointment.add(_Meeting(
-                '${model.stime} - ${model.etime} ${model.fname} ${model.lname}',
+                '${model.fname} ${model.lname}',
                 startDate,
                 startDate.add(Duration(minutes: duration)),
                 getSessionColor(model.grp, model.sessionType),
@@ -208,7 +222,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ));
             } else {
               appointment.add(_Meeting(
-                '${model.stime} - ${model.etime}',
+                '${model.fname} ${model.lname}',
                 startDate,
                 startDate.add(Duration(minutes: duration)),
                 getSessionColor(model.grp, model.sessionType),
@@ -228,6 +242,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
       for (DateTime i = rangeStartDate; i.isBefore(rangeEndDate); i = i.add(const Duration(days: 1))) {
         final DateTime date = i;
+        if (isBlockOut(date) != '') {
+          DateTime sdate = DateTime(date.year, date.month, date.day, 0, 0, 1);
+          print(sdate);
+          appointment.add(_Meeting(
+            isBlockOut(date),
+            sdate,
+            sdate.add(Duration(hours: 23, minutes: 59)),
+            Colors.red,
+            false,
+            null,
+          ));
+        }
         for (int j = 0; j < history.length; j++) {
           HistoryModel model = history[j];
           DateTime sdate = DateTime.parse('${model.sdate.split('/')[2]}-${model.sdate.split('/')[0]}-${model.sdate.split('/')[1]}');
@@ -299,52 +325,88 @@ class _CalendarScreenState extends State<CalendarScreen> {
         dataSource: _calendarDataSource,
         allowedViews: _allowedViews,
         scheduleViewMonthHeaderBuilder: scheduleViewBuilder,
-        showNavigationArrow: true,
+        showNavigationArrow: false,
         showDatePickerButton: true,
-        allowViewNavigation: true,
+        allowViewNavigation: false,
         onViewChanged: viewChangedCallback,
         blackoutDates: _blackoutDates,
         blackoutDatesTextStyle: TextStyle(
             decoration: TextDecoration.lineThrough,
-            color: Colors.grey),
+            color: Colors.red),
         minDate: _minDate,
         maxDate: _maxDate,
         monthViewSettings: MonthViewSettings(
-            appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
-            showTrailingAndLeadingDates: true,
-            appointmentDisplayCount: 6),
+          appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+          showTrailingAndLeadingDates: true,
+          appointmentDisplayCount: 3,
+          agendaItemHeight: 50,
+          showAgenda: true,
+        ),
+
         timeSlotViewSettings: TimeSlotViewSettings(
             minimumAppointmentDuration: const Duration(minutes: 30)
         ),
       onTap: (details) async {
-        final _Meeting meeting = details.appointments.first;
-        HistoryModel model = meeting.model;
-        GlobalCall.sessionID = model.iD.toString();
-        String studentId = model.osis.toString().replaceAll('-', '');
-        int id = int.parse(studentId);
-        StudentsDetailsModel studentsDetailsModel = getStudent(id);
-        if (studentsDetailsModel == null) {
-          return ;
-        }
-        final result = await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => AddEditSessionNote(
-              eventType: "Edit",
-              student: studentsDetailsModel,
-              sessionId: model.iD,
-              selectedStudentName: model.fname + ' ' + model.lname,
-              noteText: model.notes,
-              isEditable: model.confirmed == 0,
-            ),
-          ),
-        );
+        print(details.resource);
+        print(details.targetElement);
+          if (details.targetElement == CalendarElement.agenda || details.targetElement == CalendarElement.appointment) {
+            if (details.appointments == null) {
+              return;
+            }
 
-        if (result != null) {
-          await updatedSessionNote();
-        }
+            if (details.appointments.length == 0) {
+              return;
+            }
+            final _Meeting meeting = details.appointments.first;
+            HistoryModel model = meeting.model;
+            if (model == null) {
+              return;
+            }
 
+            GlobalCall.sessionID = model.iD.toString();
+            String studentId = model.osis.toString().replaceAll('-', '');
+            int id = int.parse(studentId);
+            StudentsDetailsModel studentsDetailsModel = getStudent(id);
+            if (studentsDetailsModel == null) {
+              return ;
+            }
+            final result = await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => AddEditSessionNote(
+                  eventType: "Edit",
+                  student: studentsDetailsModel,
+                  sessionId: model.iD,
+                  selectedStudentName: model.fname + ' ' + model.lname,
+                  noteText: model.notes,
+                  isEditable: model.confirmed == 0,
+                ),
+              ),
+            );
+
+            if (result != null) {
+              await updatedSessionNote();
+            }
+          }
       },
     );
+  }
+
+  String isBlockOut(DateTime dateTime) {
+    if (dateTime == null) {
+      return '';
+    }
+    String isAvailable = '';
+    String compareString = DateFormat('20yy-MM-dd').format(dateTime).toString();
+    // print(compareString);
+    GlobalCall.blockDates.forEach((element) {
+      var dateString = element.startTime.split('T').first;
+      if (dateString == compareString) {
+        print(dateString);
+        isAvailable = element.subject;
+        // return isAvailable;
+      }
+    });
+    return isAvailable;
   }
 
 }
@@ -382,24 +444,26 @@ String _getMonthDate(int month) {
 Widget scheduleViewBuilder(
     BuildContext buildContext, ScheduleViewMonthHeaderDetails details) {
   final String monthName = _getMonthDate(details.date.month);
-  return Stack(
-    children: [
-      Image(
-          image: ExactAssetImage('assets/logo/' + monthName + '.png'),
-          fit: BoxFit.cover,
-          width: details.bounds.width,
-          height: details.bounds.height),
-      Positioned(
-        left: 55,
-        right: 0,
-        top: 20,
-        bottom: 0,
-        child: Text(
-          monthName + ' ' + details.date.year.toString(),
-          style: TextStyle(fontSize: 18),
-        ),
-      )
-    ],
+  return GestureDetector(
+    child: Stack(
+      children: [
+        Image(
+            image: ExactAssetImage('assets/logo/' + monthName + '.png'),
+            fit: BoxFit.cover,
+            width: details.bounds.width,
+            height: details.bounds.height),
+        Positioned(
+          left: 55,
+          right: 0,
+          top: 20,
+          bottom: 0,
+          child: Text(
+            monthName + ' ' + details.date.year.toString(),
+            style: TextStyle(fontSize: 18),
+          ),
+        )
+      ],
+    ),
   );
 }
 /// An object to set the appointment collection data source to collection, which
