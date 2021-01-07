@@ -446,7 +446,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Sessions on ${state.selectedDate.month}/${state.selectedDate.day}/20${state.selectedDate.year}',
+                            'Sessions on ${state.selectedDate.month}/${state.selectedDate.day}/${state.selectedDate.year.toString().length == 2 ? '20${state.selectedDate.year}': state.selectedDate.year}',
                           ),
                         ),
                         Icon(

@@ -122,6 +122,21 @@ class _SignatureScreenState extends State<SignatureScreen> {
             ),
           ),
           MaterialButton(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => MenuScreen()),
+              );
+            },
+            minWidth: 0,
+            child: Text(
+              'Skip',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+          ),
+          MaterialButton(
             onPressed: () async {
               if (_controller.isEmpty) {
                 setState(() {
