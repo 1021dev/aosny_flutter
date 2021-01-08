@@ -331,8 +331,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         onViewChanged: viewChangedCallback,
         blackoutDates: _blackoutDates,
         blackoutDatesTextStyle: TextStyle(
-            decoration: TextDecoration.lineThrough,
-            color: Colors.red),
+          decoration: TextDecoration.lineThrough,
+          color: Colors.red,
+        ),
         minDate: _minDate,
         maxDate: _maxDate,
         monthViewSettings: MonthViewSettings(
@@ -342,7 +343,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           agendaItemHeight: 50,
           showAgenda: true,
         ),
-
+        appointmentTextStyle: TextStyle(
+          fontSize: 7,
+        ),
         timeSlotViewSettings: TimeSlotViewSettings(
             minimumAppointmentDuration: const Duration(minutes: 30)
         ),
