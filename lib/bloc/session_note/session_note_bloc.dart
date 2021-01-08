@@ -582,22 +582,39 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           }
 
           if (GlobalCall.outcomes.categoryData.length > 0) {
-            for (CategoryTextAndID data in GlobalCall.outcomes.categoryData[0].categoryTextAndID){
-              CategoryTextAndID temp;
-              if (sessionNotesExtras.length > 0) {
-                sessionNotesExtras.forEach((element) {
-                  if (element.sNECategoryID == GlobalCall.outcomes.categoryData[0].mainCategoryID) {
-                    if (element.sNESubDetailID == data.categoryTextID) {
-                      temp = data;
+            if (goals.length > 0) {
+              for (CategoryTextAndID data in GlobalCall.outcomes.categoryData[0].categoryTextAndID){
+                CategoryTextAndID temp;
+                if (sessionNotesExtras.length > 0) {
+                  sessionNotesExtras.forEach((element) {
+                    if (element.sNECategoryID == GlobalCall.outcomes.categoryData[0].mainCategoryID) {
+                      if (element.sNESubDetailID == data.categoryTextID && element.sNECategoryDetailID == goals[1].longGoalID) {
+                        temp = data;
+                      }
                     }
-                  }
-                });
-              }
-              if (temp != null) {
-                if (selectedOutComesIndex > -1) {
-                  selectedOutComesIndex2 = outComesListItems.indexOf(temp) ?? -1;
-                } else {
+                  });
+                }
+                if (temp != null) {
+                  print('oucCome $temp');
                   selectedOutComesIndex = outComesListItems.indexOf(temp) ?? -1;
+                }
+              }
+              if (goals.length > 1) {
+                for (CategoryTextAndID data in GlobalCall.outcomes.categoryData[0].categoryTextAndID){
+                  CategoryTextAndID temp;
+                  if (sessionNotesExtras.length > 0) {
+                    sessionNotesExtras.forEach((element) {
+                      if (element.sNECategoryID == GlobalCall.outcomes.categoryData[0].mainCategoryID) {
+                        if (element.sNESubDetailID == data.categoryTextID && element.sNECategoryDetailID == goals[1].longGoalID) {
+                          temp = data;
+                        }
+                      }
+                    });
+                  }
+                  if (temp != null) {
+                    print('oucCome $temp');
+                    selectedOutComesIndex2 = outComesListItems.indexOf(temp) ?? -1;
+                  }
                 }
               }
             }
