@@ -53,14 +53,16 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
   @override
   void initState() {
 
-    endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.endDate).toString();
-    print("DateFormat currentDate:::"+'$endDate');
-
-    selectedEndDate = GlobalCall.endDate;
-    startDate  =  DateFormat('MM/dd/yyyy').format(GlobalCall.startDate).toString();
-
-    selectedStartDate = GlobalCall.startDate;
-    print("before 7 days::::"+startDate.toString());
+    setState(() {
+      if (GlobalCall.startDate.weekday != 7) {
+        GlobalCall.startDate = GlobalCall.proStartDate.subtract(Duration(days: GlobalCall.startDate.weekday));
+      }
+      startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.startDate).toString();
+      selectedStartDate = GlobalCall.startDate;
+      GlobalCall.endDate = GlobalCall.startDate.add(new Duration(days: 6));
+      endDate =  DateFormat('MM/dd/yyyy').format(GlobalCall.endDate).toString();
+      selectedEndDate = GlobalCall.endDate;
+    });
 
     if (widget.loadStudents != null) {
       widget.loadCategoires.stream.listen((event) {

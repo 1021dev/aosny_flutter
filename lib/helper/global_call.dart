@@ -21,9 +21,9 @@ class GlobalCall extends ChangeNotifier{
 
  static List<StudentsDetailsModel> globaleStudentList = new List();
 
- static DateTime startDate = DateTime.fromMillisecondsSinceEpoch(DateTime.now().millisecondsSinceEpoch - 86400000 * 6);
+ static DateTime startDate = DateTime.now();
  static DateTime endDate = DateTime.now();
- static DateTime proStartDate = DateTime.fromMillisecondsSinceEpoch(DateTime.now().millisecondsSinceEpoch - 86400000 * 6);
+ static DateTime proStartDate = DateTime.now();
  static DateTime proEndDate = DateTime.now();
 
  static CategoryList socialPragmatics = new CategoryList();

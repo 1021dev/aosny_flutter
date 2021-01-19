@@ -376,7 +376,11 @@ class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAlive
   void initState() {
 
     setState(() {
+      if (GlobalCall.proStartDate.weekday != 7) {
+        GlobalCall.proStartDate = GlobalCall.proStartDate.subtract(Duration(days: GlobalCall.proStartDate.weekday));
+      }
       startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
+
       GlobalCall.proEndDate = GlobalCall.proStartDate.add(new Duration(days: 6));
       endDate =  DateFormat('MM/dd/yyyy').format(GlobalCall.proEndDate).toString();
     });
