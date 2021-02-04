@@ -61,7 +61,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     double minWidth = width > height ? height : width;
     return Scaffold(
       backgroundColor: Colors.white,
-      resizeToAvoidBottomPadding: false,
       resizeToAvoidBottomInset: true,
       body:
       ModalProgressHUD(
