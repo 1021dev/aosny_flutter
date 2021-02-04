@@ -73,7 +73,6 @@ class _LoginScreenState extends State<LoginScreen> {
     double minWidth = width > height ? height : width;
     return Scaffold(
       backgroundColor: Colors.white,
-      resizeToAvoidBottomPadding: false,
       resizeToAvoidBottomInset: true,
       body: ModalProgressHUD(
         inAsyncCall: _isLoading,

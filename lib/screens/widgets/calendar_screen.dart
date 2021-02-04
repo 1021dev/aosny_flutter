@@ -190,23 +190,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
           DateTime sdate = DateTime.parse('${model.sdate.split('/')[2]}-${model.sdate.split('/')[0]}-${model.sdate.split('/')[1]}');
           if (sdate.year == date.year && sdate.month == date.month && sdate.day == date.day) {
             String stime = model.stime;
-            String etime = model.etime;
-            String sh = stime.replaceAll(' AM', '').replaceAll(' PM', '').split(':').toList()[0];
-            String sm = stime.replaceAll(' AM', '').replaceAll(' PM', '').split(':').toList()[1];
-            String sa = stime.split(' ').toList()[1];
-            String emin = etime.replaceAll(' AM', '').replaceAll(' PM', '').split(':').toList()[1];
-            int duration = sm == emin ? 60: 30;
-            int hour = int.parse(sh);
-            int min = int.parse(sm);
-            if (sa == 'PM' && sh != '12') {
-              hour  = hour + 12;
-            }
-            final DateTime startDate = DateTime(date.year, date.month, date.day, hour, min);
+            String fff = '${date.month}/${date.day}/${date.year} $stime';
+            final DateTime startDate = DateFormat.yMd('en_US').add_jm().parse(fff);
             if (_calendarController.view == CalendarView.week || _calendarController.view == CalendarView.workWeek) {
               appointment.add(_Meeting(
                 '${model.fname} ${model.lname}',
                 startDate,
-                startDate.add(Duration(minutes: duration)),
+                startDate.add(Duration(minutes: model.nmin)),
                 getSessionColor(model.grp, model.sessionType),
                 false,
                 model,
@@ -215,7 +205,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               appointment.add(_Meeting(
                 '${model.fname} ${model.lname}',
                 startDate,
-                startDate.add(Duration(minutes: duration)),
+                startDate.add(Duration(minutes: model.nmin)),
                 getSessionColor(model.grp, model.sessionType),
                 false,
                 model,
@@ -224,7 +214,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               appointment.add(_Meeting(
                 '${model.fname} ${model.lname}',
                 startDate,
-                startDate.add(Duration(minutes: duration)),
+                startDate.add(Duration(minutes: model.nmin)),
                 getSessionColor(model.grp, model.sessionType),
                 false,
                 model,
@@ -259,24 +249,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
           DateTime sdate = DateTime.parse('${model.sdate.split('/')[2]}-${model.sdate.split('/')[0]}-${model.sdate.split('/')[1]}');
           if (sdate.year == date.year && sdate.month == date.month && sdate.day == date.day) {
             String stime = model.stime;
-            String etime = model.etime;
-            String sh = stime.replaceAll(' AM', '').replaceAll(' PM', '').split(':').toList()[0];
-            String sm = stime.replaceAll(' AM', '').replaceAll(' PM', '').split(':').toList()[1];
-            String sa = stime.split(' ').toList()[1];
-            String emin = etime.replaceAll(' AM', '').replaceAll(' PM', '').split(':').toList()[1];
-            int duration = sm == emin ? 60: 30;
-            int hour = int.parse(sh);
-            int min = int.parse(sm);
-            if (sa == 'AM' && sh == '12') {
-              hour = 0;
-            } else if (sa == 'PM') {
-              hour  = hour + 12;
-            }
-            final DateTime startDate = DateTime(date.year, date.month, date.day, hour, min);
+            String fff = '${date.month}/${date.day}/${date.year} $stime';
+            final DateTime startDate = DateFormat.yMd('en_US').add_jm().parse(fff);
             appointment.add(_Meeting(
                 '${model.fname} ${model.lname}',
                 startDate,
-                startDate.add(Duration(minutes: duration)),
+                startDate.add(Duration(minutes: model.nmin)),
                 getSessionColor(model.grp, model.sessionType),
                 false,
                 model,
