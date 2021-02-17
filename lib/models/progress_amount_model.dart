@@ -1,48 +1,45 @@
 class ProgressAmountModel {
-  String lname;
-  String fname;
-  String sname;
-  int studentid;
-  String service;
-  int nDMins;
-  int mandatedNDMins;
-  int serviceMins;
-  int mandatedMins;
+  String student;
+  num osis;
+  num required;
+  num regCompleted;
+  String missed;
+  num reqNonDir;
+  num actNonDir;
+  String discrep1;
+  num direct;
+  num reqNonDir1;
+  num actNonDur;
+  num discrep;
+
 
   ProgressAmountModel(
-      this.lname,
-      this.fname,
-      this.sname,
-      this.studentid,
-      this.service,
-      this.nDMins,
-      this.mandatedNDMins,
-      this.serviceMins,
-      this.mandatedMins);
+      this.student,
+      this.osis,
+      this.required,
+      this.regCompleted,
+      this.missed,
+      this.reqNonDir1,
+      this.actNonDir,
+      this.discrep1,
+      this.direct,
+      this.reqNonDir,
+      this.actNonDur,
+      this.discrep,
+      );
 
   ProgressAmountModel.fromJson(Map<String, dynamic> json) {
-    lname = json['lname'];
-    fname = json['fname'];
-    sname = json['sname'];
-    studentid = json['studentid'];
-    service = json['service'];
-    nDMins = json['NDMins'];
-    mandatedNDMins = json['MandatedNDMins'];
-    serviceMins = json['ServiceMins'];
-    mandatedMins = json['MandatedMins'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['lname'] = this.lname;
-    data['fname'] = this.fname;
-    data['sname'] = this.sname;
-    data['studentid'] = this.studentid;
-    data['service'] = this.service;
-    data['NDMins'] = this.nDMins;
-    data['MandatedNDMins'] = this.mandatedNDMins;
-    data['ServiceMins'] = this.serviceMins;
-    data['MandatedMins'] = this.mandatedMins;
-    return data;
+    student = json['Student'];
+    osis = json['osis'];
+    required = json['required'];
+    regCompleted = json['reg_completed'];
+    missed = json['missed'];
+    reqNonDir1 = json['req_nondir1'];
+    actNonDur = json['act_nondur'];
+    discrep1 = json['discrep1'];
+    direct = json['direct'];
+    reqNonDir = json['req_NonDir'];
+    actNonDir = json['act_NonDir'];
+    discrep = json['discrep'];
   }
 }

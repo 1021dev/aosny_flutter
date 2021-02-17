@@ -1,34 +1,44 @@
+import 'dart:async';
+
 import 'package:aosny_services/api/history_api.dart';
+import 'package:aosny_services/bloc/bloc.dart';
 import 'package:aosny_services/helper/global_call.dart';
-import 'package:aosny_services/models/gp_Listview_model.dart';
-import 'package:aosny_services/models/gp_dropdown_model.dart';
 import 'package:aosny_services/models/history_model.dart';
 import 'package:aosny_services/models/students_details_model.dart';
-import 'package:aosny_services/screens/widgets/drawer/drawer_widget.dart';
-import 'package:aosny_services/screens/widgets/drawer/session_note.dart';
+import 'package:aosny_services/screens/widgets/add_edit_session_note.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HistoryScreen extends StatefulWidget {
-  final List<LongTermGpDropDownModel> longTermGpDropDownList;
-  final List<ShortTermGpModel> shortTermGpList;
+  final StreamController<bool> loadStudents;
+  final StreamController<bool> loadCategoires;
+  final MainScreenBloc mainScreenBloc;
 
   const HistoryScreen(
-      {Key key, this.longTermGpDropDownList, this.shortTermGpList})
+      {
+        Key key,
+        this.mainScreenBloc,
+        this.loadStudents,
+        this.loadCategoires,
+      })
       : super(key: key);
   @override
   _HistoryScreenState createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveClientMixin<HistoryScreen> {
+  @override
+  bool get wantKeepAlive => true;
+
   var refreshKey = GlobalKey<RefreshIndicatorState>();
 
-  String selectedStartDate = '09/01/2019';
-  String selectedEndDate = '11/01/2019';
+  DateTime selectedStartDate;
+  DateTime selectedEndDate;
   String startDate ="";
   String endDate="";
-  bool isStartDate= false;
-  bool isEndDate=  false;
 
   String displayStartDate = "Start Date";
   String displayEndDate = "End Date";
@@ -37,78 +47,70 @@ class _HistoryScreenState extends State<HistoryScreen> {
   bool isFiltered = false;
   HistoryApi historyApi = new HistoryApi();
 
-  List<FilteredList> filteredList = [
-    FilteredList(
-      filterText: "Incomplete",
-      checkBox: false,
-    ),
-    FilteredList(
-      filterText: "Student Absent",
-      checkBox: false,
-    ),
-    FilteredList(
-      filterText: "Student Unavailable",
-      checkBox: false,
-    ),
-    FilteredList(
-      filterText: "Provider Absent",
-      checkBox: false,
-    ),
-    FilteredList(
-      filterText: "Complete",
-      checkBox: false,
-    ),
-    FilteredList(
-      filterText: "Make-up",
-      checkBox: false,
-    ),
-  ];
+  bool isStudentsLoad = false;
+  bool isCategoryLoad = false;
 
   @override
   void initState() {
 
-   endDate  =   DateFormat('MM/dd/yyyy').format(DateTime.now()).toString();
-    print("DateFormat currentDate:::"+'$endDate');
-    
-    DateTime today = new DateTime.now();
-    DateTime fiftyDaysAgo = today.subtract(new Duration(days: 7));
-
-   startDate  =  DateFormat('MM/dd/yyyy').format(fiftyDaysAgo).toString();
-    
-    print("before 7 days::::"+startDate.toString());
-
     setState(() {
-
-      isStartDate = true;
-      isEndDate   = true;
-
+      if (GlobalCall.startDate.weekday != 7) {
+        GlobalCall.startDate = GlobalCall.proStartDate.subtract(Duration(days: GlobalCall.startDate.weekday));
+      }
+      startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.startDate).toString();
+      selectedStartDate = GlobalCall.startDate;
+      GlobalCall.endDate = GlobalCall.startDate.add(new Duration(days: 6));
+      endDate =  DateFormat('MM/dd/yyyy').format(GlobalCall.endDate).toString();
+      selectedEndDate = GlobalCall.endDate;
     });
+
+    if (widget.loadStudents != null) {
+      widget.loadCategoires.stream.listen((event) {
+        setState(() {
+          isCategoryLoad = event;
+        });
+      });
+
+      widget.loadStudents.stream.listen((event) {
+        setState(() {
+          isStudentsLoad = event;
+        });
+      });
+    }
+    widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));
     super.initState();
-    
   }
 
-  showDateTimePicker(String whichStringType) async {
+  showDateTimePicker(String whichStringType, DateTime date) async {
     final datePick = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: date,
       firstDate: DateTime(2018),
       lastDate: DateTime(2030),
     );
     if (whichStringType == 'Start Date') {
-      if (datePick != null && datePick != selectedStartDate) {
+      if (datePick != null && datePick != GlobalCall.startDate) {
         setState(() {
-          startDate = DateFormat('MM/dd/yyyy').format(datePick);
-          isStartDate= true;
-          print('startdate');
+          GlobalCall.startDate = datePick;
+          startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.startDate);
+          DateTime endDateTime = datePick.add(Duration(days: 6));
+          GlobalCall.endDate = endDateTime;
+          endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.endDate);
         });
+        if (endDate != null) {
+          widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));
+        }
       }
     } else {
-      if (datePick != null && datePick != selectedEndDate) {
+      if (datePick != null && datePick != GlobalCall.endDate) {
         setState(() {
-          endDate = DateFormat('MM/dd/yyyy').format(datePick);
-          isEndDate =true;
-          print('enddate');
+          GlobalCall.endDate = datePick;
+          endDate = DateFormat('MM/dd/yyyy').format(GlobalCall.endDate);
+          startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.startDate);
         });
+        if (startDate != null) {
+          widget.mainScreenBloc.add(GetHistoryEvent(startDate: startDate, endDate: endDate));
+        }
       }
     }
   }
@@ -121,325 +123,418 @@ class _HistoryScreenState extends State<HistoryScreen> {
     var _lastDayOfTheweek = DateFormat('MM/d/yyyy')
         .format(today.subtract(new Duration(days: today.weekday)));
 
-    print(
-        "_firstDayOfTheweek _firstDayOfTheweek _firstDayOfTheweek:$_firstDayOfTheweek");
+    return BlocListener(
+        cubit: widget.mainScreenBloc,
+        listener: (BuildContext context, MainScreenState state) async {
+        },
+        child: BlocBuilder<MainScreenBloc, MainScreenState>(
+            cubit: widget.mainScreenBloc,
+            builder: (BuildContext context, MainScreenState state) {
 
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      drawer: DrawerWidget(),
-      body:
-         Container(
-          padding: const EdgeInsets.only(left: 15, right: 15, top: 8),
-          
-          child: SingleChildScrollView(
+              List<StudentsDetailsModel> students = [];
+              GlobalCall.globaleStudentList.forEach((element) {
+                bool isContain = false;
+                students.forEach((student) {
+                  if (student.firstName == element.firstName && student.lastName == element.lastName) {
+                    isContain = true;
+                  }
+                });
+                if (!isContain) {
+                  students.add(element);
+                }
+              });
+              return ModalProgressHUD(
+                inAsyncCall: state.isLoading,
+                child: Scaffold(
+                  backgroundColor: Colors.grey[100],
+                  body: _body(state, students),
+                  // ),
+                ),
+              );
+            }
+        )
+    );
+  }
+
+  Widget _body(MainScreenState state, List<StudentsDetailsModel> students) {
+    return Container(
+      padding: const EdgeInsets.only(left: 15, right: 15, top: 8),
+      child: Column(
+        mainAxisAlignment:  MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
             child: Column(
-              mainAxisAlignment:  MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Container(
-                  
-                  child: Row(
+                GlobalCall.filterDates ? Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    isFiltered
-                        ? Container(
-                            alignment: Alignment.center,
-                            height: 40,
-                            width: 165,
-                            padding: const EdgeInsets.all(5),
-                            color: Colors.white,
-                            child: DropdownButton(
-                              underline: Container(),
-                              hint: dropDownValue == null
-                                  ? Text("Students")
-                                  : Text(
-                                      dropDownValue,
-                                      style: TextStyle(color: Colors.black),
-                                    ),
-                              isExpanded: true,
-                              elevation: 5,
-                              icon: Icon(Icons.keyboard_arrow_down),
-                              iconSize: 30.0,
-                              style: TextStyle(color: Colors.black),
-                              items: GlobalCall.globaleStudentList.map(
-                                (val) {
-                                  return DropdownMenuItem<StudentsDetailsModel>(
-                                    value: val,
-                                    child: Text(
-                                        val.firstName + " " + val.lastName),
-                                  );
-                                },
-                              ).toList(),
-                              onChanged: (val) {
-                                setState(
-                                  () {
-                                    dropDownValue =
-                                        val.firstName + " " + val.lastName;
-
-                                    studentID = val.id.toString();
-                                    print(studentID);
-                                  },
-                                );
-                              },
-                            ),
-                          )
-                        : Container(),
-                    IconButton(
-                        icon: Icon(Icons.add_circle_outline),
-                        onPressed: () {
-                          setState(() {
-                            isFiltered = !isFiltered;
-                          });
-                        }),
-                  ],
-                )),
-                isFiltered
-                    ?
-                    // listOfFilter()
-                    Row(
+                    Flexible(
+                      flex: 1,
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          FlatButton(
-                              color: Colors.blue,
-                              onPressed: () async {
-                                showDateTimePicker('Start Date');
-                              },
-                              child: isStartDate ? Text(startDate,style: TextStyle(color:Colors.white)) : Text("Select Start Date",style: TextStyle(color:Colors.white),)
-                              
-                             /* Text(
-                                selectedStartDate == '09/01/2019'
-                                    ? "Select Start Date"
-                                    : selectedStartDate,
-                                style: TextStyle(color: Colors.white),
-                              )),*/
+                          Flexible(
+                            child: Text('Start Date', style: TextStyle(fontSize: 12),),
                           ),
                           FlatButton(
-                              color: Colors.blue,
-                              onPressed: () {
-                                showDateTimePicker('End Date');
-                              },
-                              //child:  Text( "Select End Date",
-                              //  style: TextStyle(color:Colors.white),
-                              child: isEndDate ? Text(endDate,style: TextStyle(color:Colors.white)) : Text("Select End Date",style: TextStyle(color:Colors.white),)
-                              /*Text(
-                                selectedEndDate == '11/01/2019'
-                                    ? "Select End Date"
-                                    : selectedEndDate,
-                                style: TextStyle(color: Colors.white),
-                              )*/
-                              )
+                            color: Colors.blue,
+                            onPressed: () async {
+                              showDateTimePicker('Start Date', GlobalCall.startDate);
+                            },
+                            child:
+                            Text(
+                              startDate == '' ? 'Start Date' : startDate,
+                              style: TextStyle(color:Colors.white),
+                            ),
+                          ),
                         ],
-                      )
-                    : Container(),
-                SizedBox(height: isFiltered ? 60 : 0),
-                RefreshIndicator(
-                  key: refreshKey,
-                  child: FutureBuilder<List<HistoryModel>>(
-                      future: historyApi.getHistoryList(
-                          sdate: startDate, endDate: endDate),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<List<HistoryModel>> snapshot) {
-                        if (!snapshot.hasData) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Text("${snapshot.error}");
-                        }
-                        if (snapshot.data.length > 0) {
-                          return Container(
-                            alignment: Alignment.center,
-                            height: MediaQuery.of(context).size.height,
-                            width: MediaQuery.of(context).size.width,
-                            child: ListView.builder(
-                                itemCount: snapshot.data.length,
-                                padding: EdgeInsets.fromLTRB(0, 0, 0, 60),
-                                itemBuilder: (context, index) {
-                                  return Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      SizedBox(height: 10),
-                                      Text(
-                                          DateFormat('EEEE, MMMM d').format(
-                                              DateTime.parse(
-                                                  '${snapshot.data[index].sdate.split('/')[2]}-${snapshot.data[index].sdate.split('/')[0]}-${snapshot.data[index].sdate.split('/')[1]}')),
-                                          style: TextStyle(
-                                              color: Colors.grey,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14)),
-                                      SizedBox(height: 4),
-
-                                      snapshot.data[index].fname ==
-                                              'School Closed'
-                                          ? Container(
-                                              padding: const EdgeInsets.only(
-                                                  left: 5),
-                                              height: MediaQuery.of(context)
-                                                      .size
-                                                      .height /
-                                                  20,
-                                              decoration: BoxDecoration(
-                                                  color: Colors.orange,
-                                                  borderRadius:
-                                                      BorderRadius.circular(5)),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: <Widget>[
-                                                  Text(
-                                                    "School Closed",
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 20),
-                                                  ),
-                                                  IconButton(
-                                                      icon: Icon(Icons.cancel),
-                                                      color: Colors.red,
-                                                      onPressed: () {})
-                                                ],
-                                              ),
-                                            )
-                                          : Container(
-                                              padding: const EdgeInsets.all(5),
-                                              decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),border:Border.all(width:0.5)),
-
-                                              height: MediaQuery.of(context)
-                                                      .size
-                                                      .height /
-                                                  6.9,
-                                              width: MediaQuery.of(context)
-                                                  .size
-                                                  .width,
-                                              child: Column(
-                                                children: <Widget>[
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: <Widget>[
-                                                      Text(
-                                                        '${snapshot.data[index].stime} - ${snapshot.data[index].etime}',
-                                                        style: TextStyle(
-                                                            fontSize: 11),
-                                                      ),
-                                                      InkWell(
-                                                        child: Icon(
-                                                          Icons.check_circle,
-                                                          color: Colors.green,
-                                                        ),
-                                                        onTap: () {},
-                                                      )
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: <Widget>[
-                                                      Text(
-                                                        '${snapshot.data[index].fname} ${snapshot.data[index].lname}',
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 16),
-                                                      ),
-                                                      Text(
-                                                        'Session Note Entered',
-                                                        style: TextStyle(
-                                                            color: Colors.grey,
-                                                            fontSize: 11),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: <Widget>[
-                                                      Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-//                                                        children: <Widget>[
-//                                                          Text(
-//                                                              "Torah V'daath Ave",
-//                                                              style: TextStyle(
-//                                                                  fontSize: 12,
-//                                                                  fontWeight:
-//                                                                      FontWeight
-//                                                                          .normal,
-//                                                                  color: Colors
-//                                                                      .grey)),
-//                                                          Text(
-//                                                            "L",
-//                                                            style: TextStyle(
-//                                                                color: Colors
-//                                                                    .grey),
-//                                                          )
-//                                                        ],
-                                                      ),
-                                                      editButton(context,
-                                                          snapshot.data[index]),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                      // SizedBox(height:30),
-                                      //Divider(color:Colors.grey,height: 10,),
-                                    ],
-                                  );
-                                }),
-                            // margin: EdgeInsets.fromLTRB(0, 0, 0,20),
-                          );
-                        } else {
-                          return Center(
-                            child: Text("No data found. Please check dates and/or filters."),
-                          );
-                        }
-                      }),
-                  onRefresh: refreshList,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 8),
+                    ),
+                    Flexible(
+                      flex: 1,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Flexible(
+                            child: Text('End Date', style: TextStyle(fontSize: 12),),
+                          ),
+                          FlatButton(
+                            color: Colors.blue,
+                            onPressed: () {
+                              showDateTimePicker('End Date', GlobalCall.endDate);
+                            },
+                            //child:  Text( "Select End Date",
+                            //  style: TextStyle(color:Colors.white),
+                            child: Text(
+                              endDate == '' ? 'End Date': endDate,
+                              style: TextStyle(color:Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ): Container(),
+                GlobalCall.filterStudents ? Container(
+                  alignment: Alignment.center,
+                  height: 40,
+                  padding: const EdgeInsets.all(5),
+                  color: Colors.white,
+                  child: DropdownButton(
+                    underline: Container(),
+                    hint: GlobalCall.student == null
+                        ? Text("Students")
+                        : Text(
+                      GlobalCall.student,
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    isExpanded: true,
+                    elevation: 5,
+                    icon: Icon(Icons.keyboard_arrow_down),
+                    iconSize: 30.0,
+                    style: TextStyle(color: Colors.black),
+                    items: students.map(
+                          (val) {
+                        return DropdownMenuItem<StudentsDetailsModel>(
+                          value: val,
+                          child: Text(
+                            val.firstName + " " + val.lastName,
+                          ),
+                        );
+                      },
+                    ).toList(),
+                    onChanged: (val) {
+                      setState(
+                            () {
+                          dropDownValue =
+                              val.firstName + " " + val.lastName;
+                          GlobalCall.student = dropDownValue;
+                          studentID = val.id.toString();
+                          print(studentID);
+                        },
+                      );
+                      widget.mainScreenBloc.add(UpdateSortFilterEvent());
+                      widget.mainScreenBloc.add(UpdateFilterProgressEvent());
+                    },
+                  ),
+                ) : Container(),
+                Padding(
+                  padding: EdgeInsets.only(top: 4),
+                ),
+                GlobalCall.filterSessionTypes ? Container(
+                  alignment: Alignment.center,
+                  height: 40,
+                  padding: const EdgeInsets.all(5),
+                  color: Colors.white,
+                  child: DropdownButton(
+                    underline: Container(),
+                    hint: GlobalCall.sessionType == ''
+                        ? Text('Session Type')
+                        : Text(
+                      GlobalCall.sessionType,
+                      style: TextStyle(color: Colors.black,
+                      ),
+                    ),
+                    isExpanded: true,
+                    elevation: 5,
+                    icon: Icon(Icons.keyboard_arrow_down),
+                    iconSize: 30.0,
+                    style: TextStyle(color: Colors.black),
+                    items: sessionTypeStrings.map(
+                          (val) {
+                        return DropdownMenuItem<String>(
+                          value: val,
+                          child: Text(val),
+                        );
+                      },
+                    ).toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        GlobalCall.sessionType = val;
+                      },
+                      );
+                      widget.mainScreenBloc.add(UpdateSortFilterEvent());
+                      widget.mainScreenBloc.add(UpdateFilterProgressEvent());
+                    },
+                  ),
+                ) : Container(),
+                Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Divider(height: 0, thickness: 0.5,),
                 )
               ],
             ),
           ),
-        ),
-     // ),
+          Expanded(
+            child: Container(
+              child: RefreshIndicator(
+                  key: refreshKey,
+                  onRefresh: refreshList,
+                  child: Container(
+                    alignment: Alignment.center,
+                    height: MediaQuery.of(context).size.height,
+                    width: MediaQuery.of(context).size.width,
+                    child: state.filterHistory.length == 0 ? Center(
+                      child: Text('No history data, please try to change the start/end Date.'),
+                    ): ListView.builder(
+                        itemCount: state.filterHistory.length,
+                        padding: EdgeInsets.fromLTRB(0, 0, 0, 60),
+                        itemBuilder: (context, index) {
+                          HistoryModel model = state.filterHistory[index];
+                          String stime = model.stime;
+                          String etime = model.etime;
+                          String smin = stime.replaceAll(' AM', '').replaceAll(' PM', '').split(':').toList()[1];
+                          String emin = etime.replaceAll(' AM', '').replaceAll(' PM', '').split(':').toList()[1];
+                          int duration = smin == emin ? 60: 30;
+                          String extra = '';
+                          if (model.mcalid != 0 && model.sessionType != sessionTypeStrings[1]) {
+                            extra = '(Made Up)';
+                          }
+                          return Card(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                SizedBox(height: 10),
+                                Padding(
+                                  padding: EdgeInsets.only(left: 8, right: 8),
+                                  child: Text(
+                                    DateFormat('EEEE, MMMM d').format(
+                                        DateTime.parse(
+                                            '${model.sdate.split('/')[2]}-${model.sdate.split('/')[0]}-${model.sdate.split('/')[1]}')),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 28.sp,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                model.fname ==
+                                    'School Closed'
+                                    ? Container(
+                                  padding: const EdgeInsets.only(left: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange,
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Text(
+                                        "School Closed",
+                                        style: TextStyle(
+                                          fontWeight:
+                                          FontWeight.bold,
+                                          fontSize: 40.sp,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.cancel),
+                                        color: Colors.red,
+                                        onPressed: () {},
+                                      )
+                                    ],
+                                  ),
+                                )
+                                    : GestureDetector(
+                                  onTap: () async {
+                                    GlobalCall.sessionID = state.filterHistory[index].iD.toString();
+                                    String studentId = state.filterHistory[index].osis.toString().replaceAll('-', '');
+                                    int id = int.parse(studentId);
+                                    StudentsDetailsModel studentsDetailsModel = getStudent(id);
+                                    if (studentsDetailsModel == null) {
+                                      return ;
+                                    }
+                                    final result = await Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => AddEditSessionNote(
+                                          eventType: "Edit",
+                                          student: studentsDetailsModel,
+                                          sessionId: state.filterHistory[index].iD,
+                                          selectedStudentName: state.filterHistory[index].fname + ' ' + state.filterHistory[index].lname,
+                                          noteText: state.filterHistory[index].notes,
+                                          isEditable: state.filterHistory[index].confirmed == 0,
+                                        ),
+                                      ),
+                                    );
+
+                                    if (result != null) {
+                                      await updatedSessionNote();
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  '${model.stime} - ${model.etime}',
+                                                  style: TextStyle(
+                                                    fontSize: 24.sp,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 8,),
+                                                Container(
+                                                  width: 20,
+                                                  height: 20,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(10,),
+                                                    color: duration == 60 ? Colors.orange: Colors.blue,
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      '$duration',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 24.sp,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Text(
+                                              stringFroStatus(state.filterHistory[index].status),
+                                              style: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: <Widget>[
+                                            Flexible(
+                                              flex: 3,
+                                              child: Text(
+                                                '${state.filterHistory[index].fname} ${state.filterHistory[index].lname}',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 32.sp,
+                                                ),
+                                              ),
+                                            ),
+                                            Flexible(
+                                              flex: 2,
+                                              child: Container(
+                                                padding: extra != '' ? EdgeInsets.only(left: 4, right: 4): EdgeInsets.zero,
+                                                decoration: extra != '' ? BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(4),
+                                                  border: Border.all(
+                                                    width: 1,
+                                                    color: getSessionColor(state.filterHistory[index].grp, state.filterHistory[index].sessionType),
+                                                  ),
+                                                  color: Color(0xFFEEEEEE),
+                                                ): null,
+                                                child: Text(
+                                                  state.filterHistory[index].sessionType,
+                                                  style: TextStyle(
+                                                    color: getSessionColor(state.filterHistory[index].grp, state.filterHistory[index].sessionType),
+                                                    fontSize: 24.sp,
+                                                  ),
+                                                  textAlign: TextAlign.right,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                    // margin: EdgeInsets.fromLTRB(0, 0, 0,20),
+                  )
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget editButton(BuildContext context, var data) {
+  Widget editButton(BuildContext context, HistoryModel data) {
     return InkWell(
         onTap: () {
-
-        
           GlobalCall.sessionID =  data.iD.toString();
-
-          
-        
-
-          Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => SessionNote(
-                    eventType: "Edit",
-                    selectedStudentName: data.fname + ' ' + data.lname,
-                    noteText: data.notes,
-                    longTermGpDropDownList: widget.longTermGpDropDownList,
-                    shortTermGpList: widget.shortTermGpList,
-                  )));
+          String studentId = data.osis.toString().replaceAll('-', '');
+          int id = int.parse(studentId);
+          StudentsDetailsModel studentsDetailsModel = getStudent(id);
+          if (studentsDetailsModel == null) {
+            return ;
+          }
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => AddEditSessionNote(
+                eventType: "Edit",
+                student: studentsDetailsModel,
+                sessionId: data.iD,
+                selectedStudentName: data.fname + ' ' + data.lname,
+                noteText: data.notes,
+                isEditable: data.confirmed == 0,
+              ),
+            ),
+          );
         },
         child: Container(
           alignment: Alignment.center,
-          height: MediaQuery.of(context).size.height / 22,
+          height: 44,
           width: MediaQuery.of(context).size.width / 5.0,
           decoration: BoxDecoration(
               color: Color(0xff4A4A4A), borderRadius: BorderRadius.circular(2)),
@@ -450,7 +545,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ));
   }
 
+  StudentsDetailsModel getStudent(int id) {
+    List<StudentsDetailsModel> list = GlobalCall.globaleStudentList.where((element) => element.studentID.toInt() == id).toList();
+    if (list != null && list.length > 0) {
+      return list.first;
+    } else {
+      return null;
+    }
+  }
+
   Widget listOfFilter() {
+    List filteredList = [];
     return Container(
       height: MediaQuery.of(context).size.height / 2.8,
       width: MediaQuery.of(context).size.width / 1.7,
@@ -488,19 +593,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  
-
   Future<Null> refreshList() async {
     refreshKey.currentState?.show(atTop: false);
+    widget.mainScreenBloc.add(RefreshHistoryEvent(startDate: startDate, endDate: endDate));
     await Future.delayed(Duration(seconds: 4));
+    return null;
+  }
 
-    setState(() {
-      historyApi.getHistoryList(
-          sdate: selectedStartDate, endDate: selectedEndDate);
-
-      print("pull api called");
-    });
-
+  Future<Null> updatedSessionNote() async {
+    widget.mainScreenBloc.add(UpdatedSessionNoteEvent(startDate: startDate, endDate: endDate));
+    await Future.delayed(Duration(seconds: 4));
     return null;
   }
 }
