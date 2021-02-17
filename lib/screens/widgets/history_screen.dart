@@ -555,7 +555,7 @@ class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveCl
   }
 
   Widget listOfFilter() {
-    List filteredList = List();
+    List filteredList = [];
     return Container(
       height: MediaQuery.of(context).size.height / 2.8,
       width: MediaQuery.of(context).size.width / 1.7,
