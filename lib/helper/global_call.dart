@@ -70,7 +70,7 @@ DateTime getAvailableDate(DateTime dateTime) {
  }
  DateTime tempDate = DateTime.now();
  while (!isAvailable(tempDate)) {
-  tempDate = tempDate.add(Duration(days: 1));
+  tempDate = tempDate.subtract(Duration(days: 1));
  }
 
  return tempDate;

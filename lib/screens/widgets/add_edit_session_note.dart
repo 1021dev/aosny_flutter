@@ -156,7 +156,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
           return isAvailable(day);
         },
         firstDate: DateTime(state.selectedDate.year - 1),
-        lastDate: DateTime(DateTime.now().year + 1),
+        lastDate: DateTime.now(),
       );
       if (datePick != null && datePick != state.selectedDate ?? DateTime.now()) {
         screenBloc.add(UpdateSelectedDate(selectedDate: datePick));
@@ -171,7 +171,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         // selectableDayPredicate: (DateTime val) => isAvailable(val),
         // selectableDayPredicate: (DateTime val) => val.weekday == 5 || val.weekday == 6 ? false : true,
         firstDate: DateTime(state.selectedDate.year - 1),
-        lastDate: DateTime(DateTime.now().year + 1),
+        lastDate: DateTime.now(),
       );
       if (datePick != null && datePick != state.selectedDate ?? DateTime.now()) {
         screenBloc.add(UpdateSelectedDate(selectedDate: datePick));
@@ -184,7 +184,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
       context: context,
       initialTime: TimeOfDay.fromDateTime(state.selectedDate) ?? TimeOfDay.now(),
     );
-    if (response != null && response != state.selectedTime ?? TimeOfDay.now()) {
+    if (response != null && response != TimeOfDay.fromDateTime(state.selectedDate) ?? TimeOfDay.now()) {
       screenBloc.add(UpdateSelectedTime(selectedTime: response));
     }
   }
@@ -634,9 +634,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                                         ),
                                       ),
                                       onTap: (){
-                                        setState(() {
-                                          screenBloc.add(UpdateFinalNumber(finalNumber: 60));
-                                        });
+                                        screenBloc.add(UpdateFinalNumber(finalNumber: 60));
                                       },
                                     ),
                                   ],
@@ -904,13 +902,17 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
                             }
                           }
                           if (state.sessionType == sessionTypeStrings[0]) {
-                            if (state.showAlert && state.exceedMandate) {
-                              TimeList timeList = state.timeList;
-                              ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
-                                return element.studentId == state.student.studentID.toInt();
-                              });
-                              Fluttertoast.showToast(msg: 'This mandate has the maximum of ${progressedTime.mandateMins / 60} hours for the week');
-                              return;
+                            if (widget.isEditable && widget.eventType == 'Edit') {
+
+                            } else {
+                              if (state.showAlert && state.exceedMandate) {
+                                TimeList timeList = state.timeList;
+                                ProgressedTime progressedTime = timeList.progressedList.firstWhere((element) {
+                                  return element.studentId == state.student.studentID.toInt();
+                                });
+                                Fluttertoast.showToast(msg: 'This mandate has the maximum of ${progressedTime.mandateMins / 60} hours for the week. Only Makeups and Non-Direct Care can be added');
+                                return;
+                              }
                             }
                           }
                           if (state.showAlert && state.conflictTime) {
@@ -2772,7 +2774,7 @@ class _AddEditSessionNoteState extends State<AddEditSessionNote> {
         color: Colors.red,
         child: Center(
           child: Text(
-            'This mandate has the maximum of ${progressedTime.mandateMins / 60} hours for the week',
+            'This mandate has the maximum of ${progressedTime.mandateMins / 60} hours for the week. Only Makeups and Non-Direct Care can be added',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w500,
