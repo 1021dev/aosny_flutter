@@ -37,8 +37,6 @@ class CircleProgress extends CustomPainter{
   }
 }
 
-
-
 class CreateProgressBarTime extends StatefulWidget {
   @override
   _CreateProgressBarTimeState createState() => _CreateProgressBarTimeState();
@@ -51,7 +49,7 @@ class _CreateProgressBarTimeState extends State<CreateProgressBarTime> with Sing
   @override
   void initState() {
     super.initState();
-    progressController = AnimationController(vsync: this,duration: Duration(milliseconds: 1000));
+    progressController = AnimationController(vsync: this, duration: Duration(milliseconds: 1000));
     animation = Tween(begin: 0,end: 80).animate(progressController)..addListener((){
       setState(() {
 

@@ -1,32 +1,38 @@
-import 'package:aosny_services/api/progress_amount_api.dart';
-import 'package:intl/intl.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:aosny_services/bloc/bloc.dart';
+import 'package:aosny_services/helper/global_call.dart';
 import 'package:aosny_services/models/progress_amount_model.dart';
+import 'package:aosny_services/models/students_details_model.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
-
-
-
+import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:sprintf/sprintf.dart';
 
 class ProgressScreen extends StatefulWidget {
+  final MainScreenBloc mainScreenBloc;
+
+  ProgressScreen({this.mainScreenBloc});
 
   @override
   _ProgressScreenState createState() => _ProgressScreenState();
-  
+
 }
 
-class _ProgressScreenState extends State<ProgressScreen> {
+class _ProgressScreenState extends State<ProgressScreen> with AutomaticKeepAliveClientMixin<ProgressScreen> {
+  @override
+  bool get wantKeepAlive => true;
+
 
   var refreshKey = GlobalKey<RefreshIndicatorState>();
   bool isFiltered = false;
-  bool isStart = false;
-  bool isEnd = false;
-  DateTime selectedCurrentDate;
-  String selectedStartDate = '09/01/2019';
-  String selectedEndDate = '11/01/2019';
 
-  String startDate =" ";
-  String endDate=" ";
-  ProgressAmountApi progressAmountApi = new ProgressAmountApi();
+  String dropDownValue, studentID;
+  String startDate ='';
+  String endDate='';
   String durationToString(int minutes) {
     var d = Duration(minutes:minutes);
     List<String> parts = d.toString().split(':');
@@ -34,322 +40,445 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 
   showDateTimePicker(String whichStringType)async{
-   final datePick= await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2018),
-      lastDate: DateTime(2030),
-    );
-    if(whichStringType == 'Start Date'){
-      if(datePick!=null && datePick != selectedStartDate){
-        setState(() {
 
+      DateTime selectedDateTime = DateTime.now();
+      if (GlobalCall.proStartDate.weekday == 7) {
+        selectedDateTime = GlobalCall.proStartDate;
+      } else {
+        selectedDateTime = selectedDateTime.subtract(Duration(days: selectedDateTime.weekday));
+      }
+      final datePick= await showDatePicker(
+        context: context,
+        initialDate: selectedDateTime,
+        firstDate: DateTime(2018),
+        lastDate: DateTime(2030),
+        selectableDayPredicate: (DateTime val) => val.weekday == 7,
+      );
+      if(datePick != null && datePick != GlobalCall.proStartDate){
+        setState(() {
+          GlobalCall.proStartDate = datePick;
           startDate = DateFormat('MM/dd/yyyy').format(datePick);
-          isStart = true;
-
-
+          DateTime sevenDaysAgo = GlobalCall.proStartDate.add(new Duration(days: 6));
+          GlobalCall.proEndDate = sevenDaysAgo;
+          endDate = DateFormat('MM/dd/yyyy').format(sevenDaysAgo);
         });
+        widget.mainScreenBloc.add(GetProgressEvent(startDate: startDate, endDate: endDate));
       }
-
-    }else{
-      if(datePick!=null && datePick != selectedEndDate){
-        setState(() {
-
-          endDate = DateFormat('MM/dd/yyyy').format(datePick); 
-           isEnd = true;
-        
-          
-        });
-      }
-    }
-    
   }
 
   @override
   Widget build(BuildContext context) {
-   return Scaffold(
-      backgroundColor: Colors.white,
-      body: Container(
-        alignment: Alignment.topCenter,
-        padding: const EdgeInsets.all(10),
-        child: Column(
-           children: <Widget>[
-
-             Container(
-               width: MediaQuery.of(context).size.width,
-               alignment: Alignment.centerRight,
-             child:IconButton(
-                          icon: Icon(Icons.add_circle_outline), 
-                          onPressed: (){
-                            setState(() {
-                              isFiltered = !isFiltered;
-                            });
-                          }
-                          ),),
-
-                          isFiltered ?
-                  // listOfFilter()
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    super.build(context);
+    return BlocListener(
+      cubit: widget.mainScreenBloc,
+      listener: (BuildContext context, MainScreenState state) async {
+      },
+      child: BlocBuilder<MainScreenBloc, MainScreenState>(
+          cubit: widget.mainScreenBloc,
+          builder: (BuildContext context, MainScreenState state) {
+            List<StudentsDetailsModel> students = [];
+            GlobalCall.globaleStudentList.forEach((element) {
+              bool isContain = false;
+              students.forEach((student) {
+                if (student.firstName == element.firstName && student.lastName == element.lastName) {
+                  isContain = true;
+                }
+              });
+              if (!isContain) {
+                students.add(element);
+              }
+            });
+            return ModalProgressHUD(
+              inAsyncCall: state.isLoading,
+              child: Scaffold(
+                backgroundColor: Colors.grey[100],
+                body: Container(
+                  alignment: Alignment.topCenter,
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
                     children: <Widget>[
-                      FlatButton(
-                        color: Colors.blue,
-                        onPressed: () async {
-                         showDateTimePicker('Start Date');
-                        }, 
-                       
-                        child: isStart ? Text(startDate,style: TextStyle(color:Colors.white)) : Text("Select Start Date",style: TextStyle(color:Colors.white),)
-                        //  Text( startDate == " "?"Select Start Date": startDate,
-                        //  style: TextStyle(color:Colors.white),
-                       // )
-                      ),
-      
-                      FlatButton(
-                        color: Colors.blue,
-                        onPressed: (){
-                          showDateTimePicker('End Date');
-                        }, 
-                        //  child:  Text( "Select End Date",
-                        //  style: TextStyle(color:Colors.white),
-                          child: isEnd ? Text(endDate,style: TextStyle(color:Colors.white)) : Text("Select End Date",style: TextStyle(color:Colors.white),)
-                          //Text(endDate == ""?"Select End Date":endDate ,
-                          //style: TextStyle(color:Colors.white),
-                        //)
-                      )
-                    ],
-                  ) 
-                  :Container(),
-            Text("This Week",
-            style: TextStyle(color:Colors.grey, fontSize:16),
-            ),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(5, 5, 5, 10),
-                height: MediaQuery.of(context).size.height,
-                child: RefreshIndicator(
-                  key: refreshKey,
-                  child:  FutureBuilder<List<ProgressAmountModel>>(
-                  future: progressAmountApi.getProgressAmountList(startDate,endDate),
-                   builder: (BuildContext context ,AsyncSnapshot<List<ProgressAmountModel>> snapshot) {
-                      if (!snapshot.hasData) {
-                        return Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Text("${snapshot.error}");
-                      }
-
-
-                      if(snapshot.data.length > 0){
-                      
-                     return ListView.builder(
-                      itemCount: snapshot.data.length,
-                      itemBuilder: (context, index){
-                        String  mandatedMins = durationToString(snapshot.data[index].mandatedMins);
-                        String  serviceMins = durationToString(snapshot.data[index].serviceMins);
-                        String  mandatedNDMins = durationToString(snapshot.data[index].mandatedNDMins);
-                        String  nDMins = durationToString(snapshot.data[index].nDMins);
-                        
-                        var sessionPercentInString= (int.parse(serviceMins.split(':')[0])/int.parse(mandatedMins.split(':')[0])).toString();
-                        var sessionPercentResultInString =sessionPercentInString.substring(0,3);
-                        var ndPercentInString = (int.parse(nDMins.split(':')[0])/int.parse(mandatedNDMins.split(':')[0])).toString();
-                        var ndPercentResultInString =ndPercentInString.substring(0,3);
-                        print('sessionPercentInString:$sessionPercentResultInString');
-                        print("ndPercentInString:$ndPercentResultInString");
-
-                      return Column(
+                      GlobalCall.filterDates ?
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(10,10,0,5),
-                            alignment: Alignment.topLeft,
-                              height: MediaQuery.of(context).size.height/5.4,
-                              width:  MediaQuery.of(context).size.width,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20)
+                          Flexible(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                Flexible(
+                                  child: Text('Start Date', style: TextStyle(fontSize: 12),),
+                                ),
+                                FlatButton(
+                                  color: Colors.blue,
+                                  onPressed: () async {
+                                    showDateTimePicker('Start Date');
+                                  },
+                                  child: Text(
+                                    startDate,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(left: 16),
+                          ),
+                          Flexible(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: <Widget>[
+                                Flexible(
+                                  child: Text('End Date', style: TextStyle(fontSize: 12),),
+                                ),
+                                FlatButton(
+                                  color: Colors.blue,
+                                  onPressed: (){
+                                  },
+                                  child: Text(
+                                    endDate,
+                                    style: TextStyle(
+                                      color:Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )
+                          :Container(),
+                      SizedBox(height: 8,),
+                      GlobalCall.filterStudents ? Container(
+                        alignment: Alignment.center,
+                        height: 40,
+                        padding: const EdgeInsets.all(5),
+                        color: Colors.white,
+                        child: DropdownButton(
+                          underline: Container(),
+                          hint: GlobalCall.student == null
+                              ? Text("Students")
+                              : Text(
+                            GlobalCall.student,
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          isExpanded: true,
+                          elevation: 5,
+                          icon: Icon(Icons.keyboard_arrow_down),
+                          iconSize: 30.0,
+                          style: TextStyle(color: Colors.black),
+                          items: students.map(
+                                (val) {
+                              return DropdownMenuItem<StudentsDetailsModel>(
+                                value: val,
+                                child: Text(
+                                  val.firstName + " " + val.lastName,
+                                ),
+                              );
+                            },
+                          ).toList(),
+                          onChanged: (val) {
+                            setState(
+                                  () {
+                                dropDownValue =
+                                    val.firstName + " " + val.lastName;
+                                GlobalCall.student = dropDownValue;
+                                studentID = val.id.toString();
+                                print(studentID);
+                              },
+                            );
+                            widget.mainScreenBloc.add(UpdateSortFilterEvent());
+                            widget.mainScreenBloc.add(UpdateFilterProgressEvent());
+                          },
+                        ),
+                      ) : Container(),
+                      Divider(height: 0, thickness: 0.5,),
+                      Text('This Week',
+                        style: TextStyle(color:Colors.grey, fontSize:16),
+                      ),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(5, 5, 5, 10),
+                          child: RefreshIndicator(
+                            key: refreshKey,
+                            child: state.filterProgress.length == 0 ? Center(
+                              child: Text(
+                                'No progress data, please try to change start/end Date',
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Padding(padding: EdgeInsets.fromLTRB(8, 0, 0, 0),
-                                  child:Text('${snapshot.data[index].fname} ${snapshot.data[index].lname}',
-                                  style: TextStyle(fontWeight:FontWeight.bold, fontSize: 16),),),
-                                  Expanded(
+                            ) : ListView.separated(
+                              separatorBuilder: (context, index) {
+                                return Divider(height: 0, thickness: 0.5, color: Colors.transparent,);
+                              },
+                              itemCount: state.filterProgress.length,
+                              itemBuilder: (context, index){
+                                ProgressAmountModel model = state.filterProgress[index];
+
+                                double required = model.required.toDouble();
+                                double completed = model.regCompleted.toDouble();
+                                double percent = required != 0 ? completed / required: 1;
+
+                                double nonRequired = model.reqNonDir.toDouble();
+                                double nonActual = model.actNonDir.toDouble();
+                                double percent1 = nonRequired != 0 ? nonActual / nonRequired: 1;
+                                if (percent1 > 1) {
+                                  percent1 = 1;
+                                }
+                                if (percent > 1) {
+                                  percent = 1;
+                                }
+
+                                return Card(
                                   child: Container(
+                                    padding: EdgeInsets.all(8),
                                     alignment: Alignment.topLeft,
                                     width: MediaQuery.of(context).size.width,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
                                       children: <Widget>[
-                                        
-                                        Container(
-                                          width: MediaQuery.of(context).size.width/2.4,
-                                          height: MediaQuery.of(context).size.height/4.8,
-                                          child: Row(
-                                            children: <Widget>[ 
-                                              new CircularPercentIndicator(
-                                                radius: MediaQuery.of(context).size.width/8,
-                                                lineWidth: 5.5,
-                                                percent:double.parse(sessionPercentResultInString),
-                                                circularStrokeCap: CircularStrokeCap.round,
-                                                center: new Text('$serviceMins',
-                                                  style: TextStyle(fontSize:MediaQuery.of(context).size.height/70.5,
-                                                    color:Colors.grey
-                                                  ),
-                                                ),
-                                                progressColor: double.parse(sessionPercentResultInString)>=0.5?Colors.blue
-                                                :double.parse(sessionPercentResultInString)>=0.3 ?Colors.orange:Colors.red,
-                                              ),
-                                              SizedBox(width:5),
-                                              Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  Text("Sessions",style: TextStyle(fontWeight:FontWeight.bold)),
-                                                    SizedBox(height:5),
-                                                    Text('of ${mandatedMins.split(':')[0]} Hour',
-                                                    style: TextStyle(color:Colors.grey,fontSize: 12),
-                                                    ),
-                                                    SizedBox(height:5),
-                                                    SizedBox(
-                                                      width: MediaQuery.of(context).size.width/3.6,
-                                                      child: FittedBox(
-                                                      
-                                                        child: Text('${int.parse(mandatedMins.split(':')[0])-int.parse(serviceMins.split(':')[0])} Hour Remaining',
-                                                          style: TextStyle(color:Colors.red,
-                                                          fontSize: MediaQuery.of(context).size.height/60
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                ],
-                                              )
-                                            ],
-                                          )
+                                        Text(
+                                          model.student,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 32.sp,
+                                          ),
                                         ),
-                                        //------------non-direct----------------
-                                        Container(
-                                          width: MediaQuery.of(context).size.width/2.4,
-                                          child: Row(
-                                            children: <Widget>[
-                                              new CircularPercentIndicator(
-                                                radius:  MediaQuery.of(context).size.width/8,
-                                                lineWidth: 5.5,
-                                                percent:double.parse(ndPercentResultInString),//ndPercent
-                                                circularStrokeCap: CircularStrokeCap.round,
-                                                center: new Text('$nDMins',
-                                                
-                                                  style: TextStyle(fontSize:MediaQuery.of(context).size.height/70.5,
-                                                    color:Colors.grey
-                                                  ),
+                                        SizedBox(height: 8,),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                'Mandated',
+                                                style: TextStyle(
+                                                  fontSize: 22.sp,
                                                 ),
-                                                progressColor: double.parse(ndPercentResultInString)>=0.5?Colors.blue
-                                                :double.parse(ndPercentResultInString)>=0.3 ?Colors.orange:Colors.red
                                               ),
-                                              SizedBox(width:5),
-                                              Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  Text("Non-Direct",style: TextStyle(fontWeight:FontWeight.bold)),
-                                                  SizedBox(height:5),
-                                                  Text('of ${mandatedNDMins.split(':')[0]} Hour',
-                                                    style: TextStyle(color:Colors.grey,fontSize: 12),
-                                                  ),
-                                                    SizedBox(height:5),
-                                                  SizedBox(
-                                                      width: MediaQuery.of(context).size.width/3.6,
-                                                      child: FittedBox(
-                                                      child: Text('${int.parse(mandatedNDMins.split(':')[0])-int.parse(nDMins.split(':')[0])} Hour Remaining',
-                                                        style: TextStyle(color:Colors.red,
-                                                          fontSize: MediaQuery.of(context).size.height/60
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                'Non-Direct',
+                                                style: TextStyle(
+                                                  fontSize: 22.sp,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 8,),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Flexible(
+                                              flex: 1,
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    child: new CircularPercentIndicator(
+                                                      radius: 64,
+                                                      lineWidth: 5.5,
+                                                      percent: percent,
+                                                      circularStrokeCap: CircularStrokeCap.round,
+                                                      center: new Text(
+                                                        completedString(completed),
+                                                        style: TextStyle(
+                                                          fontSize: 24.sp,
                                                         ),
+                                                      ),
+                                                      progressColor: percent >= 0.5
+                                                          ? Colors.blue
+                                                          : percent >= 0.3 ? Colors.orange : Colors.red,
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 8,),
+                                                  Flexible(
+                                                    child: Text(
+                                                      // remainingRegularString(required, required - completed),
+                                                      requiredString(required),
+                                                      style: TextStyle(
+                                                        fontSize: 24.sp,
                                                       ),
                                                     ),
                                                   ),
                                                 ],
-                                              )
-                                            ],
-                                          )
-                                        )
+                                              ),
+                                            ),
+                                            SizedBox(width: 16,),
+                                            Flexible(
+                                              flex: 1,
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    child: new CircularPercentIndicator(
+                                                      radius: 64,
+                                                      lineWidth: 5.5,
+                                                      percent: percent1,
+                                                      circularStrokeCap: CircularStrokeCap.round,
+                                                      center: new Text(
+                                                        completedString(nonActual),
+                                                        style: TextStyle(
+                                                          fontSize: 24.sp,
+                                                        ),
+                                                      ),
+                                                      progressColor: percent1 >= 0.5
+                                                          ? Colors.blue
+                                                          : percent1 >= 0.3 ? Colors.orange : Colors.red,
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 8,),
+                                                  Flexible(
+                                                    child: Text(
+                                                      // remainingRegularString(nonRequired, nonRequired - nonActual),
+                                                      requiredString(nonRequired),
+                                                      style: TextStyle(
+                                                        fontSize: 24.sp,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   ),
-                                )
-                                ],
-                              ),
+                                );
+                              },
                             ),
-                            SizedBox(height:10)
-                          ],
-                        );
-                      }
-                    );
-
-                   }else{
-
-                     return Center(
-                          child: Text("Haven't found any data"),
-                          );
-                   }
-
-                    
-                  } 
-                
-
-
-                ), onRefresh: refreshList,
+                            onRefresh: refreshList,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
               ),
-              ),
-            )
-          ],
-        ),
+            );
+          }
       ),
     );
   }
 
   Future<Null> refreshList() async {
     refreshKey.currentState?.show(atTop: false);
+    widget.mainScreenBloc.add(RefreshProgressEvent(startDate: startDate, endDate: endDate));
     await Future.delayed(Duration(seconds: 4));
-
-    setState(() {
-
-      progressAmountApi.getProgressAmountList(selectedStartDate,selectedEndDate);
-      print("pull api called");
-      //list = List.generate(random.nextInt(10), (i) => "Item $i");
-    });
-
     return null;
   }
 
   @override
   void initState() {
-    
-    selectedCurrentDate =  new DateTime.now();
-    print("currentDate"+'$selectedCurrentDate');
-    startDate =   DateFormat('MM/dd/yyyy').format(DateTime.now()).toString();
-    print("DateFormat currentDate:::"+'$startDate');
-
-    
-    DateTime today = new DateTime.now();
-    DateTime fiftyDaysAgo = today.subtract(new Duration(days: 7));
-
-     endDate =  DateFormat('MM/dd/yyyy').format(fiftyDaysAgo).toString();
-
-    print("before 7 days::::"+endDate.toString());
 
     setState(() {
+      if (GlobalCall.proStartDate.weekday != 7) {
+        GlobalCall.proStartDate = GlobalCall.proStartDate.subtract(Duration(days: GlobalCall.proStartDate.weekday));
+      }
+      startDate = DateFormat('MM/dd/yyyy').format(GlobalCall.proStartDate).toString();
 
-     isStart =  false ;
-     isEnd  = false ;
-
-      
+      GlobalCall.proEndDate = GlobalCall.proStartDate.add(new Duration(days: 6));
+      endDate =  DateFormat('MM/dd/yyyy').format(GlobalCall.proEndDate).toString();
     });
-
-   
-
-   
+    widget.mainScreenBloc.add(GetProgressEvent(startDate: startDate, endDate: endDate));
     super.initState();
   }
- 
+
+  String hmMaker(String value) {
+    double direct = double.parse(value) * 60;
+
+    return discrepString(direct);
+  }
+
+  String discrepString(num value) {
+    int doubleV = value.toInt();
+    if (doubleV < 0) {
+      return '0 hour';
+      // return sprintf('%i:%02i', [0, 0]);
+    } else {
+      int h = doubleV ~/ 60;
+      int m = doubleV % 60;
+      if (h == 0) {
+        return sprintf('%i:%02i', [h, m]);
+      } else if (m == 0) {
+        return sprintf('%i:%02i', [h, m]);
+      } else{
+        return sprintf('%i:%02i', [h, m]);
+      }
+    }
+  }
+
+  String completedString(double completed) {
+    double d = completed;
+    int h = d.toInt() ~/ 60;
+    int m = d.toInt() % 60;
+
+    if (h == 0) {
+      return '$m mins';
+    } else if (m == 0) {
+      return '$h hours';
+    } else {
+      return '$h hours \n$m mins';
+    }
+  }
+
+  String requiredString(double completed) {
+    double d = completed;
+    int h = d.toInt() ~/ 60;
+    int m = d.toInt() % 60;
+
+    if (h == 0) {
+      return '$m mins\nmandated';
+    } else if (m == 0) {
+      return '$h hours\nmandated';
+    } else {
+      return '$h hours \n$m mins\nmandated';
+    }
+  }
+
+  String remainingRegularString(double req, double rem) {
+    int h = req.toInt() ~/ 60;
+    int m = req.toInt() % 60;
+
+    int h1 = rem.toInt() ~/ 60;
+    int m1 = rem.toInt() % 60;
+
+    if (rem < 0) {
+      if (h == 0) {
+        return '0 of $m mins remaining';
+      } else if (m == 0) {
+        return '0 of $h hours remaining';
+      } else {
+        return '0 of $h hours \n$m mins remaining';
+      }
+    }
+    if (h == 0 && h1 == 0) {
+      return '$m1 of $m mins remaining';
+    } else if (m == 0 && m1 == 0) {
+      return '$h1 of $h hours remaining';
+    } else {
+      String reqString = '';
+      if (h == 0) {
+        reqString = '$m mins';
+      } else if (m == 0) {
+        reqString = '$h hours';
+      } else {
+        reqString = '$h hours $m mins';
+      }
+      String remString = '';
+      if (h1 == 0) {
+        remString = '$m1 mins';
+      } else if (m1 == 0) {
+        remString = '$h1 hours';
+      } else {
+        remString = '$h1 hours $m1 mins';
+      }
+      return '$remString \n of $reqString remaining';
+    }
+  }
+
 }
