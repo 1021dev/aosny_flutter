@@ -596,9 +596,9 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
                 if (sessionNotesExtras.length > 0) {
                   sessionNotesExtras.forEach((element) {
                     if (element.sNECategoryID == GlobalCall.outcomes.categoryData[0].mainCategoryID) {
-                      if (element.sNESubDetailID == data.categoryTextID && element.sNECategoryDetailID == goals[1].longGoalID) {
-                        temp = data;
-                      }
+                      // if (element.sNESubDetailID == data.categoryTextID && element.sNECategoryDetailID == goals[1].longGoalID) {
+                      //   temp = data;
+                      // }
                     }
                   });
                 }
@@ -960,46 +960,31 @@ class SessionNoteScreenBloc extends Bloc<SessionNoteScreenEvent, SessionNoteScre
           String startTimeString = element.startTime;
           DateTime startDate = formatDate.parse(startTimeString);
           DateTime endDate = startDate.add(Duration(minutes: element.dur));
-          if (element.sessionType == sessionTypesForState()[sessionTypesForState().length - 4] || element.sessionType == sessionTypesForState()[sessionTypesForState().length - 2]) {
-          } else {
-            if (currentDate.isAfter(startDate) && currentDate.isBefore(endDate)) {
-              isConflict = true;
-              return;
-            } else if (currentEndDate.isAfter(startDate) && currentEndDate.isBefore(endDate)) {
-              isConflict = true;
-              return;
-            } else if (currentDate.isBefore(startDate) && currentEndDate.isAfter(endDate)) {
-              isConflict = true;
-              return;
-            } else if (currentDate.isAtSameMomentAs(startDate) && currentEndDate.isAtSameMomentAs(endDate)) {
-              isConflict = true;
-              return;
+          print('duration => ${element.dur}');
+          if (state.sessionType != null) {
+            if (state.sessionType == 'Service Provided' || state.sessionType == 'Service provided - Make-up') {
+              if (element.sessionType == 'Student Absent' || element.sessionType == 'Student Unavailable') {
+                return;
+              }
+            }
+            if (state.sessionType == 'Student Absent' || state.sessionType == 'Student Unavailable') {
+              if (element.sessionType == 'Service Provided' || element.sessionType == 'Service provided - Make-up') {
+                return;
+              }
             }
           }
-        }
-      });
-      List<HistoryModel> sessionsOnDay = state.sessionOnDay;
-      sessionsOnDay.forEach((element) {
-        if (element.iD != state.sessionId) {
-          final formatDate = DateFormat('yyyy-MM-ddThh:mm:ss');
-          String startTimeString = element.starttime;
-          DateTime startDate = formatDate.parse(startTimeString);
-          DateTime endDate = startDate.add(Duration(minutes: element.nmin));
-          if (element.sessionType == sessionTypesForState()[sessionTypesForState().length - 4] || element.sessionType == sessionTypesForState()[sessionTypesForState().length - 2]) {
-          } else {
-            if (currentDate.isAfter(startDate) && currentDate.isBefore(endDate)) {
-              isConflict = true;
-              return;
-            } else if (currentEndDate.isAfter(startDate) && currentEndDate.isBefore(endDate)) {
-              isConflict = true;
-              return;
-            } else if (currentDate.isBefore(startDate) && currentEndDate.isAfter(endDate)) {
-              isConflict = true;
-              return;
-            } else if (currentDate.isAtSameMomentAs(startDate) && currentEndDate.isAtSameMomentAs(endDate)) {
-              isConflict = true;
-              return;
-            }
+          if (currentDate.isAfter(startDate) && currentDate.isBefore(endDate)) {
+            isConflict = true;
+            return;
+          } else if (currentEndDate.isAfter(startDate) && currentEndDate.isBefore(endDate)) {
+            isConflict = true;
+            return;
+          } else if (currentDate.isBefore(startDate) && currentEndDate.isAfter(endDate)) {
+            isConflict = true;
+            return;
+          } else if (currentDate.isAtSameMomentAs(startDate) && currentEndDate.isAtSameMomentAs(endDate)) {
+            isConflict = true;
+            return;
           }
         }
       });
