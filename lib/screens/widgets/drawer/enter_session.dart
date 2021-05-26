@@ -30,7 +30,7 @@ class _EnterSessionState extends State<EnterSession>
   void initState() {
     super.initState();
     _animationController =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+        AnimationController(duration: Duration(milliseconds: 300));
   }
 
   @override
